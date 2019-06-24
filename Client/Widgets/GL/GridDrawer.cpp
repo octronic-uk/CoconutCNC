@@ -49,6 +49,11 @@ namespace Coconut
         return true;
     }
 
+    void GridDrawer::Update()
+    {
+
+    }
+
     void
     GridDrawer::InitMajorGridData
     ()
@@ -73,19 +78,19 @@ namespace Coconut
                     posEnd.Position   = vec3( axis, 0.0f, halfSize);
                     negStart.Position = vec3(-axis, 0.0f,-halfSize);
                     negEnd.Position   = vec3(-axis, 0.0f, halfSize);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Z
                     posStart.Position = vec3(-halfSize, 0.0f, axis);
                     posEnd.Position   = vec3( halfSize, 0.0f, axis);
                     negStart.Position = vec3(-halfSize, 0.0f,-axis);
                     negEnd.Position   = vec3( halfSize, 0.0f,-axis);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
                 case YZ:
                     // Y
@@ -93,19 +98,19 @@ namespace Coconut
                     posEnd.Position   = vec3(0.0f, axis, halfSize);
                     negStart.Position = vec3(0.0f,-axis,-halfSize);
                     negEnd.Position   = vec3(0.0f,-axis, halfSize);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Z
                     posStart.Position = vec3(0.0f,-halfSize, axis);
                     posEnd.Position   = vec3(0.0f, halfSize, axis);
                     negStart.Position = vec3(0.0f,-halfSize,-axis);
                     negEnd.Position   = vec3(0.0f, halfSize,-axis);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
                 case XY:
                     // X
@@ -113,19 +118,19 @@ namespace Coconut
                     posEnd.Position   = vec3( axis, halfSize, 0.0f);
                     negStart.Position = vec3(-axis,-halfSize, 0.0f);
                     negEnd.Position   = vec3(-axis, halfSize, 0.0f);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Y
                     posStart.Position = vec3(-halfSize, axis, 0.0f);
                     posEnd.Position   = vec3( halfSize, axis, 0.0f);
                     negStart.Position = vec3(-halfSize,-axis, 0.0f);
                     negEnd.Position   = vec3( halfSize,-axis, 0.0f);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
             }
         }
@@ -155,19 +160,19 @@ namespace Coconut
                     posEnd.Position   = vec3( axis, 0.0f, halfSize);
                     negStart.Position = vec3(-axis, 0.0f,-halfSize);
                     negEnd.Position   = vec3(-axis, 0.0f, halfSize);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Z
                     posStart.Position = vec3(-halfSize, 0.0f, axis);
                     posEnd.Position   = vec3( halfSize, 0.0f, axis);
                     negStart.Position = vec3(-halfSize, 0.0f,-axis);
                     negEnd.Position   = vec3( halfSize, 0.0f,-axis);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
                 case YZ:
                     // Y
@@ -175,19 +180,19 @@ namespace Coconut
                     posEnd.Position   = vec3(0.0f, axis, halfSize);
                     negStart.Position = vec3(0.0f,-axis,-halfSize);
                     negEnd.Position   = vec3(0.0f,-axis, halfSize);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Z
                     posStart.Position = vec3(0.0f,-halfSize, axis);
                     posEnd.Position   = vec3(0.0f, halfSize, axis);
                     negStart.Position = vec3(0.0f,-halfSize,-axis);
                     negEnd.Position   = vec3(0.0f, halfSize,-axis);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
                 case XY:
                     // X
@@ -195,19 +200,19 @@ namespace Coconut
                     posEnd.Position   = vec3( axis, halfSize, 0.0f);
                     negStart.Position = vec3(-axis,-halfSize, 0.0f);
                     negEnd.Position   = vec3(-axis, halfSize, 0.0f);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     // Y
                     posStart.Position = vec3(-halfSize, axis, 0.0f);
                     posEnd.Position   = vec3( halfSize, axis, 0.0f);
                     negStart.Position = vec3(-halfSize,-axis, 0.0f);
                     negEnd.Position   = vec3( halfSize,-axis, 0.0f);
-                    AddVertex(posStart);
-                    AddVertex(posEnd);
-                    AddVertex(negStart);
-                    AddVertex(negEnd);
+                    AddLineVertex(posStart);
+                    AddLineVertex(posEnd);
+                    AddLineVertex(negStart);
+                    AddLineVertex(negEnd);
                     break;
             }
         }
@@ -225,24 +230,24 @@ namespace Coconut
         xStart.Color = red;
         xEnd.Position = vec3(mSize/2,0,0);
         xEnd.Color = red;
-        AddVertex(xStart);
-        AddVertex(xEnd);
+        AddLineVertex(xStart);
+        AddLineVertex(xEnd);
 
         GLWidgetVertex yStart, yEnd;
         yStart.Position = vec3(0);
         yStart.Color = green;
         yEnd.Position = vec3(0,mSize/2,0);
         yEnd.Color = green;
-        AddVertex(yStart);
-        AddVertex(yEnd);
+        AddLineVertex(yStart);
+        AddLineVertex(yEnd);
 
         GLWidgetVertex zStart, zEnd;
         zStart.Position = vec3(0);
         zStart.Color = blue;
         zEnd.Position = vec3(0,0,mSize/2);
         zEnd.Color = blue;
-        AddVertex(zStart);
-        AddVertex(zEnd);
+        AddLineVertex(zStart);
+        AddLineVertex(zEnd);
 
         GLWidgetVertex ax1HomeStart, ax1HomeEnd, ax2HomeStart, ax2HomeEnd;
         ax1HomeStart.Color = mMajorColour;
@@ -273,10 +278,10 @@ namespace Coconut
 
         }
 
-        AddVertex(ax1HomeStart);
-        AddVertex(ax1HomeEnd);
-        AddVertex(ax2HomeStart);
-        AddVertex(ax2HomeEnd);
+        AddLineVertex(ax1HomeStart);
+        AddLineVertex(ax1HomeEnd);
+        AddLineVertex(ax2HomeStart);
+        AddLineVertex(ax2HomeEnd);
     }
 
     GridDrawer::AxisPair GridDrawer::GetAxisPair() const
@@ -361,17 +366,11 @@ namespace Coconut
     void GridDrawer::RecalculateGridLines()
     {
         debug("Grid: {}",__FUNCTION__);
-        mVertexBuffer.clear();
+        mLineVertexBuffer.clear();
+        ClearLineVertexBuffer();
         InitAxisLines();
         InitMajorGridData();
         InitMinorGridData();
-
-        // Vertex Array
-        glBindVertexArray(mVao);
-        glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-        glBufferData(GL_ARRAY_BUFFER,
-        	static_cast<GLint>(mVertexBuffer.size() * sizeof(GLWidgetVertex)),
-        	&mVertexBuffer[0], GL_STATIC_DRAW);
-        glBindVertexArray(0);
+        SubmitLineVertexBuffer();
     }
 }

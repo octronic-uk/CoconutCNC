@@ -1,5 +1,5 @@
 #include "AppState.h"
-#include "Logger.h"
+#include "Common/Logger.h"
 
 namespace Coconut
 {
@@ -8,13 +8,20 @@ namespace Coconut
         mArgc(argc),
     	mArgv(argv),
       	mWindow(Window(this)),
+        // Models
+        mSettingsModel(SettingsModel(this)),
+        // ImGui Widgets
         mConsoleWindow(ConsoleWindow(this)),
         mControlWindow(ControlWindow(this)),
+        mGCodeTableWindow(GCodeTableWindow(this)),
         mJogWindow(JogWindow(this)),
         mMenuBar(MenuBar(this)),
         mOverridesWindow(OverridesWindow(this)),
+        mSettingsWindow(SettingsWindow(this)),
         mStateWindow(StateWindow(this)),
-        mGrid(GridDrawer(this))
+		// GL Widgets
+        mGridDrawer(GridDrawer(this)),
+        mToolDrawer(ToolDrawer(this))
 	{
 		debug("AppState: Constructor");
     }
@@ -33,9 +40,11 @@ namespace Coconut
 		debug("AppState: CreateImGuiWidgets");
         mWindow.AddImGuiWidget(&mConsoleWindow);
         mWindow.AddImGuiWidget(&mControlWindow);
+        mWindow.AddImGuiWidget(&mGCodeTableWindow);
         mWindow.AddImGuiWidget(&mJogWindow);
         mWindow.AddImGuiWidget(&mMenuBar);
         mWindow.AddImGuiWidget(&mOverridesWindow);
+        mWindow.AddImGuiWidget(&mSettingsWindow);
         mWindow.AddImGuiWidget(&mStateWindow);
         return true;
     }
@@ -43,9 +52,19 @@ namespace Coconut
     bool AppState::CreateGLWidgets()
     {
 		debug("AppState: CreateGLWidgets");
-        if (!mGrid.Init()) return false;
-        mWindow.AddGLWidget(&mGrid);
+
+        if (!mGridDrawer.Init()) return false;
+        mWindow.AddGLWidget(&mGridDrawer);
+
+        if(!mToolDrawer.Init()) return false;
+        mWindow.AddGLWidget(&mToolDrawer);
+
         return true;
+    }
+
+    SettingsModel* AppState::GetSettingsModel()
+    {
+        return &mSettingsModel;
     }
 
     bool AppState::GetLooping() const

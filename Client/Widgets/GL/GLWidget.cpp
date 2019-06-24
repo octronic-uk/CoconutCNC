@@ -14,8 +14,10 @@ namespace Coconut
     GLWidget::GLWidget(AppState* project, string name, bool visible)
         : Widget (project, name, visible),
           mModelMatrix(mat4(1.0f)),
-          mVao(0),
-          mVbo(0),
+          mLineVao(0),
+          mLineVbo(0),
+          mTriangleVao(0),
+          mTriangleVbo(0),
           mShaderProgram(0)
     {
         debug("GLWidget: Constructor");
@@ -31,7 +33,12 @@ namespace Coconut
             return false;
         }
 
-        if (!InitVaoVbo())
+        if (!InitLineBuffers())
+        {
+            return false;
+        }
+
+        if (!InitTriangleBuffers())
         {
             return false;
         }
@@ -43,14 +50,24 @@ namespace Coconut
     {
         debug("GLWidget: Destructor");
 
-        if (mVao > 0)
+        if (mLineVao > 0)
         {
-            glDeleteVertexArrays(1,&mVao);
+            glDeleteVertexArrays(1,&mLineVao);
         }
 
-        if (mVbo > 0)
+        if (mLineVbo > 0)
         {
-            glDeleteBuffers(1,&mVbo);
+            glDeleteBuffers(1,&mLineVbo);
+        }
+
+        if (mTriangleVao > 0)
+        {
+            glDeleteVertexArrays(1,&mTriangleVao);
+        }
+
+        if (mTriangleVbo > 0)
+        {
+            glDeleteBuffers(1,&mTriangleVbo);
         }
 
         if (mShaderProgram > 0)
@@ -60,27 +77,27 @@ namespace Coconut
         GLCheckError();
     }
 
-    bool GLWidget::InitVaoVbo()
+    bool GLWidget::InitTriangleBuffers()
     {
         debug("GLWidget: {}", __FUNCTION__);
 
         // VAO
-        glGenVertexArrays(1,&mVao);
-        if (mVao < 0)
+        glGenVertexArrays(1,&mTriangleVao);
+        if (mTriangleVao < 0)
         {
-            error("GLWidget: Error creating VAO");
+            error("GLWidget: Error creating Triangle VAO");
             return false;
         }
-        glBindVertexArray(mVao);
+        glBindVertexArray(mTriangleVao);
 
         // VBO
-        glGenBuffers(1,&mVbo);
-        if (mVbo < 0)
+        glGenBuffers(1,&mTriangleVbo);
+        if (mTriangleVbo < 0)
         {
-            error("GLWidget: Error creating VBO");
+            error("GLWidget: Error creating Triangle VBO");
             return false;
         }
-        glBindBuffer(GL_ARRAY_BUFFER,mVbo);
+        glBindBuffer(GL_ARRAY_BUFFER,mTriangleVbo);
 
         // Vertex Position Attributes
         glVertexAttribPointer(
@@ -103,14 +120,69 @@ namespace Coconut
         glBindVertexArray(0);
 
         //  Final Check
-        if (mVao != -1 && mVbo != -1)
+        if (mTriangleVao != -1 && mTriangleVbo != -1)
         {
-            debug("GLWidget: Shader Init Successful");
+            debug("GLWidget: Triangle VAO/VBO Init Successful");
             return true;
         }
         else
         {
-           error("GLWidget: VAO/VBO Error VAO:{} VBO:{}",mVao,mVbo);
+           error("GLWidget: Triangle VAO/VBO Error VAO:{} VBO:{}",mTriangleVao,mTriangleVbo);
+        }
+        return false;
+    }
+
+    bool GLWidget::InitLineBuffers()
+    {
+        debug("GLWidget: {}", __FUNCTION__);
+
+        // VAO
+        glGenVertexArrays(1,&mLineVao);
+        if (mLineVao < 0)
+        {
+            error("GLWidget: Error creating Line VAO");
+            return false;
+        }
+        glBindVertexArray(mLineVao);
+
+        // VBO
+        glGenBuffers(1,&mLineVbo);
+        if (mLineVbo < 0)
+        {
+            error("GLWidget: Error creating Line VBO");
+            return false;
+        }
+        glBindBuffer(GL_ARRAY_BUFFER,mLineVbo);
+
+        // Vertex Position Attributes
+        glVertexAttribPointer(
+            0, 3, GL_FLOAT, GL_FALSE,
+            static_cast<GLint>(sizeof(GLWidgetVertex)),
+            static_cast<GLvoid*>(0)
+        );
+        glEnableVertexAttribArray(0);
+
+        // Vertex Color Attributes
+        glVertexAttribPointer(
+            1, 3, GL_FLOAT, GL_FALSE,
+            static_cast<GLint>(sizeof(GLWidgetVertex)),
+            (GLvoid*)(sizeof(float)*3)
+        );
+        glEnableVertexAttribArray(1);
+
+        GLCheckError();
+
+        glBindVertexArray(0);
+
+        //  Final Check
+        if (mLineVao != -1 && mLineVbo != -1)
+        {
+            debug("GLWidget: Line VAO/VBO Init Successful");
+            return true;
+        }
+        else
+        {
+           error("GLWidget: Line VAO/VBO Error VAO:{} VBO:{}",mLineVao,mLineVbo);
         }
         return false;
     }
@@ -134,54 +206,73 @@ namespace Coconut
     void GLWidget::Draw()
     {
         debug("GLWidget: {}", __FUNCTION__);
+
+        // Enable shader program
+		glUseProgram(mShaderProgram);
+		GLCheckError();
+
+        // Set the projection matrix
+		if (mModelUniform == -1)
+		{
+			error("GLWidget: ModelUniform not found in ShaderProgram");
+			return;
+		}
+		else
+		{
+			glUniformMatrix4fv(mModelUniform, 1, GL_FALSE, glm::value_ptr(mModelMatrix));
+			GLCheckError();
+		}
+		// Set the view matrix
+		if (mViewUniform == -1)
+		{
+			error("GLWidget: ViewUniform not found in ShaderProgram");
+			return;
+		}
+		else
+		{
+			glUniformMatrix4fv(mViewUniform, 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+			GLCheckError();
+		}
+		// Set the projection matrix
+		if (mProjectionUniform == -1)
+		{
+			error("GLWidget: ProjectionUniform not found in ShaderProgram");
+			return;
+		}
+		else
+		{
+			glUniformMatrix4fv(mProjectionUniform, 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+			GLCheckError();
+		}
+
         // set proj/view matricies here
-        if (!mVertexBuffer.empty())
+        if (!mLineVertexBuffer.empty())
         {
-            // Enable shader program
-            glUseProgram(mShaderProgram);
-        	GLCheckError();
-
             // Vertex Array
-            glBindVertexArray(mVao);
+            glBindVertexArray(mLineVao);
         	GLCheckError();
 
-            //glBindBuffer(GL_ARRAY_BUFFER, mVbo);
-            // Set the projection matrix
-            if (mModelUniform == -1)
-            {
-                error("GLWidget: ModelUniform not found in ShaderProgram");
-                return;
-            }
-            else
-            {
-                glUniformMatrix4fv(mModelUniform, 1, GL_FALSE, glm::value_ptr(mModelMatrix));
-        		GLCheckError();
-            }
-			// Set the view matrix
-            if (mViewUniform == -1)
-            {
-                error("GLWidget: ViewUniform not found in ShaderProgram");
-                return;
-            }
-            else
-            {
-                glUniformMatrix4fv(mViewUniform, 1, GL_FALSE, glm::value_ptr(ViewMatrix));
-        		GLCheckError();
-            }
-            // Set the projection matrix
-            if (mProjectionUniform == -1)
-            {
-                error("GLWidget: ProjectionUniform not found in ShaderProgram");
-                return;
-            }
-            else
-            {
-                glUniformMatrix4fv(mProjectionUniform, 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
-        		GLCheckError();
-            }
             // Draw
-            debug("GLWidget: Drawing {} lines",mVertexBuffer.size()/2);
-            glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mVertexBuffer.size()));
+            GLuint sz = mLineVertexBuffer.size();
+            debug("GLWidget: Drawing {} lines", sz/2);
+            glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(sz));
+        	GLCheckError();
+
+            glBindVertexArray(0);
+        	GLCheckError();
+        }
+
+        // set proj/view matricies here
+        if (!mTriangleVertexBuffer.empty())
+        {
+            // Vertex Array
+            glBindVertexArray(mTriangleVao);
+        	GLCheckError();
+
+            // Draw
+            GLuint sz = mTriangleVertexBuffer.size();
+            debug("GLWidget: Drawing {} lines", sz/3);
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(sz));
         	GLCheckError();
 
             glBindVertexArray(0);
@@ -310,8 +401,45 @@ namespace Coconut
         ProjectionMatrix = projection;
     }
 
-    void GLWidget::AddVertex(const GLWidgetVertex& lv)
+    void GLWidget::AddLineVertex(const GLWidgetVertex& lv)
     {
-        mVertexBuffer.push_back(lv);
+        mLineVertexBuffer.push_back(lv);
+    }
+
+    void GLWidget::AddTriangleVertex(const GLWidgetVertex& lv)
+    {
+        mTriangleVertexBuffer.push_back(lv);
+    }
+
+    void GLWidget::ClearLineVertexBuffer()
+    {
+       mLineVertexBuffer.clear();
+    }
+
+	void GLWidget::ClearTriangleVertexBuffer()
+    {
+       mTriangleVertexBuffer.clear();
+    }
+
+	void GLWidget::SubmitLineVertexBuffer()
+    {
+        // Vertex Array
+        glBindVertexArray(mLineVao);
+        glBindBuffer(GL_ARRAY_BUFFER, mLineVbo);
+        glBufferData(GL_ARRAY_BUFFER,
+        	static_cast<GLint>(mLineVertexBuffer.size() * sizeof(GLWidgetVertex)),
+        	&mLineVertexBuffer[0], GL_STATIC_DRAW);
+        glBindVertexArray(0);
+    }
+
+	void GLWidget::SubmitTriangleVertexBuffer()
+    {
+        // Vertex Array
+        glBindVertexArray(mTriangleVao);
+        glBindBuffer(GL_ARRAY_BUFFER, mTriangleVbo);
+        glBufferData(GL_ARRAY_BUFFER,
+        	static_cast<GLint>(mTriangleVertexBuffer.size() * sizeof(GLWidgetVertex)),
+        	&mTriangleVertexBuffer[0], GL_STATIC_DRAW);
+        glBindVertexArray(0);
     }
 }

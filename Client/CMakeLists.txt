@@ -9,7 +9,7 @@ find_package(GLEW     REQUIRED)
 find_package(glfw3    REQUIRED)
 find_package(OpenGL   REQUIRED)
 find_package(spdlog   CONFIG REQUIRED)
-
+find_package(nlohmann_json REQUIRED)
 
 
 add_executable (
@@ -24,6 +24,7 @@ if (WIN32)
     ${glfw3_INCLUDE_DIR}
     ${OpenGL_INCLUDE_DIR}
     ${spdlog_INCLUDE_DIR}
+	${nlohmann_json_INCLUDE_DIR}
     "${PROJECT_SOURCE_DIR}/Deps/ImGui"
     "${PROJECT_SOURCE_DIR}/Deps/ImFileSystem"
 )
@@ -44,6 +45,7 @@ elseif (UNIX AND NOT APPLE)
 		${glfw3_INCLUDE_DIR}
 		${OpenGL_INCLUDE_DIR}
 		${spdlog_INCLUDE_DIR}
+	    ${nlohmann_json_INCLUDE_DIR}
 		"${PROJECT_SOURCE_DIR}/Deps/ImGui"
 		"${PROJECT_SOURCE_DIR}/Deps/ImFileSystem"
 	)

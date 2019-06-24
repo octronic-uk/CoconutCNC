@@ -6,6 +6,7 @@
 // Copyright 2015-2016 Hayrullin Denis Ravilevich
 
 #include "PointSegment.h"
+#include "../../Logger.h"
 
 namespace Coconut
 {
@@ -22,7 +23,7 @@ namespace Coconut
 		mSpindleSpeed(0),
 		mDwell(0),
 		mPlane(XY),
-		mPoint(vec3(0.0)
+		mPoint(vec3(0.0))
 	{
 	//    qDebug() << "PointSegment: Constructor";
 	}
@@ -39,7 +40,7 @@ namespace Coconut
 		  mIsAbsolute(ps.isAbsolute()),
 		  mLineNumber(ps.mLineNumber)
 	{
-	//    qDebug() << "PointSegment: Copy Constructor, isZMovement" << mIsZMovement;
+	    debug("PointSegment: Copy Constructor, isZMovement {}" ,mIsZMovement);
 		if (isArc())
 		{
 			//qDebug() << "PointSegment: isArc";
@@ -50,27 +51,27 @@ namespace Coconut
 		}
 	}
 
-	PointSegment::PointSegment(GCodeCommand* parent, const QVector3D &b, int num)
+	PointSegment::PointSegment(GCodeCommand* parent, const vec3 &b, int num)
 		: PointSegment(parent)
 
 	{
-	//    qDebug() << "PointSegment: QVector3D Constructor, " << b << num;
-		mPoint = QSharedPointer<QVector3D>::create(b);
+	    debug("PointSegment: vec3 Constructor, {} {} {} / {}" , b.x, b.y, b.z,  num);
+		mPoint = vec3(b);
 		mLineNumber = num;
 	}
 
 	PointSegment::PointSegment
 	(
 		GCodeCommand* parent,
-		const QVector3D &point,
+		const vec3 &point,
 		int num,
-		const QVector3D &center,
+		const vec3 &center,
 		double radius,
 		bool clockwise
 	) : PointSegment(parent, point, num)
 	{
 		mIsArc = true;
-		mArcProperties.center = QVector3D(center);
+		mArcProperties.center = vec3(center);
 		mArcProperties.radius = radius;
 		mArcProperties.isClockwise = clockwise;
 	}
@@ -79,16 +80,16 @@ namespace Coconut
 	{
 	}
 
-	QVector3D* PointSegment::getPointHandle()
+	vec3* PointSegment::getPoint()
 	{
-		return mPoint.data();
+		return &mPoint;
 	}
 
-	QVector<double> PointSegment::points() const
+	vector<double> PointSegment::points() const
 	{
-		QVector<double> points;
-		points.append(mPoint->x());
-		points.append(mPoint->y());
+		vector<double> points;
+		points.push_back(mPoint.x);
+		points.push_back(mPoint.y);
 		return points;
 	}
 
@@ -164,22 +165,22 @@ namespace Coconut
 
 	// Arc properties.
 
-	void PointSegment::setArcCenter(const QVector3D& center)
+	void PointSegment::setArcCenter(const vec3& center)
 	{
-		mArcProperties.center = QVector3D(center);
+		mArcProperties.center = vec3(center);
 		setIsArc(true);
 	}
 
-	QVector<double> PointSegment::centerPoints() const
+	vector<double> PointSegment::centerPoints() const
 	{
-		QVector<double> points;
-		points.append(mArcProperties.center.x());
-		points.append(mArcProperties.center.y());
-		points.append(mArcProperties.center.z());
+		vector<double> points;
+		points.push_back(mArcProperties.center.x);
+		points.push_back(mArcProperties.center.y);
+		points.push_back(mArcProperties.center.z);
 		return points;
 	}
 
-	QVector3D PointSegment::center() const
+	vec3 PointSegment::center() const
 	{
 		return mArcProperties.center;
 	}
@@ -212,15 +213,15 @@ namespace Coconut
 		}
 
 		mIsMetric = true;
-		mPoint->setX(mPoint->x() * 25.4);
-		mPoint->setY(mPoint->y() * 25.4);
-		mPoint->setZ(mPoint->z() * 25.4);
+		mPoint.x = mPoint.x * 25.4;
+		mPoint.y = mPoint.y * 25.4;
+		mPoint.z = mPoint.z * 25.4;
 
 		if (mIsArc)
 		{
-			mArcProperties.center.setX(mArcProperties.center.x() * 25.4);
-			mArcProperties.center.setY(mArcProperties.center.y() * 25.4);
-			mArcProperties.center.setZ(mArcProperties.center.z() * 25.4);
+			mArcProperties.center.x = mArcProperties.center.x * 25.4;
+			mArcProperties.center.y = mArcProperties.center.y * 25.4;
+			mArcProperties.center.z = mArcProperties.center.z * 25.4;
 			mArcProperties.radius *= 25.4;
 		}
 	}

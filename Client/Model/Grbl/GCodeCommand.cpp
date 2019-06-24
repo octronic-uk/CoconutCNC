@@ -17,7 +17,7 @@
  */
 
 #include "GCodeCommand.h"
-#include "Util.h"
+#include "../../Common/Util.h"
 #include <sstream>
 #include <iomanip>
 #include <cctype>

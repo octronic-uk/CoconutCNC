@@ -2,14 +2,22 @@
 
 #include "Window.h"
 
+// Models
+#include "Model/Settings/SettingsModel.h"
+
+// ImGui Widgets
 #include "Widgets/ImGui/ConsoleWindow.h"
 #include "Widgets/ImGui/ControlWindow.h"
+#include "Widgets/ImGui/GCodeTableWindow.h"
 #include "Widgets/ImGui/JogWindow.h"
 #include "Widgets/ImGui/MenuBar.h"
 #include "Widgets/ImGui/OverridesWindow.h"
+#include "Widgets/ImGui/SettingsWindow.h"
 #include "Widgets/ImGui/StateWindow.h"
 
+// GL Widgets
 #include "Widgets/GL/GridDrawer.h"
+#include "Widgets/GL/ToolDrawer.h"
 
 namespace Coconut
 {
@@ -28,6 +36,8 @@ namespace Coconut
 
         Window* GetWindow();
 
+        SettingsModel* GetSettingsModel();
+
     protected:
         bool CreateImGuiWidgets();
         bool CreateGLWidgets();
@@ -37,14 +47,19 @@ namespace Coconut
         int mArgc;
         char** mArgv;
         Window mWindow;
+        // Model
+        SettingsModel mSettingsModel;
         // ImGui Widgets
         ConsoleWindow mConsoleWindow;
         ControlWindow mControlWindow;
+		GCodeTableWindow mGCodeTableWindow;
         JogWindow mJogWindow;
         MenuBar mMenuBar;
         OverridesWindow mOverridesWindow;
+        SettingsWindow mSettingsWindow;
         StateWindow mStateWindow;
         // GL Widgets
-        GridDrawer mGrid;
+        GridDrawer mGridDrawer;
+        ToolDrawer mToolDrawer;
 	};
 }

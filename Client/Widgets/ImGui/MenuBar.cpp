@@ -8,9 +8,11 @@ namespace Coconut
 {
     MenuBar::MenuBar(AppState* state)
         : ImGuiWidget(state, "Menu Bar"),
-        mOpenButtonClicked(false),
-        mQuitButtonClicked(false),
-        mCloseButtonClicked(false)
+          mFileSettingsClicked(false),
+        mFileOpenClicked(false),
+        mFileQuitClicked(false),
+        mFileCloseClicked(false)
+
     {
 
     }
@@ -28,32 +30,24 @@ namespace Coconut
             DrawViewMenu();
             DrawWizardsMenu();
             DrawLoggingMenu();
+
             ImGui::EndMainMenuBar();
         }
 
-        // Handle File Menu Actions
-		if (mOpenButtonClicked)
-		{
-			FileOpenAction();
-		}
-        else if (mCloseButtonClicked)
-        {
-			FileCloseAction();
-        }
-        else if (mQuitButtonClicked)
-		{
-            FileQuitAction();
-		}
+        HandleFileMenuActions();
+        HandleWizardMenuActions();
     }
 
     void MenuBar::DrawFileMenu()
     {
         if (ImGui::BeginMenu("File"))
 		{
-			mOpenButtonClicked = ImGui::MenuItem("Open...");
-			mCloseButtonClicked = ImGui::MenuItem("Close File");
+			mFileOpenClicked = ImGui::MenuItem("Open...");
+			mFileCloseClicked = ImGui::MenuItem("Close File");
             ImGui::Separator();
-			mQuitButtonClicked = ImGui::MenuItem("Quit");
+            mFileSettingsClicked = ImGui::MenuItem("Settings");
+            ImGui::Separator();
+			mFileQuitClicked = ImGui::MenuItem("Quit");
 			ImGui::EndMenu();
 		}
     }
@@ -64,7 +58,10 @@ namespace Coconut
         {
 			for (ImGuiWidget* widget : mAppState->GetWindow()->GetImGuiWidgetsVector())
 			{
-				ImGui::Checkbox(widget->GetName().c_str(),widget->VisiblePointer());
+                if (widget != this)
+                {
+					ImGui::Checkbox(widget->GetName().c_str(),widget->VisiblePointer());
+                }
 			}
             ImGui::EndMenu();
         }
@@ -115,18 +112,51 @@ namespace Coconut
     void MenuBar::FileOpenAction()
     {
         debug("MenuBar: OpenFileAction");
-        mCloseButtonClicked = false;
+        mFileCloseClicked = false;
     }
 
     void MenuBar::FileCloseAction()
     {
         debug("MenuBar: CloseFileAction");
-        mCloseButtonClicked = false;
+        mFileCloseClicked = false;
+    }
+
+    void MenuBar::FileSettingsAction()
+    {
+        mFileSettingsClicked = false;
     }
 
     void MenuBar::FileQuitAction()
     {
         mAppState->SetLooping(false);
-        mQuitButtonClicked = false;
+        mFileQuitClicked = false;
     }
+
+    void MenuBar::HandleFileMenuActions()
+    {
+ 		// Handle File Menu Actions
+		if (mFileOpenClicked)
+		{
+			FileOpenAction();
+		}
+        else if (mFileCloseClicked)
+        {
+			FileCloseAction();
+        }
+        else if (mFileSettingsClicked)
+        {
+            FileSettingsAction();
+        }
+        else if (mFileQuitClicked)
+		{
+            FileQuitAction();
+		}
+    }
+
+    void MenuBar::HandleWizardMenuActions()
+    {
+
+    }
+
+
 }

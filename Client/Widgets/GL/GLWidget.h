@@ -25,8 +25,9 @@ namespace Coconut
         GLWidget(AppState* project, string name, bool visible = true);
         virtual ~GLWidget() override;
 
-        virtual void Draw() override;
         virtual bool Init();
+        virtual void Update() = 0;
+        virtual void Draw() override;
 
         void SetPosition(const vec3&);
         vec3 GetPosition();
@@ -34,21 +35,35 @@ namespace Coconut
         static void SetViewMatrix(const mat4&);
         static void SetProjectionMatrix(const mat4&);
     protected:
-        void AddVertex(const GLWidgetVertex& lv);
+        void AddLineVertex(const GLWidgetVertex& lv);
+        void AddTriangleVertex(const GLWidgetVertex& lv);
+
         virtual void SetShader();
         bool InitShader();
-        bool InitVaoVbo();
+        bool InitLineBuffers();
+        bool InitTriangleBuffers();
+
+        void ClearLineVertexBuffer();
+        void ClearTriangleVertexBuffer();
+
+        void SubmitLineVertexBuffer();
+        void SubmitTriangleVertexBuffer();
 
     protected:
         static mat4 ViewMatrix;
         static mat4 ProjectionMatrix;
 
         mat4 mModelMatrix;
-        GLuint mVao;
-        GLuint mVbo;
+
+        GLuint mLineVao;
+        GLuint mLineVbo;
+        vector<GLWidgetVertex> mLineVertexBuffer;
+
+        GLuint mTriangleVao;
+        GLuint mTriangleVbo;
+        vector<GLWidgetVertex> mTriangleVertexBuffer;
+
         GLuint mShaderProgram;
-        vector<GLWidgetVertex> mVertexBuffer;
-        vector<GLuint> mIndexBuffer;
         string mVertexShaderSource;
         string mFragmentShaderSource;
         GLint mModelUniform;

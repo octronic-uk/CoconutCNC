@@ -19,9 +19,7 @@ namespace Coconut
     public:
         ImGuiWidget(AppState* project, string name, bool visible = true);
         ~ImGuiWidget() override;
-        bool StringCombo(
-			const char* label, int* current_item,
-			const vector<string>& items, size_t items_count, int height_in_items = -1
-        );
+        bool StringCombo(const char* label, int* current_item,
+			const vector<string>& items, int height_in_items = -1);
     };
 }

@@ -14,13 +14,8 @@ namespace Coconut
 
     ImGuiWidget::~ImGuiWidget() {}
 
-    bool
-    ImGuiWidget::StringCombo
-    (
-        const char* label, int* current_item,
-        const vector<string>& items,
-        size_t items_count, int height_in_items
-    )
+    bool ImGuiWidget::StringCombo(const char* label, int* current_item,
+        const vector<string>& items, int height_in_items)
     {
         return ImGui::Combo
         (
@@ -33,7 +28,7 @@ namespace Coconut
                 return true;
             },
             (void*)&items,
-            items_count,
+            items.size(),
             height_in_items
             );
     }

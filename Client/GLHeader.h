@@ -2,7 +2,7 @@
 
 
 #include <string>
-#include "Logger.h"
+#include "Common/Logger.h"
 
 #ifdef __APPLE__
     #define GL_SILENCE_DEPRECATION

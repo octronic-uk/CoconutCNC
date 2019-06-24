@@ -35,7 +35,7 @@ namespace Coconut
 			int num, const vec3 &center, double radius, bool clockwise);
 		~PointSegment();
 
-		vec3* getPointHandle();
+		vec3* getPoint();
 
 		vector<double> points() const;
 

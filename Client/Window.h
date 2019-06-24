@@ -18,6 +18,8 @@ using std::vector;
 #include "Deps/ImGui/imgui_impl_opengl3.h"
 
 #define DEFAULT_FONT_PATH "droid-sans/DroidSans.ttf"
+#define DEFAULT_WINDOW_WIDTH 1280
+#define DEFAULT_WINDOW_HEIGHT 720
 
 namespace Coconut
 {

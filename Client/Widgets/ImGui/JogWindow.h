@@ -10,5 +10,12 @@ namespace Coconut
         JogWindow(AppState* proj);
         ~JogWindow() override;
         void Draw() override;
+    private:
+        float mJogStepValue;
+        float mJogFeedRate;
+
+        float mJogAbsoluteX;
+        float mJogAbsoluteY;
+        float mJogAbsoluteZ;
     };
 }

@@ -1,6 +1,6 @@
 #include "AppState.h"
 #include "Window.h"
-#include "Logger.h"
+#include "Common/Logger.h"
 
 using namespace Coconut;
 

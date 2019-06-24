@@ -45,6 +45,7 @@ namespace Coconut
 
         ~GridDrawer() override;
         bool Init() override;
+        void Update() override;
 
         float GetMajorSpacing();
         void  SetMajorSpacing(float);

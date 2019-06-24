@@ -11,14 +11,12 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 # Makefile Settings
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_COLOR_MAKEFILE   ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_COLOR_MAKEFILE   OFF)
 
 # Remove 'lib' prefix for shared libraries on Windows
 if (WIN32)
   set(CMAKE_SHARED_LIBRARY_PREFIX "")
-  # BigObj is required by sol2
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MT")
   message("MSVC Version: ${MSVC_VERSION} | Toolset: ${MSVC_TOOLSET_VERSION}")
 endif()

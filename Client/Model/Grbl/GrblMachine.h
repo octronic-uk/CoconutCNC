@@ -21,7 +21,7 @@
 #include <glm/vec3.hpp>
 #include <map>
 #include "GrblMachineState.h"
-#include "GcodeFileModel.h"
+#include "GCodeFileModel.h"
 #include "GCodeCommand.h"
 #include "GrblResponse.h"
 
@@ -31,8 +31,7 @@ using glm::vec3;
 
 namespace Coconut
 {
-
-	class GrblMachineModel :
+	class GrblMachineModel
 	{
 	public:
 		GrblMachineModel();

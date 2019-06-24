@@ -29,6 +29,7 @@ using std::cout;
 using std::endl;
 
 static bool WindowSizeChanged = false;
+static bool WindowShouldClose = false;
 
 void FramebufferSizeCallback(GLFWwindow*, int width, int height)
 {
@@ -36,7 +37,12 @@ void FramebufferSizeCallback(GLFWwindow*, int width, int height)
 	WindowSizeChanged = true;
 }
 
-void GLFWErrorCallback(int _errno, const char* errmsg)
+void WindowShouldCloseCallback(GLFWwindow* window)
+{
+	WindowShouldClose = true;
+}
+
+void GlfwErrorCallback(int _errno, const char* errmsg)
 {
 	error("Window: GLFW Error Number {}\nMessage:\n{}", _errno ,errmsg);
 }
@@ -44,14 +50,14 @@ void GLFWErrorCallback(int _errno, const char* errmsg)
 namespace Coconut
 {
 	Window::Window(AppState* state) :
-        mWidth(800),
-        mHeight(600),
+        mWidth(DEFAULT_WINDOW_WIDTH),
+        mHeight(DEFAULT_WINDOW_HEIGHT),
         mName("CoconutCNC"),
         mAppState(state),
         mClearColor(0.75f,0.75f,0.75f),
         mDefaultFont(nullptr),
         mFontSize(16.0f),
-        mCameraPosition(0.f,10.f,-10.f),
+        mCameraPosition(0.f,50.f,-50.f),
         mCameraTarget(0.f,0.f,0.f),
         mUpVector(0.f,1.f,0.f),
         mViewMatrix(mat4(1.0f)),
@@ -96,7 +102,7 @@ namespace Coconut
             case Perspective:
                 // FOV, Aspect, Near, Far
 				mProjectionMatrix = glm::perspective(
-            		glm::radians(60.0f), (float)mWidth / (float)mHeight,
+            		glm::radians(75.0f), (float)mWidth / (float)mHeight,
 					0.1f, 100.0f);
                 break;
         }
@@ -108,7 +114,7 @@ namespace Coconut
 
         glfwPollEvents();
 
-		if(glfwWindowShouldClose(mWindow))
+		if(glfwWindowShouldClose(mWindow) || WindowShouldClose)
 		{
             mAppState->SetLooping(false);
 		}
@@ -158,7 +164,6 @@ namespace Coconut
 
 	bool Window::InitGLFW()
 	{
-		glfwSetErrorCallback(GLFWErrorCallback);
 
 		/* Initialize the library */
 		if (!glfwInit())
@@ -195,13 +200,16 @@ namespace Coconut
 
 		glfwMakeContextCurrent(mWindow);
 
-		// Resize callback
+		glfwSetErrorCallback(GlfwErrorCallback);
 		glfwSetFramebufferSizeCallback(mWindow, FramebufferSizeCallback);
 		glfwSwapInterval(1);
+
         #ifdef __APPLE__
 		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(),&mDPIScaleX,&mDPIScaleY); //Requires GLFW >=3.3
         #endif
+
 		glfwGetFramebufferSize(mWindow, &mWidth, &mHeight);
+        glfwSetWindowCloseCallback(mWindow, WindowShouldCloseCallback);
         GLCheckError();
 		return true;
 	}
@@ -213,7 +221,9 @@ namespace Coconut
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+		io.ConfigFlags |=
+			ImGuiConfigFlags_DockingEnable; // Dockable Windows
+
 		ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
 		ImGui_ImplOpenGL3_Init(glsl_version);
         LoadDefaultFont();
@@ -302,6 +312,7 @@ namespace Coconut
 		glfwMakeContextCurrent(mWindow);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwMakeContextCurrent(mWindow);
+        ImGui::EndFrame();
         GLCheckError();
     }
 

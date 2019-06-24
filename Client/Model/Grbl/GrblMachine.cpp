@@ -26,7 +26,7 @@ using glm::vec3;
 namespace Coconut
 {
 
-	GrblMachineModel::GrblMachineMode()
+	GrblMachineModel::GrblMachineModel()
 		: mState(GrblMachineState::Unknown),
 		  mLastState(GrblMachineState::Unknown),
 		  mMachinePosition(vec3(0.0)),
@@ -787,7 +787,7 @@ namespace Coconut
 
 	GCodeCommand GrblMachineModel::feedOverride(GCodeCommand* command, double overridePercent)
 	{
-		return GcodeParser::overrideSpeed(command,overridePercent);
+		return GCodeParser::overrideSpeed(command,overridePercent);
 	}
 
 	vec3 GrblMachineModel::getMachinePosition()

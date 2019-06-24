@@ -19,6 +19,7 @@
 #pragma once
 
 #include <string>
+#include "../../Common/Util.h"
 
 using std::string;
 
@@ -78,50 +79,51 @@ namespace Coconut
 
 	static GrblMachineState stateFromString(string stateStr)
 	{
-		if (stateStr.toUpper() == "IDLE")
+		if (Util::to_upper(stateStr) == "IDLE")
 		{
 			return GrblMachineState::Idle;
 		}
-		else if (stateStr.toUpper() == "ALARM")
+		else if (Util::to_upper(stateStr) == "ALARM")
 		{
 			return GrblMachineState::Alarm;
 		}
-		else if (stateStr.toUpper() == "RUN")
+		else if (Util::to_upper(stateStr) == "RUN")
 		{
 			return GrblMachineState::Run;
 		}
-		else if (stateStr.toUpper() == "HOME")
+		else if (Util::to_upper(stateStr) == "HOME")
 		{
 			return GrblMachineState::Home;
 		}
-		else if (stateStr.toUpper() == "HOLD")
+		else if (Util::to_upper(stateStr) == "HOLD")
 		{
 			return GrblMachineState::Hold;
 		}
-		else if (stateStr.toUpper() == "QUEUE")
+		else if (Util::to_upper(stateStr) == "QUEUE")
 		{
 			return GrblMachineState::Queue;
 		}
-		else if (stateStr.toUpper() == "CHECK")
+		else if (Util::to_upper(stateStr) == "CHECK")
 		{
 			return GrblMachineState::Check;
 		}
-		else if (stateStr.toUpper() == "DOOR")
+		else if (Util::to_upper(stateStr) == "DOOR")
 		{
 			return GrblMachineState::Door;
-		} else if (stateStr.toUpper() == "LOCKED")
+		}
+		else if (Util::to_upper(stateStr) == "LOCKED")
 		{
 			return GrblMachineState::Locked;
 		}
-		else if (stateStr.toUpper() == "UNLOCKED")
+		else if (Util::to_upper(stateStr) == "UNLOCKED")
 		{
 			return GrblMachineState::Unlocked;
 		}
-		else if (stateStr.toUpper() == "JOG")
+		else if (Util::to_upper(stateStr) == "JOG")
 		{
 			return GrblMachineState::Jog;
 		}
-		else if (stateStr.toUpper() == "ERROR")
+		else if (Util::to_upper(stateStr) == "ERROR")
 		{
 			return GrblMachineState::Error;
 		}

@@ -18,11 +18,11 @@ using std::vector;
 
 namespace Coconut
 {
-	class GcodeParser
+	class GCodeParser
 	{
 	public:
-		GcodeParser();
-		~GcodeParser();
+		GCodeParser();
+		~GCodeParser();
 
 		void initialise();
 

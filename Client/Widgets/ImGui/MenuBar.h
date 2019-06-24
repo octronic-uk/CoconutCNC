@@ -17,13 +17,20 @@ namespace Coconut
         void DrawWizardsMenu();
         void DrawLoggingMenu();
 
+
+        void HandleFileMenuActions();
+        void HandleWizardMenuActions();
+
         void FileOpenAction();
         void FileCloseAction();
+        void FileSettingsAction();
         void FileQuitAction();
 
     private:
-        bool mOpenButtonClicked;
-        bool mQuitButtonClicked;
-        bool mCloseButtonClicked;
+        bool mFileSettingsClicked;
+        bool mFileOpenClicked;
+        bool mFileQuitClicked;
+        bool mFileCloseClicked;
+
     };
 }
