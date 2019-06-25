@@ -11,7 +11,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 # Makefile Settings
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE   OFF)
 
 # Remove 'lib' prefix for shared libraries on Windows
@@ -21,6 +21,106 @@ if (WIN32)
   message("MSVC Version: ${MSVC_VERSION} | Toolset: ${MSVC_TOOLSET_VERSION}")
 endif()
 
-# Directories
-#add_subdirectory(libGrbl)
-add_subdirectory(Client)
+file(GLOB TOP_SRC_FILES "*.cpp" "*.h")
+
+file(
+	GLOB_RECURSE SRC_FILES
+	"Common/*.h" "Common/*.cpp"
+	"Deps/ImGui/*.h" "Deps/ImGui/*.cpp"
+	"Model/*.h" "Model/*.cpp"
+	"Widgets/*.h" "Widgets/*.cpp"
+)
+
+find_package(Freetype REQUIRED)
+find_package(glm      REQUIRED)
+find_package(GLEW     REQUIRED)
+find_package(glfw3    REQUIRED)
+find_package(OpenGL   REQUIRED)
+find_package(spdlog   CONFIG REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
+set(IMGUI_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/ImGui")
+set(NFD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/nativefiledialog114/src/include")
+set(NFD_LIBRARY_MAC "${PROJECT_SOURCE_DIR}/Deps/nativefiledialog114/build/lib/Release/x64/libnfd.a")
+
+add_executable (
+	${PROJECT_NAME}
+	${TOP_SRC_FILES}
+	${SRC_FILES}
+)
+
+if (WIN32)
+	include_directories(
+		${Freetype_INCLUDE_DIRS}
+		${GLM_INCLUDE_DIR}
+		${glfw3_INCLUDE_DIR}
+		${OpenGL_INCLUDE_DIR}
+		${spdlog_INCLUDE_DIR}
+		${nlohmann_json_INCLUDE_DIR}
+		${IMGUI_INCLUDE_DIR}
+		${NFD_INCLUDE_DIR}
+	)
+    target_link_libraries(
+		${PROJECT_NAME}
+		#libGrbl
+		${GLEW_LIBRARY}
+		${GLFW3_LIBRARY}
+		${Freetype_LIBRARY}
+	)
+
+# Linux
+elseif (UNIX AND NOT APPLE)
+
+	include_directories(
+		${Freetype_INCLUDE_DIRS}
+		${GLM_INCLUDE_DIR}
+		${glfw3_INCLUDE_DIR}
+		${OpenGL_INCLUDE_DIR}
+		${spdlog_INCLUDE_DIR}
+	    ${nlohmann_json_INCLUDE_DIR}
+		${IMGUI_INCLUDE_DIR}
+    	${NFD_INCLUDE_DIR}
+	)
+    target_link_libraries(
+		${PROJECT_NAME}
+		#libGrbl
+		-lpthread
+		-ldl
+		${GLEW_LIBRARY}
+		glfw
+		${Freetype_LIBRARY}
+		${OPENGL_LIBRARIES}
+	)
+
+elseif (APPLE)
+	include_directories(
+		${Freetype_INCLUDE_DIRS}
+		${GLM_INCLUDE_DIR}
+		${glfw3_INCLUDE_DIR}
+		${OpenGL_INCLUDE_DIR}
+		${IMGUI_INCLUDE_DIR}
+    	${NFD_INCLUDE_DIR}
+	)
+    target_link_libraries(
+		${PROJECT_NAME}
+		#libGrbl
+		-lpthread
+		-ldl
+		${NFD_LIBRARY_MAC}
+		"-framework Cocoa"
+		"-framework OpenGL"
+		"-framework CoreFoundation"
+		"-framework Carbon"
+		${GLEW_LIBRARY}
+		glfw
+		${Freetype_LIBRARY}
+		spdlog::spdlog
+	)
+endif()
+
+add_custom_command(
+	TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/Resources"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
