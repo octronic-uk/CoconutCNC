@@ -1,5 +1,6 @@
 #include "ControlWindow.h"
 #include "../../AppState.h"
+#include "../../Deps/IconFontAwesome/IconsFontAwesome5_c.h"
 
 using std::stringstream;
 
@@ -16,6 +17,7 @@ namespace Coconut
     ControlWindow::Draw
     ()
     {
+
         ImGui::Begin(mName.c_str(), &mVisible);
 
         ImVec2 space = ImGui::GetContentRegionAvail();
@@ -60,7 +62,6 @@ namespace Coconut
         ImGui::SameLine();
 		if (ImGui::Button("User\n4", buttonSize))
         {}
-
 		ImGui::End();
     }
 }

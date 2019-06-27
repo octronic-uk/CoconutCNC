@@ -107,9 +107,10 @@ namespace Coconut
         ImGui::Separator();
 
         ImGui::Text("Step");
+        float stepButtonWidth = (space.x - ImGui::GetItemsLineHeightWithSpacing())/5.0f;
 
         ImGui::PushItemWidth(-1);
-        if (ImGui::DragFloat("##Step", &mJogStepValue))
+        if (ImGui::DragFloat("##Step", &mJogStepValue, 1.0f,0.0f,0.0f,"%.3f mm"))
         {
 			if (mJogStepValue < 0.0f)
             {
@@ -121,31 +122,31 @@ namespace Coconut
             }
         }
 
-        if (ImGui::Button("0.01"))
+        if (ImGui::Button("0.01",ImVec2(stepButtonWidth,20)))
         {
             mJogStepValue = 0.01f;
         }
         ImGui::SameLine();
 
-        if (ImGui::Button("0.1"))
+        if (ImGui::Button("0.1",ImVec2(stepButtonWidth,20)))
         {
             mJogStepValue = 0.1f;
         }
         ImGui::SameLine();
 
-        if (ImGui::Button("1"))
+        if (ImGui::Button("1",ImVec2(stepButtonWidth,20)))
         {
             mJogStepValue = 1.f;
         }
         ImGui::SameLine();
 
-        if (ImGui::Button("10"))
+        if (ImGui::Button("10",ImVec2(stepButtonWidth,20)))
         {
             mJogStepValue = 10.f;
         }
         ImGui::SameLine();
 
-        if (ImGui::Button("100"))
+        if (ImGui::Button("100",ImVec2(stepButtonWidth,20)))
         {
             mJogStepValue = 100.f;
         }
@@ -155,28 +156,28 @@ namespace Coconut
         ImGui::Text("Feed Rate");
 
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##FeedRate",&mJogFeedRate))
+        if(ImGui::DragFloat("##FeedRate",&mJogFeedRate,1.0f,0.0f,0.0f,"%.3f mm/min"))
         {
 
         }
 
         ImGui::Text("Jog Absolute");
 
-		if (ImGui::Button("Go To X"))
+		if (ImGui::Button("GoTo X"))
         {
 
     	}
         ImGui::SameLine();
 		ImGui::InputFloat("##JogAbsoluteX",&mJogAbsoluteX);
 
-        if (ImGui::Button("Go To Y"))
+        if (ImGui::Button("GoTo Y"))
         {
 
     	}
         ImGui::SameLine();
         ImGui::InputFloat("##JogAbsoluteY",&mJogAbsoluteY);
 
-        if (ImGui::Button("Go To Z"))
+        if (ImGui::Button("GoTo Z"))
         {
 
     	}

@@ -16,11 +16,11 @@ namespace Coconut
         Perspective
     };
 
-    class PreviewWindow : public ImGuiWidget
+    class WorkAreaWindow : public ImGuiWidget
     {
     public:
-        PreviewWindow(AppState* proj);
-        ~PreviewWindow() override;
+        WorkAreaWindow(AppState* proj);
+        ~WorkAreaWindow() override;
         void Draw() override;
 
 		bool InitGL();

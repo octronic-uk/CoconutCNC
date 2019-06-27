@@ -49,6 +49,7 @@ namespace Coconut
 
     nlohmann::json ToolHolderSettings::ToJson()
     {
+        info("SettingsModel: {}",__FUNCTION__);
         json j;
         j[TOOLHOLDER_ID] = GetID();
         j[TOOLHOLDER_NAME] = GetName();
@@ -63,19 +64,26 @@ namespace Coconut
 
     bool ToolHolderSettings::FromJson(const nlohmann::json& j)
     {
-        if (!j[TOOLHOLDER_ID].is_number()) return false;
-        SetID(j[TOOLHOLDER_ID]);
-
-        if (!j[TOOLHOLDER_NAME].is_string()) return false;
-        SetID(j[TOOLHOLDER_NAME]);
-
- 		if (!j[TOOLHOLDER_CYLINDERS].is_array()) return false;
-        mCylinders.clear();
-        for (const json& cylinder_json : j[TOOLHOLDER_CYLINDERS])
+        info("SettingsModel: {}",__FUNCTION__);
+        if (j.find(TOOLHOLDER_ID) != j.end() && j[TOOLHOLDER_ID].is_number())
         {
-            Cylinder cylinder;
-            cylinder.FromJson(cylinder_json);
-            mCylinders.push_back(cylinder);
+        	SetID(j[TOOLHOLDER_ID]);
+        }
+
+        if (j.find(TOOLHOLDER_NAME) != j.end() && j[TOOLHOLDER_NAME].is_string())
+        {
+        	SetName(j[TOOLHOLDER_NAME]);
+        }
+
+ 		if (j.find(TOOLHOLDER_CYLINDERS) != j.end() && j[TOOLHOLDER_CYLINDERS].is_array())
+        {
+			mCylinders.clear();
+			for (const json& cylinder_json : j[TOOLHOLDER_CYLINDERS])
+			{
+				Cylinder cylinder;
+				cylinder.FromJson(cylinder_json);
+				mCylinders.push_back(cylinder);
+			}
         }
         return true;
     }

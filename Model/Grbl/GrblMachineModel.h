@@ -18,13 +18,20 @@
 
 #pragma once
 
-#include <glm/vec3.hpp>
 #include <map>
+#include <thread>
+#include <sstream>
+
+#include <glm/vec3.hpp>
+
 #include "GrblMachineState.h"
+#include "GrblConfigurationModel.h"
 #include "GCodeFileModel.h"
 #include "GCodeCommand.h"
 #include "GrblResponse.h"
 
+using std::stringstream;
+using std::thread;
 using std::deque;
 using std::map;
 using std::string;
@@ -32,13 +39,17 @@ using glm::vec3;
 
 namespace Coconut
 {
+    class AppState;
 	class GrblMachineModel
 	{
 	public:
-		GrblMachineModel();
+		GrblMachineModel(AppState* state);
 		~GrblMachineModel();
 
-		void Init();
+		void ClearState();
+        void StartWorkThread();
+        void JoinWorkThread();
+        void WorkFunction();
 
 		int  BufferLengthInUse();
 		bool SendNextCommandFromQueue();
@@ -60,70 +71,32 @@ namespace Coconut
 		float GetWorkPositionY();
 		float GetWorkPositionZ();
 
-		void   QueueCommand(GCodeCommand* command);
+		void QueueCommand(const GCodeCommand& command);
 
 		bool GetProgramRunning() const;
 		void SetProgramRunning(bool programRunning);
 
-		void UpdateProgramTableStatusSignal(GCodeCommand* state);
-		void UpdateFeedOverrideSignal(float);
-		void UpdateRapidOverrideSignal(float);
-		void UpdateSpindleOverrideSignal(float);
-		void UpdateMachinePositionSignal(const vec3);
-		void UpdateWorkPositionSignal(const vec3);
-		void UpdateWCOSignal(const vec3);
-		void StatusBarUpdateSignal(string status);
 
-		void ToolPositionChangedSignal(vec3);
-		void MachineStateUpdatedSignal(const GrblMachineState&);
-		void JobCompletedSignal();
-		void AlarmSignal(string);
+		void SendProgram();
+		void SendProgramFromLine(long fromId);
+		void GCodeCommandManualSend(const GCodeCommand& cmd);
 
-		void AppendResponseToConsoleSignal(const GrblResponse&);
-		void AppendCommandToConsoleSignal(GCodeCommand*);
-		void CommandResponseSignal(const GrblResponse&);
-		void SetCompletionProgressSignal(int);
-		void SetBufferProgressSignal(int);
-		void ErrorSignal(string);
-		void MachineConnectedSigal(bool);
+		void UpdateSpindleOverride(float speed);
+		void UpdateFeedOverride(float rate);
+		void UpdateRapidOverride(float rate);
+		void ToolChangeCompleted();
 
-		void FirmwareConfigurationReadSignal(int,string);
-		void ToolChangeSignal(int);
+		void BytesWritten(int bytes);
 
-		void FeedRateChangedSignal(int);
-		void SpindleSpeedChangedSignal(int);
-
-
-		void OnSendProgram(GCodeFileModel* gcodeFile);
-		void OnSendProgramFromLine(GCodeFileModel* gcodeFile, long fromId);
-		void OnGcodeCommandManualSend(GCodeCommand*);
-
-		void OnUpdateSpindleOverride(float speed);
-		void OnUpdateFeedOverride(float rate);
-		void OnUpdateRapidOverride(float rate);
-		void OnToolChangeCompleted();
-
-		void OnConnect();
-		void OnSerialPortReadyRead();
-		void OnSerialPortError(/*QSerialPort::SerialPortError*/);
-		void OnSerialPortNameChanged(string);
-		void OnSerialPortBaudRateChanged(int);
-		void OnProgramSendTimerTimeout();
-		void OnStatusTimerTimeout();
-		void OnSerialBytesWritten(uint64_t bytes);
+        GrblConfigurationModel& GetConfigurationModel();
+        bool IsWorkThreadRunning();
 
 	protected: // Member Functions
-		GCodeCommand FeedOverride(GCodeCommand* command, double overridePercent);
+		GCodeCommand FeedOverride(const GCodeCommand& command, double overridePercent);
 		GCodeCommand GetNextCommand(GCodeFileModel& gcodeFile);
 
-		bool IsSpaceInBuffer(GCodeCommand* cmd);
+		bool IsSpaceInBuffer(const GCodeCommand& cmd);
 		int  GetProcessedPercent();
-
-		void StartProgramSendTimer();
-		void StopProgramSendTimer();
-
-		void StartStatusTimer();
-		void StopStatusTimer();
 
 		void UpdateWorkPosition();
 		void UpdateStatus(GrblResponse response);
@@ -132,11 +105,15 @@ namespace Coconut
 		void UpdateMachinePosition(const GrblResponse& data);
 		void UpdateFeedRateAndSpindleSpeed(const GrblResponse& response);
 
+        void SendNextPacket();
 		void ProcessResponse(const GrblResponse& data);
 		void ParseError(const GrblResponse& error);
 		void ParseGrblVersion(const GrblResponse& response);
 		void ParseConfigurationResponse(GrblResponse response);
 		void ParseAlarmResponse(const GrblResponse& response);
+        void RequestStatus();
+
+        long GetTimeDelta();
 
 		static string StateToString(GrblMachineState state);
 		const static map<int,string> ERROR_STRINGS;
@@ -144,17 +121,19 @@ namespace Coconut
 
 	private: // Members
 		const static int BUFFER_LENGTH_LIMIT;
-		//QSerialPort mSerialPort;
-		deque<GCodeCommand*> mCommandBuffer;
-		deque<GCodeCommand*> mCommandQueue;
+        AppState* mAppState;
+		deque<GCodeCommand> mCommandBuffer;
+		deque<GCodeCommand> mCommandQueue;
+        vector<string> mLinesRead;
+        stringstream mCurrentLine;
+        GrblConfigurationModel mConfigurationModel;
 		GrblMachineState mState;
 		GrblMachineState mLastState;
+
 		vec3 mMachinePosition;
 		vec3 mWorkPosition;
 		vec3 mWorkCoordinateOffset;
-		//SqlSettingsModel* mSettingsModelHandle;
-		//QTimer mProgramSendTimer;
-		//QTimer mStatusTimer;
+
 		int mProgramSendInterval;
 		int mStatusInterval;
 		int mCountProcessedCommands;
@@ -164,15 +143,22 @@ namespace Coconut
 		float mRapidOverride;
 		bool mError;
 		int mErrorCode;
+		float mBufferUsedPercentage;
 		string mErrorString;
 		string mGrblVersion;
-		uint64_t mBytesWaiting;
+		int mBytesWaiting;
+
 		bool mStatusRequested;
 		bool mWaitingForStatus;
-		map<int,string> mFirmwareConfiguration;
+
 		bool mProgramRunning;
 		bool mToolChangeWaiting;
 		int mFeedRate;
 		int mSpindleSpeed;
+
+        thread mWorkThread;
+        bool mWorkThreadRunning;
+        long mCurrentTime;
+        long mLastTime;
 	};
 }

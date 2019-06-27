@@ -11,7 +11,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 # Makefile Settings
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_COLOR_MAKEFILE   OFF)
 
 # Remove 'lib' prefix for shared libraries on Windows
@@ -40,8 +40,8 @@ find_package(spdlog   CONFIG REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
 set(IMGUI_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/ImGui")
-set(NFD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/nativefiledialog114/src/include")
-set(NFD_LIBRARY_MAC "${PROJECT_SOURCE_DIR}/Deps/nativefiledialog114/build/lib/Release/x64/libnfd.a")
+set(NFD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/src/include")
+set(NFD_LIBRARY_MAC "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
 
 add_executable (
 	${PROJECT_NAME}
@@ -62,7 +62,7 @@ if (WIN32)
 	)
     target_link_libraries(
 		${PROJECT_NAME}
-		#libGrbl
+		-lserialport
 		${GLEW_LIBRARY}
 		${GLFW3_LIBRARY}
 		${Freetype_LIBRARY}
@@ -86,6 +86,7 @@ elseif (UNIX AND NOT APPLE)
 		#libGrbl
 		-lpthread
 		-ldl
+		-lserialport
 		${GLEW_LIBRARY}
 		glfw
 		${Freetype_LIBRARY}
@@ -106,8 +107,10 @@ elseif (APPLE)
 		#libGrbl
 		-lpthread
 		-ldl
+		/usr/local/lib/libserialport.a
 		${NFD_LIBRARY_MAC}
-		"-framework Cocoa"
+		"-framework IOKit"
+		"-framework AppKit"
 		"-framework OpenGL"
 		"-framework CoreFoundation"
 		"-framework Carbon"

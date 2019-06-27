@@ -7,22 +7,24 @@ namespace Coconut
         mLooping(true),
         mArgc(argc),
     	mArgv(argv),
-      	mWindow(Window(this)),
+      	mWindow(this),
         // Models
-        mSettingsModel(SettingsModel(this)),
+        mSettingsModel(this),
+        mSerialPortModel(this),
+        mGrblMachineModel(this),
         // ImGui Widgets
-        mConsoleWindow(ConsoleWindow(this)),
-        mControlWindow(ControlWindow(this)),
-        mGCodeTableWindow(GCodeTableWindow(this)),
-        mJogWindow(JogWindow(this)),
-        mMenuBar(MenuBar(this)),
-        mOverridesWindow(OverridesWindow(this)),
-        mPreviewWindow(PreviewWindow(this)),
-        mSettingsWindow(SettingsWindow(this)),
-        mStateWindow(StateWindow(this)),
+        mConsoleWindow(this),
+        mControlWindow(this),
+        mGCodeTableWindow(this),
+        mJogWindow(this),
+        mMenuBar(this),
+        mOverridesWindow(this),
+        mPreviewWindow(this),
+        mSettingsWindow(this),
+        mStateWindow(this),
 		// GL Widgets
-        mGridDrawer(GridDrawer(this)),
-        mToolDrawer(ToolDrawer(this))
+        mGridDrawer(this),
+        mToolDrawer(this)
 	{
 		debug("AppState: Constructor");
     }
@@ -64,14 +66,29 @@ namespace Coconut
         return true;
     }
 
-    SettingsModel* AppState::GetSettingsModel()
+    SettingsModel& AppState::GetSettingsModel()
     {
-        return &mSettingsModel;
+        return mSettingsModel;
     }
 
-    PreviewWindow* AppState::GetPreviewWindow()
+    SerialPortModel& AppState::GetSerialPortModel()
     {
-       return &mPreviewWindow;
+        return mSerialPortModel;
+    }
+
+    GCodeFileModel& AppState::GetGCodeFileModel()
+    {
+       return mGCodeFileModel;
+    }
+
+    WorkAreaWindow& AppState::GetPreviewWindow()
+    {
+        return mPreviewWindow;
+    }
+
+    GrblMachineModel& AppState::GetGrblMachineModel()
+    {
+       return mGrblMachineModel;
     }
 
     bool AppState::GetLooping() const
@@ -91,6 +108,12 @@ namespace Coconut
         {
             mWindow.Update();
         }
+        mSettingsModel.SaveSettingsFile();
+        if (mGrblMachineModel.IsWorkThreadRunning())
+        {
+        	mGrblMachineModel.JoinWorkThread();
+        }
+        mSerialPortModel.CloseSerialPort();
         return true;
     }
 
@@ -103,8 +126,8 @@ namespace Coconut
 	{
 	}
 
-    Window* AppState::GetWindow()
+    Window& AppState::GetWindow()
     {
-        return &mWindow;
+        return mWindow;
     }
 }

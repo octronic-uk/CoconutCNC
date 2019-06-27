@@ -42,27 +42,19 @@ namespace Coconut
 		~GCodeFileModel();
 
 		void Initialise();
-		void Load(deque<string> data);
-		void Load(string fileName);
-		bool IsGcodeFile(string fileName);
+		void Load(const deque<string>& data);
+		void Load(const string& fileName);
+		bool IsGcodeFile(const string& fileName);
 		bool HasFileChanged();
 		void SetFileChanged(bool changed);
-		double UpdateProgramEstimatedTime(vector<LineSegment*> lines);
+		double UpdateProgramEstimatedTime(const vector<LineSegment>& lines);
 		string GetCurrentFileName();
-		GCodeCommand* GetCommand(int index) const;
-		GCodeCommand* GetCommandByID(long ) const;
+		GCodeCommand& GetCommand(int index);
+		GCodeCommand& GetCommandByID(long );
 		int CountCommands();
-		vector<GCodeCommand*> GetData() const;
-		vector<GCodeCommand*> GetMarkers() const;
+		vector<GCodeCommand>& GetData();
+		vector<GCodeCommand>& GetMarkers();
 		bool IsOpen();
-
-		void StatusBarUpdateSignal(string);
-		void GcodeFileLoadStartedSignal();
-		void GcodeFileLoadFinishedSignal(GCodeFileModel*);
-		void NextGcodeLineReadySignal(GCodeCommand*);
-		void ClearExistingGcodeFileSignal();
-		void ReserveGcodeRowsSignal(int count);
-		void GcodeParserUpdatedSignal(GCodeParser*);
 
 	protected:
 		void PrintMarkers();
@@ -71,9 +63,9 @@ namespace Coconut
 		bool mProgramLoading;
 		File mFile;
 		bool mFileOpen;
-		vector<GCodeCommand*> mData;
+		vector<GCodeCommand> mData;
 		GCodeParser mGcodeParser;
-		vector<GCodeCommand*> mMarkers;
+		vector<GCodeCommand> mMarkers;
 
 
 	};

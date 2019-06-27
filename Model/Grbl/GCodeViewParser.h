@@ -24,20 +24,20 @@ namespace Coconut
 		explicit GCodeViewParser();
 		~GCodeViewParser();
 
-		vec3 getMinimumExtremes() const ;
-		vec3 getMaximumExtremes() const;
-		double getMinLength() const;
-		vec2 getResolution() const;
-		vector<LineSegment*> getLineSegmentHandlesList() const;
-		vector<vector<int>> getLinesIndexes() const;
-		void setLinesFromParser(GCodeParser* gp, double arcPrecision, bool arcDegreeMode);
+		vec3 GetMinimumExtremes() const ;
+		vec3 GetMaximumExtremes() const;
+		double GetMinLength() const;
+		vec2 GetResolution() const;
+		vector<LineSegment>& GetLineSegmentHandlesList();
+		vector<vector<int>>& GetLinesIndexes();
+		void SetLinesFromParser(GCodeParser& gp, double arcPrecision, bool arcDegreeMode);
 
-		void reset();
+		void Reset();
 
     protected:
-        void testExtremes(const vec3 &p3d);
-		void testExtremes(double x, double y, double z);
-		void testLength(const vec3 &start, const vec3 &end);
+        void TestExtremes(const vec3 &p3d);
+		void TestExtremes(double x, double y, double z);
+		void TestLength(const vec3 &start, const vec3 &end);
 
 	private:
 		bool mAbsoluteMode;

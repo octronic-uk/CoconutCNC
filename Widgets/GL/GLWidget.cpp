@@ -105,7 +105,7 @@ namespace Coconut
 
     bool GLWidget::InitTriangleBuffers()
     {
-        debug("GLWidget: {}", __FUNCTION__);
+        info("GLWidget: {}", __FUNCTION__);
 
         // VAO
         glGenVertexArrays(1,&mTriangleVao);
@@ -148,7 +148,7 @@ namespace Coconut
         //  Final Check
         if (mTriangleVao != -1 && mTriangleVbo != -1)
         {
-            debug("GLWidget: Triangle VAO/VBO Init Successful");
+            info("GLWidget: Triangle VAO/VBO Init Successful");
             return true;
         }
         else
@@ -203,7 +203,7 @@ namespace Coconut
         //  Final Check
         if (mLineVao != -1 && mLineVbo != -1)
         {
-            debug("GLWidget: Line VAO/VBO Init Successful");
+            info("GLWidget: Line VAO/VBO Init Successful");
             return true;
         }
         else
@@ -215,7 +215,7 @@ namespace Coconut
 
     bool GLWidget::InitPointBuffers()
     {
-        debug("GLWidget: {}", __FUNCTION__);
+        info("GLWidget: {}", __FUNCTION__);
 
         // VAO
         glGenVertexArrays(1,&mPointVao);
@@ -258,7 +258,7 @@ namespace Coconut
         //  Final Check
         if (mPointVao != -1 && mPointVbo != -1)
         {
-            debug("GLWidget: Point VAO/VBO Init Successful");
+            info("GLWidget: Point VAO/VBO Init Successful");
             return true;
         }
         else
@@ -412,7 +412,7 @@ namespace Coconut
     bool
     GLWidget::InitShader()
     {
-        debug("GLWidget: {}", __FUNCTION__);
+        info("GLWidget: {}", __FUNCTION__);
         GLuint vertexShader = 0;
         GLuint fragmentShader = 0;
 

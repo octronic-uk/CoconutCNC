@@ -24,67 +24,75 @@ namespace Coconut
 		GCodeParser();
 		~GCodeParser();
 
-		void initialise();
+		void Init();
 
-		bool getConvertArcsToLines();
-		void setConvertArcsToLines(bool convertArcsToLines);
+		bool GetConvertArcsToLines();
+		void SetConvertArcsToLines(bool convertArcsToLines);
 
-		bool getRemoveAllWhitespace();
-		void setRemoveAllWhitespace(bool removeAllWhitespace);
+		bool GetRemoveAllWhitespace();
+		void SetRemoveAllWhitespace(bool removeAllWhitespace);
 
-		double getSmallArcSegmentLength();
-		void setSmallArcSegmentLength(double smallArcSegmentLength);
+		double GetSmallArcSegmentLength();
+		void SetSmallArcSegmentLength(double smallArcSegmentLength);
 
-		double getSmallArcThreshold();
-		void setSmallArcThreshold(double smallArcThreshold);
+		double GetSmallArcThreshold();
+		void SetSmallArcThreshold(double smallArcThreshold);
 
-		double getSpeedOverride();
-		void setSpeedOverride(double speedOverride);
+		double GetSpeedOverride();
+		void SetSpeedOverride(double speedOverride);
 
-		int getTruncateDecimalLength();
-		void setTruncateDecimalLength(int truncateDecimalLength);
+		int GetTruncateDecimalLength();
+		void SetTruncateDecimalLength(int truncateDecimalLength);
 
-		void reset(const vec3& initialPoint);
+		void Reset(const vec3& initialPoint);
 
-		PointSegment* addCommandFromArgs(GCodeCommand* command);
-		PointSegment* addCommand(GCodeCommand* command);
+		PointSegment AddCommandFromArgs(const GCodeCommand& command);
+		PointSegment AddCommand(GCodeCommand& command);
 
-		vec3 getCurrentPoint();
+		vec3 GetCurrentPoint();
 
-		vector<PointSegment*> expandArc(GCodeCommand*);
+		vector<PointSegment> ExpandArc(const GCodeCommand& cmd);
 		//vector<string> preprocessCommands(vector<string> commands);
 		//vector<string> preprocessCommand(string command);
 		//vector<string> convertArcsToLines(string command);
 
-		vector<PointSegment*> getPointSegmentHandlesList();
-		double getTraverseSpeed() const;
-		void setTraverseSpeed(double traverseSpeed);
-		int getCommandNumber() const;
+		vector<PointSegment>& GetPointSegmentList();
+		double GetTraverseSpeed() const;
+		void SetTraverseSpeed(double traverseSpeed);
+		int GetCommandNumber() const;
 
-		static string overrideSpeed(const string command, double speed);
-		static string removeComment(string command);
-		static string parseComment(const string command);
-		static string truncateDecimals(int length, string command);
-		static string removeAllWhitespace(const string command);
-		static vector<float> parseCodes(const vector<string> &args, char code);
-		static vector<int> parseGCodes(const string command);
-		static vector<int> parseMCodes(const string command);
-		static vector<string> splitCommand(const string &command);
-		static double parseCoord(vector<string> argList, char c);
-		static vec3 updatePointWithCommand(const vec3 &initial, double x, double y, double z, bool absoluteMode);
-		static vec3 updatePointWithCommand(const vector<string> &commandArgs, const vec3 &initial, bool absoluteMode);
-		static vec3 updatePointWithCommand(const string &command, const vec3 &initial, bool absoluteMode);
-		static vec3 convertRToCenter(vec3 start, vec3 end, double radius, bool absoluteIJK, bool clockwise);
-		static vec3 updateCenterWithCommand(vector<string> commandArgs, vec3 initial, vec3 nextPoint, bool absoluteIJKMode, bool clockwise);
-		static string generateG1FromPoints(vec3 start, vec3 end, bool absoluteMode, int precision);
-		static double getAngle(vec3 start, vec3 end);
-		static double calculateSweep(double startAngle, double endAngle, bool isCw);
-		static vector<vec3> generatePointsAlongArcBDring(PointSegment::planes plane, vec3 start, vec3 end, vec3 center, bool clockwise, double R, double minArcLength, double arcPrecision, bool arcDegreeMode);
-		static vector<vec3> generatePointsAlongArcBDring(PointSegment::planes plane, vec3 p1, vec3 p2, vec3 center, bool isCw, double radius, double startAngle, double sweep, int numPoints);
-		static bool isDigit(char c);
-		static bool isLetter(char c);
-		static char toUpper(char c);
-		static GCodeCommand* overrideSpeed(const GCodeCommand *command, double speed);
+		static string OverrideSpeed(const string& command, double speed);
+		static string RemoveComment(const string& command);
+		static string ParseComment(const string& command);
+		static string TruncateDecimals(int length, const string& command);
+		static string RemoveAllWhitespace(const string& command);
+		static vector<float> ParseCodes(const vector<string> &args, char code);
+		static vector<int> ParseGCodes(const string& command);
+		static vector<int> ParseMCodes(const string& command);
+		static vector<string> SplitCommand(const string& command);
+		static double ParseCoord(const vector<string>& argList, char c);
+		static vec3 UpdatePointWithCommand
+        (const vec3& initial, double x, double y, double z, bool absoluteMode);
+		static vec3 UpdatePointWithCommand
+        (const vector<string>& commandArgs, const vec3 &initial, bool absoluteMode);
+		static vec3 UpdatePointWithCommand
+        (const string& command, const vec3 &initial, bool absoluteMode);
+		static vec3 ConvertRToCenter
+        (const vec3& start, const vec3& end, double radius, bool absoluteIJK, bool clockwise);
+		static vec3 UpdateCenterWithCommand
+        (const vector<string>& commandArgs, const vec3& initial, const vec3& nextPoint, bool absoluteIJKMode, bool clockwise);
+		static string GenerateG1FromPoints
+        (const vec3& start, const vec3& end, bool absoluteMode, int precision);
+		static double GetAngle(const vec3& start, const vec3& end);
+		static double CalculateSweep(double startAngle, double endAngle, bool isCw);
+		static vector<vec3> GeneratePointsAlongArcBDring
+        (PointSegment::planes plane, vec3& start, vec3& end, vec3& center, bool clockwise, double R, double minArcLength, double arcPrecision, bool arcDegreeMode);
+		static vector<vec3> GeneratePointsAlongArcBDring
+        (PointSegment::planes plane, vec3& p1, vec3& p2, vec3& center, bool isCw, double radius, double startAngle, double sweep, int numPoints);
+		static bool IsDigit(char c);
+		static bool IsLetter(char c);
+		static char ToUpper(char c);
+		static GCodeCommand OverrideSpeed(const GCodeCommand& command, double speed);
 
 		const float GCODE_RAPID = 0.0f;
 		const float GCODE_LINEAR_INTERPOLATION = 1.0;
@@ -100,6 +108,14 @@ namespace Coconut
 		const float GCODE_DISTANCE_ABSOLUTE_IJK = 90.1f;
 		const float GCODE_DISTANCE_INCREMENTAL = 91.0f;
 		const float GCODE_DISTANCE_INCREMENTAL_IJK = 91.1f;
+
+    protected:
+        PointSegment ProcessCommand(const GCodeCommand& command);
+		void         HandleMCode(float code, const vector<string> &args);
+		PointSegment HandleGCode(const GCodeCommand& cmd, float code);
+		PointSegment AddLinearPointSegment(const GCodeCommand& cmd, const vec3& nextPoint, bool fastTraverse);
+		PointSegment AddArcPointSegment(const GCodeCommand& cmd, const vec3& nextPoint, bool clockwise, const vector<string>& args);
+		void         SetLastGcodeCommand(float num);
 
 	private:
 		// Current state
@@ -125,12 +141,6 @@ namespace Coconut
 		double mLastSpindleSpeed;
 
 		// The gcode.
-		vector<PointSegment*> mPoints;
-		PointSegment* processCommand(GCodeCommand* command);
-		void handleMCode(float code, const vector<string> &args);
-		PointSegment* handleGCode(GCodeCommand* cmd, float code);
-		PointSegment* addLinearPointSegment(GCodeCommand* cmd, const vec3 &nextPoint, bool fastTraverse);
-		PointSegment* addArcPointSegment(GCodeCommand* cmd, const vec3 &nextPoint, bool clockwise, const vector<string> &args);
-		void setLastGcodeCommand(float num);
+		vector<PointSegment> mPoints;
 	};
 }

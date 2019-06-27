@@ -15,5 +15,68 @@
 
 namespace Coconut
 {
-	JsonSerialization::JsonSerialization() {}
+    JsonSerialization::JsonSerialization() {}
+
+    vec2 JsonSerialization::JsonToVec2(const json& js)
+    {
+        vec2 v(0);
+        if (js.is_array() && js.size() == 2)
+        {
+       		v.x = js[0];
+       		v.y = js[1];
+        }
+        return v;
+    }
+
+    json JsonSerialization::Vec2ToJson(const vec2& v)
+    {
+		json j = json::array();
+        j.push_back(v.x);
+        j.push_back(v.y);
+        return j;
+    }
+
+    vec3 JsonSerialization::JsonToVec3(const json& js)
+    {
+        vec3 v(0);
+        if (js.is_array() && js.size() == 3)
+        {
+       		v.x = js[0];
+       		v.y = js[1];
+            v.z = js[2];
+        }
+        return v;
+    }
+
+    json JsonSerialization::Vec3ToJson(const vec3& v)
+    {
+		json j = json::array();
+        j.push_back(v.x);
+        j.push_back(v.y);
+        j.push_back(v.z);
+        return j;
+    }
+
+    vec4 JsonSerialization::JsonToVec4(const json& js)
+    {
+        vec4 v(0);
+        if (js.is_array() && js.size() == 4)
+        {
+       		v.x = js[0];
+       		v.y = js[1];
+            v.z = js[2];
+            v.w = js[3];
+        }
+        return v;
+    }
+
+    json JsonSerialization::Vec4ToJson(const vec4& v)
+    {
+		json j = json::array();
+        j.push_back(v.x);
+        j.push_back(v.y);
+        j.push_back(v.z);
+        j.push_back(v.w);
+        return j;
+    }
 }

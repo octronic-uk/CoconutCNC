@@ -119,6 +119,15 @@ namespace Coconut
         return data;
     }
 
+    bool File::Create() const
+    {
+        string data = ".";
+        auto file = fopen(mPath.c_str(),"wb");
+        auto bytesWritten = fwrite(&data[0],sizeof(char),data.size(),file);
+        fclose(file);
+        return bytesWritten == data.size();
+    }
+
     bool File::WriteBinary (const vector<char>& data) const
     {
         auto file = fopen(mPath.c_str(),"wb");

@@ -18,40 +18,27 @@
 
 #pragma once
 
-#include <vector>
+#include <map>
 #include <string>
 
+using std::map;
 using std::string;
-using std::vector;
 
 namespace Coconut
 {
-    class GrblConfigurationEntry
-    {
-        public:
-
-        int ID;
-    	string Value;
-        string Description;
-
-    	GrblConfigurationEntry(int id, string value, string desc) :
-        ID(id), Value(value), Description(desc) {}
-    };
-
-	class GrblConfiguration
+    class AppState;
+	class GrblConfigurationModel
 	{
 	public:
-		GrblConfiguration();
+		GrblConfigurationModel(AppState* state);
+        void SetValue(int i, string v);
+        string GetValue(int v);
+		map<int,string>& GetValues();
 
-		int RowCount() const;
-		GrblConfigurationEntry Data(int index) const;
-		void SetData(int row, const GrblConfigurationEntry& value);
-		vector<GrblConfigurationEntry>& GetData();
-
-    protected:
-        void SetupData();
+        const static map<int,string> ConfigurationKeys;
 
 	private:
-		vector<GrblConfigurationEntry> mData;
+        AppState* mAppState;
+        map<int,string> mValues;
 	};
 }

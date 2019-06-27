@@ -16,11 +16,7 @@ namespace Coconut
     protected:
         void DrawMarkersPane();
         void DrawTablePane();
-        void DrawProgressBar();
-        void DrawBufferUsageBar();
 
-    private:
-        float mProgress;
-        float mBufferUsage;
+
     };
 }

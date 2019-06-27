@@ -26,10 +26,11 @@ namespace Coconut
         void FileSettingsAction();
         void FileQuitAction();
 
+
     private:
         bool mFileSettingsClicked;
         bool mFileOpenClicked;
         bool mFileQuitClicked;
         bool mFileCloseClicked;
-    };
+            };
 }

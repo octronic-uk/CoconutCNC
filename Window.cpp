@@ -16,7 +16,7 @@
 
 #include "Widgets/GL/GLWidget.h"
 #include "Widgets/ImGui/ImGuiWidget.h"
-#include "Widgets/ImGui/PreviewWindow.h"
+#include "Widgets/ImGui/WorkAreaWindow.h"
 #include "AppState.h"
 
 
@@ -24,6 +24,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include "Common/Logger.h"
+#include "Deps/IconFontAwesome/IconsFontAwesome5_c.h"
 
 using std::cout;
 using std::endl;
@@ -56,6 +57,7 @@ namespace Coconut
         mAppState(state),
         mClearColor(0.75f,0.75f,0.75f),
         mDefaultFont(nullptr),
+        mIconFont(nullptr),
         mFontSize(16.0f)
    	{
         debug("Window: Constructor");
@@ -71,7 +73,6 @@ namespace Coconut
 			glfwTerminate();
 			mWindow = nullptr;
 		}
-
 	}
 
 	bool Window::Update()
@@ -201,16 +202,19 @@ namespace Coconut
 
 		ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
 		ImGui_ImplOpenGL3_Init(glsl_version);
-        LoadDefaultFont();
         GLCheckError();
+        LoadFonts();
 		return true;
 	}
 
-    void Window::LoadDefaultFont()
+    void Window::LoadFonts()
     {
         debug("Window: {}",__FUNCTION__);
         ImGuiIO& io = ImGui::GetIO();
         mDefaultFont = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, mFontSize);
+
+        static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        mIconFont = io.Fonts->AddFontFromFileTTF(FA_REGULAR_FONT_PATH, 13.0f, nullptr, icon_ranges);
     }
 
 	bool Window::InitGL()
@@ -231,7 +235,7 @@ namespace Coconut
 
         GLCheckError();
 
-        mAppState->GetPreviewWindow()->InitGL();
+        mAppState->GetPreviewWindow().InitGL();
 
 		return true;
 	}
@@ -252,26 +256,26 @@ namespace Coconut
         debug("Window: {}",__FUNCTION__);
         debug("Window {} GL Widgets", mGLWidgets.size());
 
-        PreviewWindow* pw = mAppState->GetPreviewWindow();
+        WorkAreaWindow& pw = mAppState->GetPreviewWindow();
 
         // Change Viewport
 
-        if (pw->PreviewSizeHasChanged())
+        if (pw.PreviewSizeHasChanged())
         {
-           pw->InitViewMatrix();
-           pw->InitProjectionMatrix();
-           pw->InitTexture();
-           pw->BindFramebufferTexture();
+           pw.InitViewMatrix();
+           pw.InitProjectionMatrix();
+           pw.InitTexture();
+           pw.BindFramebufferTexture();
         }
 
-        float w = pw->GetContentAreaWidth();
-		float h = pw->GetContentAreaHeight();
+        float w = pw.GetContentAreaWidth();
+		float h = pw.GetContentAreaHeight();
         glViewport(0,0,w,h);
 
-        GLWidget::SetViewMatrix(mAppState->GetPreviewWindow()->GetViewMatrix());
-        GLWidget::SetProjectionMatrix(mAppState->GetPreviewWindow()->GetProjectionMatrix());
+        GLWidget::SetViewMatrix(mAppState->GetPreviewWindow().GetViewMatrix());
+        GLWidget::SetProjectionMatrix(mAppState->GetPreviewWindow().GetProjectionMatrix());
 
-        glBindFramebuffer(GL_FRAMEBUFFER, pw->GetFBO());
+        glBindFramebuffer(GL_FRAMEBUFFER, pw.GetFBO());
 
         glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, 0.0f);
         GLCheckError();
@@ -307,6 +311,7 @@ namespace Coconut
 		ImGui::NewFrame();
 		// Rendering
 
+        ImGui::PushFont(mDefaultFont);
 
         static bool p_open = true;
         static bool opt_fullscreen_persistant = true;
@@ -360,6 +365,8 @@ namespace Coconut
 				widget->Draw();
 			}
 		}
+
+        ImGui::PopFont();
 
 		ImGui::End();
 
@@ -455,5 +462,15 @@ namespace Coconut
     vector<ImGuiWidget*>& Window::GetImGuiWidgetsVector()
     {
         return mImGuiWidgets;
+    }
+
+    ImFont* Window::GetIconFont()
+    {
+        return mIconFont;
+    }
+
+    ImFont* Window::GetDeafaultFont()
+    {
+        return mDefaultFont;
     }
 }

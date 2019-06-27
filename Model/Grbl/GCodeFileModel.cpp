@@ -22,6 +22,7 @@
 #include "GCodeCommandNotFoundException.h"
 #include <iostream>
 #include "../../Common/Util.h"
+#include "../../Common/Logger.h"
 
 using std::cout;
 using std::endl;
@@ -32,35 +33,31 @@ namespace Coconut
 		: mProgramLoading(false),
 		  mFileOpen(false)
 	{
-		cout << "GCodeFileModel: Constructing" << endl;
+		info("GCodeFileModel: Constructing");
 	}
 
 	GCodeFileModel::~GCodeFileModel()
 	{
-		cout << "GCodeFileModel: Destructing" << endl;
-		for (GCodeCommand* item : mData)
-		{
-			delete item;
-		}
+		info("GCodeFileModel: Destructing");
 		mData.clear();
 		mProgramLoading = false;
 	}
 
-	void GCodeFileModel::Load(deque<string> data)
+	void GCodeFileModel::Load(const deque<string>& data)
 	{
-		cout << "GCodeFileModel: load(vector<string>)" << endl;
+		info("GCodeFileModel: load(vector<string>)");
 
 		// Reset tables
 		//emit gcodeFileLoadStartedSignal();
 		// Prepare parser
-		mGcodeParser.setTraverseSpeed(1);//mSettingsForm->rapidSpeed());
+		mGcodeParser.SetTraverseSpeed(1);//mSettingsForm->rapidSpeed());
 		//if (mCodeDrawer->getIgnoreZ()) gp.reset(QVector3D(qQNaN(), qQNaN(), 0));
 
 		// Block parser updates on table changes
 		mProgramLoading = true;
 
 		// Prepare model
-		cout << "GCodeFileModel: Clearing data";
+		debug("GCodeFileModel: Clearing data");
 		mData.clear();
 		//emit clearExistingGcodeFileSignal();
 		//emit reserveGcodeRowsSignal(data.count());
@@ -74,40 +71,40 @@ namespace Coconut
 			string command;
 			string trimmed;
 			vector<string> args;
-			GCodeCommand* item = new GCodeCommand();
+			GCodeCommand item;
 			command = data.front();
 			trimmed = Util::trim_copy(command);
-			item->SetCommand(command);
+			item.SetCommand(command);
 
-			cout << "GCodeFileModel: Next Line" << command;
+			debug("GCodeFileModel: Next Line {}", command);
 			if (!trimmed.empty())
 			{
-				item->SetLine(mGcodeParser.getCommandNumber());
-				item->SetTableIndex(index);
+				item.SetLine(mGcodeParser.GetCommandNumber());
+				item.SetTableIndex(index);
 
-				mGcodeParser.addCommand(item);
+				mGcodeParser.AddCommand(item);
 
-				if (item->GetCommand() == "%")
+				if (item.GetCommand() == "%")
 				{
-					cout << "GCodeFileModel: Skipping % at index " << index;
+					debug("GCodeFileModel: Skipping % at index ", index);
 					continue;
 				}
 
-				if (item->GetArgs().empty())
+				if (item.GetArgs().empty())
 				{
-					string marker = GCodeParser::parseComment(command);
-					cout << "GCodeFileModel: marker " << marker;
-					item->SetMarker(marker);
-					item->SetState(GcodeCommandState::Marker);
-					if (!item->GetMarker().empty())
+					string marker = GCodeParser::ParseComment(command);
+					debug("GCodeFileModel: marker ", marker);
+					item.SetMarker(marker);
+					item.SetState(GcodeCommandState::Marker);
+					if (!item.GetMarker().empty())
 					{
 						mMarkers.push_back(item);
 					}
 				}
 				else
 				{
-					item->SetCommand(trimmed + '\r');
-					item->SetState(GcodeCommandState::InQueue);
+					item.SetCommand(trimmed + '\r');
+					item.SetState(GcodeCommandState::InQueue);
 				}
 
 				mData.push_back(item);
@@ -121,9 +118,9 @@ namespace Coconut
 		mFileOpen = true;
 	}
 
-	void GCodeFileModel::Load(string fileName)
+	void GCodeFileModel::Load(const string& fileName)
 	{
-		cout << "GCodeFileModel: load(string fileName)";
+		info("GCodeFileModel: load(string fileName = {})",fileName);
 		mFile.SetPath(fileName);
 
 		// Read lines
@@ -134,7 +131,7 @@ namespace Coconut
 		Load(data);
 	}
 
-	double GCodeFileModel::UpdateProgramEstimatedTime(vector<LineSegment*> lines)
+	double GCodeFileModel::UpdateProgramEstimatedTime(const vector<LineSegment>& lines)
 	{
 
 		//cout << "GCodeFileModel: updateProgramEstimatedTime(vector<LineSegment*> lines)";
@@ -175,15 +172,15 @@ namespace Coconut
 
 	string GCodeFileModel::GetCurrentFileName()
 	{
-	   cout << "GCodeFileModel: getCurrentFileName()";
+	   debug("GCodeFileModel: GetCurrentFileName()");
 	   return mFile.NameWithExtension();
 	}
 
-	GCodeCommand* GCodeFileModel::GetCommandByID(long id) const
+	GCodeCommand& GCodeFileModel::GetCommandByID(long id)
 	{
-	   for (GCodeCommand* next : mData)
+	   for (GCodeCommand& next : mData)
 	   {
-		   if (next->HasID(id))
+		   if (next.HasID(id))
 		   {
 			   return next;
 		   }
@@ -191,7 +188,7 @@ namespace Coconut
 	   throw GCodeCommandNotFoundException(id);
 	}
 
-	GCodeCommand* GCodeFileModel::GetCommand(int index) const
+	GCodeCommand& GCodeFileModel::GetCommand(int index)
 	{
 		if (index < 0 || index > mData.size() -1)
 		{
@@ -206,12 +203,12 @@ namespace Coconut
 		return mData.size();
 	}
 
-	vector<GCodeCommand*> GCodeFileModel::GetData() const
+	vector<GCodeCommand>& GCodeFileModel::GetData()
 	{
 		return mData;
 	}
 
-	vector<GCodeCommand*> GCodeFileModel::GetMarkers() const
+	vector<GCodeCommand>& GCodeFileModel::GetMarkers()
 	{
 		return mMarkers;
 	}
@@ -223,15 +220,14 @@ namespace Coconut
 
 	void GCodeFileModel::PrintMarkers()
 	{
-	   cout << "GCodeFileModel: Markers";
-	   for (GCodeCommand* marker : mMarkers)
+	   debug("GCodeFileModel: Markers");
+	   for (GCodeCommand& marker : mMarkers)
 	   {
-		   cout << "GCodeFileModel: " << marker->GetTableIndex()
-					<< ":" << marker->GetMarker();
+		   debug("GCodeFileModel: {} marker->GetMarker()", marker.GetTableIndex());
 	   }
 	}
 
-	bool GCodeFileModel::IsGcodeFile(string fileName)
+	bool GCodeFileModel::IsGcodeFile(const string& fileName)
 	{
         auto extStart = fileName.find_last_of(".");
         if (extStart != string::npos)

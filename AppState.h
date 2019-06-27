@@ -4,6 +4,8 @@
 
 // Models
 #include "Model/Settings/SettingsModel.h"
+#include "Model/SerialPortModel.h"
+#include "Model/Grbl/GrblMachineModel.h"
 
 // ImGui Widgets
 #include "Widgets/ImGui/ConsoleWindow.h"
@@ -12,7 +14,7 @@
 #include "Widgets/ImGui/JogWindow.h"
 #include "Widgets/ImGui/MenuBar.h"
 #include "Widgets/ImGui/OverridesWindow.h"
-#include "Widgets/ImGui/PreviewWindow.h"
+#include "Widgets/ImGui/WorkAreaWindow.h"
 #include "Widgets/ImGui/SettingsWindow.h"
 #include "Widgets/ImGui/StateWindow.h"
 
@@ -35,9 +37,13 @@ namespace Coconut
         bool OpenGCodeFile(string path);
         void CloseGCodeFile();
 
-        Window* GetWindow();
-        SettingsModel* GetSettingsModel();
-        PreviewWindow* GetPreviewWindow();
+        Window& GetWindow();
+        WorkAreaWindow& GetPreviewWindow();
+
+        SettingsModel& GetSettingsModel();
+        SerialPortModel& GetSerialPortModel();
+        GCodeFileModel& GetGCodeFileModel();
+        GrblMachineModel& GetGrblMachineModel();
 
     protected:
         bool CreateImGuiWidgets();
@@ -50,6 +56,10 @@ namespace Coconut
         Window mWindow;
         // Model
         SettingsModel mSettingsModel;
+        SerialPortModel mSerialPortModel;
+        GrblMachineModel mGrblMachineModel;
+        GCodeFileModel mGCodeFileModel;
+
         // ImGui Widgets
         ConsoleWindow mConsoleWindow;
         ControlWindow mControlWindow;
@@ -59,7 +69,7 @@ namespace Coconut
         OverridesWindow mOverridesWindow;
         SettingsWindow mSettingsWindow;
         StateWindow mStateWindow;
-        PreviewWindow mPreviewWindow;
+        WorkAreaWindow mPreviewWindow;
         // GL Widgets
         GridDrawer mGridDrawer;
         ToolDrawer mToolDrawer;

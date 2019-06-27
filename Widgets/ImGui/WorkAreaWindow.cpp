@@ -1,4 +1,4 @@
-#include "PreviewWindow.h"
+#include "WorkAreaWindow.h"
 #include "../../AppState.h"
 #include "../../Window.h"
 
@@ -9,7 +9,7 @@ using glm::perspective;
 
 namespace Coconut
 {
-    PreviewWindow::PreviewWindow(AppState* project)
+    WorkAreaWindow::WorkAreaWindow(AppState* project)
         : ImGuiWidget(project, "Preview"),
           mLastContentAreaSize(ImVec2(10.0,10.0)),
           mContentAreaSize(ImVec2(10.0,10.0)),
@@ -22,7 +22,7 @@ namespace Coconut
 
 	{}
 
-    PreviewWindow::~PreviewWindow ()
+    WorkAreaWindow::~WorkAreaWindow ()
 	{
         if (mTexture > 0)
         {
@@ -35,7 +35,7 @@ namespace Coconut
         GLCheckError();
     }
 
-    bool PreviewWindow::InitGL()
+    bool WorkAreaWindow::InitGL()
     {
         if (!InitFramebuffer())
         {
@@ -52,7 +52,7 @@ namespace Coconut
         return true;
     }
 
-    bool PreviewWindow::InitFramebuffer()
+    bool WorkAreaWindow::InitFramebuffer()
 	{
 		// Create Window Framebuffer
         glGenFramebuffers(1, &mFBO);
@@ -77,7 +77,7 @@ namespace Coconut
         return true;
     }
 
-    bool PreviewWindow::InitTexture()
+    bool WorkAreaWindow::InitTexture()
     {
         // Clear Existing Texture
         if (mTexture != 0)
@@ -108,7 +108,7 @@ namespace Coconut
         return true;
     }
 
-    bool PreviewWindow::BindFramebufferTexture()
+    bool WorkAreaWindow::BindFramebufferTexture()
     {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture, 0);
@@ -116,7 +116,7 @@ namespace Coconut
         return true;
     }
 
-    void PreviewWindow::InitViewMatrix()
+    void WorkAreaWindow::InitViewMatrix()
     {
         mViewMatrix = glm::lookAt(
             mCameraPosition, // the position of your camera, in world space
@@ -125,7 +125,7 @@ namespace Coconut
         );
     }
 
-     void PreviewWindow::InitProjectionMatrix()
+     void WorkAreaWindow::InitProjectionMatrix()
     {
         switch (mProjectionType)
         {
@@ -147,51 +147,53 @@ namespace Coconut
     }
 
     void
-    PreviewWindow::Draw
+    WorkAreaWindow::Draw
     ()
     {
         mLastContentAreaSize.x = mContentAreaSize.x;
         mLastContentAreaSize.y = mContentAreaSize.y;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
         ImGui::Begin(mName.c_str(), &mVisible);
         mContentAreaSize = ImGui::GetContentRegionAvail();
         ImGui::Image((void*)(intptr_t)mTexture,mContentAreaSize,UV1, UV2);
 		ImGui::End();
+        ImGui::PopStyleVar();
     }
 
-    int PreviewWindow::GetContentAreaWidth()
+    int WorkAreaWindow::GetContentAreaWidth()
     {
 		return mContentAreaSize.x;
     }
 
-    int PreviewWindow::GetContentAreaHeight()
+    int WorkAreaWindow::GetContentAreaHeight()
     {
 		return mContentAreaSize.y;
     }
 
-    bool PreviewWindow::PreviewSizeHasChanged()
+    bool WorkAreaWindow::PreviewSizeHasChanged()
     {
         return mContentAreaSize.x != mLastContentAreaSize.x ||
                 mContentAreaSize.y != mLastContentAreaSize.y;
     }
 
-    GLuint PreviewWindow::GetFBO()
+    GLuint WorkAreaWindow::GetFBO()
     {
        return mFBO;
     }
 
-    mat4 PreviewWindow::GetViewMatrix()
+    mat4 WorkAreaWindow::GetViewMatrix()
     {
         return mViewMatrix;
     }
 
-    mat4 PreviewWindow::GetProjectionMatrix()
+    mat4 WorkAreaWindow::GetProjectionMatrix()
     {
         return mProjectionMatrix;
     }
 
-	ImVec2 PreviewWindow::UV1 = ImVec2(0,1);
-	ImVec2 PreviewWindow::UV2 = ImVec2(1,0);
+	ImVec2 WorkAreaWindow::UV1 = ImVec2(0,1);
+	ImVec2 WorkAreaWindow::UV2 = ImVec2(1,0);
 
 }
 

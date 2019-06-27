@@ -1,4 +1,4 @@
-// This file is a part of "CoconutCNC" application.
+// This file Is a part of "CoconutCNC" application.
 // This file was originally ported from "PointSegment.java" class
 // of "Universal GcodeSender" application written by Will Winder
 // (https://github.com/winder/Universal-G-Code-Sender)
@@ -28,68 +28,68 @@ namespace Coconut
 			YZ
 		};
 
-		PointSegment(GCodeCommand* parent);
-		PointSegment(const PointSegment &ps);
-		PointSegment(GCodeCommand* parent, const vec3 &b, int num);
-		PointSegment(GCodeCommand* parent, const vec3 &getPointHandle,
-			int num, const vec3 &center, double radius, bool clockwise);
+		PointSegment(const GCodeCommand& parent);
+		PointSegment(const PointSegment& ps);
+		PointSegment(const GCodeCommand& parent, const vec3 &b, int num);
+		PointSegment(const GCodeCommand& parent, const vec3 &GetPointHandle, int num, const vec3 &center, double radius, bool clockwise);
 		~PointSegment();
 
-		vec3* getPoint();
+        PointSegment& operator=(const PointSegment&);
 
-		vector<double> points() const;
+		vec3& GetPoint();
 
-		void setToolHead(int head);
-		int getToolhead() const;
+		vector<double> Points() const;
 
-		void setLineNumber(int num);
-		int getLineNumber() const;
+		void SetToolHead(int head);
+		int GetToolhead() const;
 
-		void setSpeed(double s);
-		double getSpeed() const;
+		void SetLineNumber(int num);
+		int GetLineNumber() const;
 
-		void setIsZMovement(bool isZ);
-		bool isZMovement() const;
+		void SetSpeed(double s);
+		double GetSpeed() const;
 
-		void setIsMetric(bool mIsMetric);
-		bool isMetric() const;
+		void SetIsZMovement(bool isZ);
+		bool IsZMovement() const;
 
-		void setIsArc(bool isA);
-		bool isArc() const;
+		void SetIsMetric(bool mIsMetric);
+		bool IsMetric() const;
 
-		void setIsRapidMovement(bool isF);
-		bool isRapidMovement() const;
+		void SetIsArc(bool isA);
+		bool IsArc() const;
 
-		void setArcCenter(const vec3 &center);
+		void SetIsRapidMovement(bool isF);
+		bool IsRapidMovement() const;
 
-		vector<double> centerPoints() const;
-		vec3 center() const;
+		void SetArcCenter(const vec3 &center);
 
-		void setIsClockwise(bool clockwise);
-		bool isClockwise() const;
+		vector<double> CenterPoints() const;
+		vec3& Center();
 
-		void setRadius(double rad);
-		double getRadius() const;
+		void SetIsClockwise(bool clockwise);
+		bool IsClockwise() const;
 
-		void convertToMetric();
+		void SetRadius(double rad);
+		double GetRadius() const;
 
-		bool isAbsolute() const;
-		void setIsAbsolute(bool isAbsolute);
+		void ConvertToMetric();
 
-		planes plane() const;
-		void setPlane(const planes &plane);
+		bool IsAbsolute() const;
+		void SetIsAbsolute(bool IsAbsolute);
 
-		double getSpindleSpeed() const;
-		void setSpindleSpeed(double spindleSpeed);
+		planes Plane() const;
+		void SetPlane(const planes &plane);
 
-		double getDwell() const;
-		void setDwell(double dwell);
+		double GetSpindleSpeed() const;
+		void SetSpindleSpeed(double spindleSpeed);
 
-		GCodeCommand* getParent() const;
-		void setParent(GCodeCommand* parent);
+		double GetDwell() const;
+		void SetDwell(double dwell);
+
+		const GCodeCommand& GetParent() const;
 
 	private:
-		GCodeCommand* mParent;
+		const GCodeCommand& mParent;
 		ArcProperties mArcProperties;
 		int mToolhead;
 		double mSpeed;

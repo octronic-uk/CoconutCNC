@@ -10,7 +10,7 @@
 
 namespace Coconut
 {
-	PointSegment::PointSegment(GCodeCommand* parent) :
+	PointSegment::PointSegment(const GCodeCommand& parent) :
         mParent(parent),
 		mToolhead(0),
 		mIsMetric(true),
@@ -30,28 +30,36 @@ namespace Coconut
 
 	PointSegment::PointSegment(const PointSegment &ps)
 		:
-		  mToolhead(ps.getToolhead()),
-		  mSpeed(ps.getSpeed()),
+          mParent(ps.mParent),
+          mArcProperties(ps.mArcProperties),
+		  mToolhead(ps.mToolhead),
+		  mSpeed(ps.mSpeed),
+          mSpindleSpeed(ps.mSpindleSpeed),
+          mDwell(ps.mDwell),
 		  mPoint(ps.mPoint),
-		  mIsMetric(ps.isMetric()),
-		  mIsZMovement(ps.isZMovement()),
-		  mIsArc(ps.isArc()),
-		  mIsRapidMovement(ps.isRapidMovement()),
-		  mIsAbsolute(ps.isAbsolute()),
-		  mLineNumber(ps.mLineNumber)
+		  mIsMetric(ps.mIsMetric),
+		  mIsZMovement(ps.mIsZMovement),
+		  mIsArc(ps.mIsArc),
+		  mIsRapidMovement(ps.mIsRapidMovement),
+		  mIsAbsolute(ps.mIsAbsolute),
+		  mLineNumber(ps.mLineNumber),
+          mPlane(ps.mPlane)
 	{
 	    debug("PointSegment: Copy Constructor, isZMovement {}" ,mIsZMovement);
-		if (isArc())
+
+		if (IsArc())
 		{
 			//qDebug() << "PointSegment: isArc";
-			setArcCenter(ps.center());
-			setRadius(ps.getRadius());
-			setIsClockwise(ps.isClockwise());
-			mPlane = ps.plane();
+			SetArcCenter(ps.mArcProperties.center);
+			SetRadius(ps.mArcProperties.radius);
+			SetIsClockwise(ps.IsClockwise());
+			mPlane = ps.Plane();
 		}
 	}
 
-	PointSegment::PointSegment(GCodeCommand* parent, const vec3 &b, int num)
+
+
+	PointSegment::PointSegment(const GCodeCommand& parent, const vec3 &b, int num)
 		: PointSegment(parent)
 
 	{
@@ -62,7 +70,7 @@ namespace Coconut
 
 	PointSegment::PointSegment
 	(
-		GCodeCommand* parent,
+		const GCodeCommand& parent,
 		const vec3 &point,
 		int num,
 		const vec3 &center,
@@ -76,16 +84,36 @@ namespace Coconut
 		mArcProperties.isClockwise = clockwise;
 	}
 
+
+	PointSegment& PointSegment::operator=(const PointSegment& ps)
+	{
+		//mParent = ps.mParent;
+        mArcProperties = ps.mArcProperties;
+		mToolhead = ps.mToolhead;
+		mSpeed = ps.mSpeed;
+        mSpindleSpeed = ps.mSpindleSpeed,
+        mDwell = ps.mDwell;
+		mPoint = ps.mPoint;
+		mIsMetric = ps.mIsMetric;
+		mIsZMovement = ps.mIsZMovement;
+		mIsArc = ps.mIsArc;
+		mIsRapidMovement = ps.mIsRapidMovement;
+		mIsAbsolute = ps.mIsAbsolute;
+		mLineNumber = ps.mLineNumber;
+        mPlane = ps.mPlane;
+        return *this;
+    }
+
 	PointSegment::~PointSegment()
 	{
 	}
 
-	vec3* PointSegment::getPoint()
+	vec3& PointSegment::GetPoint()
 	{
-		return &mPoint;
+		return mPoint;
 	}
 
-	vector<double> PointSegment::points() const
+	vector<double> PointSegment::Points() const
 	{
 		vector<double> points;
 		points.push_back(mPoint.x);
@@ -93,85 +121,85 @@ namespace Coconut
 		return points;
 	}
 
-	void PointSegment::setToolHead(int head)
+	void PointSegment::SetToolHead(int head)
 	{
 		mToolhead = head;
 	}
 
-	int PointSegment::getToolhead() const
+	int PointSegment::GetToolhead() const
 	{
 		return mToolhead;
 	}
 
-	void PointSegment::setLineNumber(int num)
+	void PointSegment::SetLineNumber(int num)
 	{
 		mLineNumber = num;
 	}
 
-	int PointSegment::getLineNumber() const
+	int PointSegment::GetLineNumber() const
 	{
 		return mLineNumber;
 	}
 
-	void PointSegment::setSpeed(double s)
+	void PointSegment::SetSpeed(double s)
 	{
 		mSpeed = s;
 	}
 
-	double PointSegment::getSpeed() const
+	double PointSegment::GetSpeed() const
 	{
 		return mSpeed;
 	}
 
-	void PointSegment::setIsZMovement(bool isZ)
+	void PointSegment::SetIsZMovement(bool isZ)
 	{
 		mIsZMovement = isZ;
 	}
 
-	bool PointSegment::isZMovement() const
+	bool PointSegment::IsZMovement() const
 	{
 		return mIsZMovement;
 	}
 
-	void PointSegment::setIsMetric(bool isMetric)
+	void PointSegment::SetIsMetric(bool isMetric)
 	{
 		mIsMetric = isMetric;
 	}
 
-	bool PointSegment::isMetric() const
+	bool PointSegment::IsMetric() const
 	{
 		return mIsMetric;
 	}
 
-	void PointSegment::setIsArc(bool isA)
+	void PointSegment::SetIsArc(bool isA)
 	{
 		mIsArc = isA;
 	}
 
-	bool PointSegment::isArc() const
+	bool PointSegment::IsArc() const
 	{
 		return mIsArc;
 	}
 
-	void PointSegment::setIsRapidMovement(bool isF)
+	void PointSegment::SetIsRapidMovement(bool isF)
 	{
 		mIsRapidMovement = isF;
 	}
 
-	bool PointSegment::isRapidMovement() const
+	bool PointSegment::IsRapidMovement() const
 	{
 		return mIsRapidMovement;
 	}
 
 	// Arc properties.
 
-	void PointSegment::setArcCenter(const vec3& center)
+	void PointSegment::SetArcCenter(const vec3& center)
 	{
 		mArcProperties.center = vec3(center);
-		setIsArc(true);
+		SetIsArc(true);
 	}
 
-	vector<double> PointSegment::centerPoints() const
+	vector<double> PointSegment::CenterPoints() const
 	{
 		vector<double> points;
 		points.push_back(mArcProperties.center.x);
@@ -180,32 +208,32 @@ namespace Coconut
 		return points;
 	}
 
-	vec3 PointSegment::center() const
+	vec3& PointSegment::Center()
 	{
 		return mArcProperties.center;
 	}
 
-	void PointSegment::setIsClockwise(bool clockwise)
+	void PointSegment::SetIsClockwise(bool clockwise)
 	{
 		mArcProperties.isClockwise = clockwise;
 	}
 
-	bool PointSegment::isClockwise() const
+	bool PointSegment::IsClockwise() const
 	{
 		return mArcProperties.isClockwise;
 	}
 
-	void PointSegment::setRadius(double rad)
+	void PointSegment::SetRadius(double rad)
 	{
 		mArcProperties.radius = rad;
 	}
 
-	double PointSegment::getRadius() const
+	double PointSegment::GetRadius() const
 	{
 		return mArcProperties.radius;
 	}
 
-	void PointSegment::convertToMetric()
+	void PointSegment::ConvertToMetric()
 	{
 		if (mIsMetric)
 		{
@@ -226,53 +254,48 @@ namespace Coconut
 		}
 	}
 
-	bool PointSegment::isAbsolute() const
+	bool PointSegment::IsAbsolute() const
 	{
 		return mIsAbsolute;
 	}
 
-	void PointSegment::setIsAbsolute(bool isAbsolute)
+	void PointSegment::SetIsAbsolute(bool isAbsolute)
 	{
 		mIsAbsolute = isAbsolute;
 	}
 
-	PointSegment::planes PointSegment::plane() const
+	PointSegment::planes PointSegment::Plane() const
 	{
 		return mPlane;
 	}
 
-	void PointSegment::setPlane(const planes &plane)
+	void PointSegment::SetPlane(const planes &plane)
 	{
 		mPlane = plane;
 	}
 
-	double PointSegment::getSpindleSpeed() const
+	double PointSegment::GetSpindleSpeed() const
 	{
 		return mSpindleSpeed;
 	}
 
-	void PointSegment::setSpindleSpeed(double spindleSpeed)
+	void PointSegment::SetSpindleSpeed(double spindleSpeed)
 	{
 		mSpindleSpeed = spindleSpeed;
 	}
 
-	double PointSegment::getDwell() const
+	double PointSegment::GetDwell() const
 	{
 		return mDwell;
 	}
 
-	void PointSegment::setDwell(double dwell)
+	void PointSegment::SetDwell(double dwell)
 	{
 		mDwell = dwell;
 	}
 
-	GCodeCommand* PointSegment::getParent() const
+	const GCodeCommand& PointSegment::GetParent() const
 	{
 		return mParent;
-	}
-
-	void PointSegment::setParent(GCodeCommand* parent)
-	{
-		mParent = parent;
 	}
 }

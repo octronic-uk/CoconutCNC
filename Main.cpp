@@ -6,7 +6,7 @@ using namespace Coconut;
 
 int main(int argc,char** argv)
 {
-    spdlog::set_level(spdlog::level::off);
+    spdlog::set_level(spdlog::level::info);
    	debug("Starting main");
     AppState s(argc, argv);
     if (s.Init())

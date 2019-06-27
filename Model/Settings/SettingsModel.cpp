@@ -1,17 +1,20 @@
 #include "SettingsModel.h"
 
-
+#include "../../Common/Logger.h"
 
 namespace Coconut
 {
 	SettingsModel::SettingsModel(AppState* state)
         : mAppState(state)
 	{
-
+          debug("SettingsModel: Constructor");
+          mSettingsFile.SetPath(SETTINGS_FILE_PATH);
+          CreateOrOpenSettingsFile();
 	}
 
 	json SettingsModel::ToJson()
 	{
+        info("SettingsModel: {}",__FUNCTION__);
         json j;
         j[SETTINGS_CONNECTION] = mConnectionSettings.ToJson();
         j[SETTINGS_INTERFACE] = mInterfaceSettings.ToJson();
@@ -34,33 +37,57 @@ namespace Coconut
 
 	bool SettingsModel::FromJson(const json& j)
 	{
-        if (!j[SETTINGS_CONNECTION].is_object() ||
-            mConnectionSettings.FromJson(j[SETTINGS_CONNECTION])) return false;
-
-        if (!j[SETTINGS_INTERFACE].is_object() ||
-            !mInterfaceSettings.FromJson(j[SETTINGS_INTERFACE])) return false;
-
-        if (!j[SETTINGS_MACHINE].is_object() ||
-        	!mMachineSettings.FromJson(j[SETTINGS_MACHINE])) return false;
-
-        if (!j[SETTINGS_TOOLHOLDERS].is_array()) return false;
-        for (const json& toolholder_j : j[SETTINGS_TOOLHOLDERS])
+        info("SettingsModel: {}",__FUNCTION__);
+        if ( j.find(SETTINGS_CONNECTION) != j.end() && j[SETTINGS_CONNECTION].is_object())
         {
-			ToolHolderSettings ths;
-            ths.FromJson(toolholder_j);
-            mToolHolderSettingsVector.push_back(ths);
+             mConnectionSettings.FromJson(j[SETTINGS_CONNECTION]);
         }
 
-        if (!j[SETTINGS_TOOLS].is_array()) return false;
-        for (const json& tool_j : j[SETTINGS_TOOLS])
+        if (j.find(SETTINGS_INTERFACE) != j.end() && j[SETTINGS_INTERFACE].is_object())
         {
-			ToolSettings ts;
-            ts.FromJson(tool_j);
-            mToolSettingsVector.push_back(ts);
+            mInterfaceSettings.FromJson(j[SETTINGS_INTERFACE]);
+    	}
+
+        if (j.find(SETTINGS_MACHINE) != j.end() && j[SETTINGS_MACHINE].is_object())
+    	{
+        	mMachineSettings.FromJson(j[SETTINGS_MACHINE]);
+    	}
+
+        if (j.find(SETTINGS_TOOLHOLDERS) != j.end() && j[SETTINGS_TOOLHOLDERS].is_array())
+        {
+			for (const json& toolholder_j : j[SETTINGS_TOOLHOLDERS])
+			{
+				ToolHolderSettings ths;
+				ths.FromJson(toolholder_j);
+				mToolHolderSettingsVector.push_back(ths);
+			}
+        }
+
+        if (j.find(SETTINGS_TOOLS) != j.end() && j[SETTINGS_TOOLS].is_array())
+        {
+			for (const json& tool_j : j[SETTINGS_TOOLS])
+			{
+				ToolSettings ts;
+				ts.FromJson(tool_j);
+				mToolSettingsVector.push_back(ts);
+			}
         }
 
         return true;
 	}
+
+    void SettingsModel::CreateOrOpenSettingsFile()
+    {
+        info("SettingsModel: {}",__FUNCTION__);
+    	if (!mSettingsFile.Exists())
+        {
+            string data = "{}";
+            mSettingsFile.WriteString(data);
+        }
+
+        string settings_string = mSettingsFile.ReadString();
+        FromJson(json::parse(settings_string));
+    }
 
 	vector<ToolSettings>& SettingsModel::GetToolSettingsVector()
 	{
@@ -109,6 +136,13 @@ namespace Coconut
             mToolSettingsVector.erase(itr);
         }
 	}
+
+	bool SettingsModel::SaveSettingsFile()
+    {
+        info("SettingsModel: {}",__FUNCTION__);
+       string data = ToJson().dump(4);
+       return mSettingsFile.WriteString(data);
+    }
 
     const string SettingsModel::SETTINGS_CONNECTION = "connection";
 	const string SettingsModel::SETTINGS_INTERFACE = "interface";

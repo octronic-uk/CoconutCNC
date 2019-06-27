@@ -4,9 +4,8 @@
 namespace Coconut
 {
     GCodeTableWindow::GCodeTableWindow(AppState* project)
-        : ImGuiWidget(project, "GCodeTable"),
-          mProgress(0.5f),
-          mBufferUsage(0.5f)
+        : ImGuiWidget(project, "GCodeTable")
+
 	{}
 
     GCodeTableWindow::~GCodeTableWindow ()
@@ -25,30 +24,10 @@ namespace Coconut
 
 		DrawTablePane();
 
-        ImGui::Columns(1);
-
-
-        DrawBufferUsageBar();
-        ImGui::SameLine();
-        DrawProgressBar();
-
-        ImGui::Columns(1);
 		ImGui::End();
     }
 
-    void GCodeTableWindow::DrawProgressBar()
-    {
-        ImGui::Text("Progress");
-        ImGui::SameLine();
-    	ImGui::ProgressBar(mProgress,ImVec2(-1,20));
-    }
 
-    void GCodeTableWindow::DrawBufferUsageBar()
-    {
-        ImGui::Text("Buffer");
-        ImGui::SameLine();
-    	ImGui::ProgressBar(mBufferUsage,ImVec2(-1,20));
-    }
 
     void GCodeTableWindow::DrawMarkersPane()
     {

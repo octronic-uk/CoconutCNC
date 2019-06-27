@@ -14,8 +14,14 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 using nlohmann::json;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
 
 namespace Coconut
 {
@@ -25,6 +31,16 @@ namespace Coconut
 		JsonSerialization();
         virtual json ToJson() = 0;
         virtual bool FromJson(const json& j) = 0;
+
+        vec2 JsonToVec2(const json& js);
+        json Vec2ToJson(const vec2& v);
+
+        vec3 JsonToVec3(const json& js);
+        json Vec3ToJson(const vec3& v);
+
+        vec4 JsonToVec4(const json& js);
+        json Vec4ToJson(const vec4& v);
+
 	};
 }
 

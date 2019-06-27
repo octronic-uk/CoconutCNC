@@ -17,6 +17,8 @@
  */
 #include "GrblResponse.h"
 
+#include "../../Common/Logger.h"
+
 namespace Coconut
 {
 
@@ -42,7 +44,9 @@ namespace Coconut
 
 	void GrblResponse::IdentifyType()
 	{
-		if (mData.find("Grbl")  == 0)
+        info("Identifying type of response: {}",mData);
+
+		if (mData.find("Grbl") == 0)
 		{
 			mType = GrblResponseType::Startup;
 			return;

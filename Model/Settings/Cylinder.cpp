@@ -1,5 +1,7 @@
 #include "Cylinder.h"
 
+#include "../../Common/Logger.h"
+
 namespace Coconut
 {
 	Cylinder::Cylinder(float ld, float ud, float length, int faces)
@@ -9,7 +11,7 @@ namespace Coconut
           mLowerDiameter(ld),
           mLength(length)
 	{
-
+		debug("SettingsModel: Constructor");
 	}
 
     int Cylinder::GetID() const
@@ -64,6 +66,7 @@ namespace Coconut
 
     json Cylinder::ToJson()
 	{
+        info("Cylinder: {}",__FUNCTION__);
         json j;
         j[CYLINDER_ID] = GetID();
 		j[CYLINDER_FACES] = GetFaces();
@@ -75,20 +78,31 @@ namespace Coconut
 
 	bool Cylinder::FromJson(const json& j)
 	{
-        if (!j[CYLINDER_ID].is_number()) return false;
-        SetID(j[CYLINDER_ID]);
+        info("Cylinder: {}",__FUNCTION__);
+        if (j.find(CYLINDER_ID) != j.end() && j[CYLINDER_ID].is_number())
+        {
+        	SetID(j[CYLINDER_ID]);
+        }
 
-        if (!j[CYLINDER_FACES].is_number()) return false;
-        SetFaces(j[CYLINDER_FACES]);
+        if (j.find(CYLINDER_FACES) != j.end() && j[CYLINDER_FACES].is_number())
+        {
+        	SetFaces(j[CYLINDER_FACES]);
+        }
 
-        if (!j[CYLINDER_UPPER_DIAMETER].is_number()) return false;
-        SetUpperDiameter(j[CYLINDER_UPPER_DIAMETER]);
+        if (j.find(CYLINDER_UPPER_DIAMETER) != j.end() && j[CYLINDER_UPPER_DIAMETER].is_number())
+        {
+        	SetUpperDiameter(j[CYLINDER_UPPER_DIAMETER]);
+        }
 
-        if (!j[CYLINDER_LOWER_DIAMETER].is_number()) return false;
-        SetLowerDiameter(j[CYLINDER_LOWER_DIAMETER]);
+        if (j.find(CYLINDER_LOWER_DIAMETER) != j.end() && j[CYLINDER_LOWER_DIAMETER].is_number())
+        {
+        	SetLowerDiameter(j[CYLINDER_LOWER_DIAMETER]);
+        }
 
-        if (!j[CYLINDER_LENGTH].is_number()) return false;
-        SetLength(j[CYLINDER_LENGTH]);
+        if (j.find(CYLINDER_LENGTH) != j.end() && j[CYLINDER_LENGTH].is_number())
+        {
+        	SetLength(j[CYLINDER_LENGTH]);
+        }
 
         return true;
     }

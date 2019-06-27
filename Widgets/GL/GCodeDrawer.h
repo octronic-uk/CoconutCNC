@@ -26,14 +26,14 @@ namespace Coconut
 		void Update(const vector<int>& indexes);
 		bool UpdateData();
 
-		vec3 GetSizes() const;
-		vec3 GetMinimumExtremes() const ;
-		vec3 GetMaximumExtremes() const ;
+		vec3 GetSizes(const GCodeViewParser& vp) const;
+		vec3 GetMinimumExtremes(const GCodeViewParser& vp) const ;
+		vec3 GetMaximumExtremes(const GCodeViewParser& vp) const ;
 
 		bool Init() override;
-		void UpdateViewParser(GCodeParser*);
+		void UpdateViewParser(GCodeParser&, GCodeViewParser& vp);
 
-		GCodeViewParser* GetViewParserHandle();
+		GCodeViewParser& GetViewParser();
 
 		bool Simplify() const;
 		void SetSimplify(bool simplify);
@@ -71,13 +71,12 @@ namespace Coconut
 		void SetPosition(vec3 position);
 
     protected:
-		bool PrepareVectors();
+		bool PrepareVectors(GCodeViewParser& viewParesr);
 		bool UpdateVectors();
-		vec4 GetSegmentColorVector(LineSegment* segment);
-		vec4 GetSegmentColor(LineSegment* segment);
+		vec4 GetSegmentColorVector(const LineSegment& segment);
+		vec4 GetSegmentColor(const LineSegment& segment);
 
 	private:
-		GCodeViewParser* mViewParser;
 		bool mIgnoreZ;
 		vec4 mColorNormal;
 		vec4 mColorDrawn;

@@ -28,22 +28,22 @@ namespace Coconut
 	{
 	}
 
-	vec3 GCodeViewParser::getMinimumExtremes() const
+	vec3 GCodeViewParser::GetMinimumExtremes() const
 	{
 		return mMin;
 	}
 
-	vec3 GCodeViewParser::getMaximumExtremes() const
+	vec3 GCodeViewParser::GetMaximumExtremes() const
 	{
 		return mMax;
 	}
 
-	void GCodeViewParser::testExtremes(const vec3 &p3d)
+	void GCodeViewParser::TestExtremes(const vec3 &p3d)
 	{
-		testExtremes(p3d.x, p3d.y, p3d.z);
+		TestExtremes(p3d.x, p3d.y, p3d.z);
 	}
 
-	void GCodeViewParser::testExtremes(double x, double y, double z)
+	void GCodeViewParser::TestExtremes(double x, double y, double z)
 	{
 		mMin.x = Util::nMin(mMin.x, x);
 		mMin.y = Util::nMin(mMin.y, y);
@@ -54,7 +54,7 @@ namespace Coconut
 		mMax.z = Util::nMax(mMax.z, z);
 	}
 
-	void GCodeViewParser::testLength(const vec3 &start, const vec3 &end)
+	void GCodeViewParser::TestLength(const vec3 &start, const vec3 &end)
 	{
 		double length = (start - end).length();
 		if (!isnan(length) && length != 0)
@@ -65,14 +65,12 @@ namespace Coconut
 		}
 	}
 
-	vector<LineSegment*> GCodeViewParser::getLineSegmentHandlesList() const
+	vector<LineSegment>& GCodeViewParser::GetLineSegmentHandlesList()
 	{
-		vector<LineSegment*> handles;
-		for (auto ls : mLines) handles.push_back(&ls);
-		return handles;
+		return mLines;
 	}
 
-	void GCodeViewParser::reset()
+	void GCodeViewParser::Reset()
 	{
 		mLines.clear();
 		mLineIndexes.clear();
@@ -82,12 +80,12 @@ namespace Coconut
 		mMinLength = NAN;
 	}
 
-	double GCodeViewParser::getMinLength() const
+	double GCodeViewParser::GetMinLength() const
 	{
 		return mMinLength;
 	}
 
-	vec2 GCodeViewParser::getResolution() const
+	vec2 GCodeViewParser::GetResolution() const
 	{
 		return vec2
 		(
@@ -96,73 +94,72 @@ namespace Coconut
 		);
 	}
 
-	void GCodeViewParser::setLinesFromParser
-	(GCodeParser *gp, double arcPrecision, bool arcDegreeMode)
+	void GCodeViewParser::SetLinesFromParser
+	(GCodeParser& gp, double arcPrecision, bool arcDegreeMode)
 	{
 		// Remove old
 		mLines.clear();
 
-		vector <PointSegment*> psl = gp->getPointSegmentHandlesList();
+		vector <PointSegment> psl = gp.GetPointSegmentList();
 		debug("GCodeViewParser: Point Segments {}", psl.size());
 
 		// For a line segment list ALL arcs must be converted to lines.
 		double minArcLength = 0.1;
 		//double length;
 
-		vec3 *start, *end;
-		start = nullptr;
-		end = nullptr;
+		vec3 start(NAN);
+        vec3 end(NAN);
 
 		// Prepare segments indexes
 		mLineIndexes.resize(psl.size());
 
 		int lineIndex = 0;
-		for (PointSegment *segment : psl)
+		for (PointSegment& segment : psl)
 		{
-			PointSegment *ps = segment;
-			bool isMetric = ps->isMetric();
-			ps->convertToMetric();
+			PointSegment ps = segment;
+			bool isMetric = ps.IsMetric();
+			ps.ConvertToMetric();
 
-			end = ps->getPoint();
+			end = ps.GetPoint();
 
 			// start is null for the first iteration.
-			if (start != nullptr)
+			if (start != vec3(NAN))
 			{
 				// Expand arc for graphics.
-				if (ps->isArc())
+				if (ps.IsArc())
 				{
 					vector<vec3> points =
-						GCodeParser::generatePointsAlongArcBDring
+						GCodeParser::GeneratePointsAlongArcBDring
 						(
-							ps->plane(),
-							*start, *end, ps->center(),
-							ps->isClockwise(), ps->getRadius(),
+							ps.Plane(),
+							start, end, ps.Center(),
+							ps.IsClockwise(), ps.GetRadius(),
 							minArcLength, arcPrecision, arcDegreeMode
 						);
 					// Create line segments from points.
 					if (points.size() > 0)
 					{
-						vec3 startPoint = *start;
+						vec3 startPoint = vec3(NAN);
 						for (vec3 nextPoint : points)
 						{
 							if (nextPoint == startPoint) continue;
 							auto ls = LineSegment(startPoint, nextPoint, lineIndex);
-							ls.setIsArc(ps->isArc());
-							ls.setIsClockwise(ps->isClockwise());
-							ls.setPlane(ps->plane());
-							ls.setIsRapidMovement(ps->isRapidMovement());
-							ls.setIsZMovement(ps->isZMovement());
+							ls.setIsArc(ps.IsArc());
+							ls.setIsClockwise(ps.IsClockwise());
+							ls.setPlane(ps.Plane());
+							ls.setIsRapidMovement(ps.IsRapidMovement());
+							ls.setIsZMovement(ps.IsZMovement());
 							ls.setIsMetric(isMetric);
-							ls.setIsAbsolute(ps->isAbsolute());
-							ls.setSpeed(ps->getSpeed());
-							ls.setSpindleSpeed(ps->getSpindleSpeed());
-							ls.setDwell(ps->getDwell());
+							ls.setIsAbsolute(ps.IsAbsolute());
+							ls.setSpeed(ps.GetSpeed());
+							ls.setSpindleSpeed(ps.GetSpindleSpeed());
+							ls.setDwell(ps.GetDwell());
 
-							testExtremes(nextPoint);
+							TestExtremes(nextPoint);
 
 							mLines.push_back(ls);
 
-							mLineIndexes[ps->getLineNumber()].push_back(mLines.size() - 1);
+							mLineIndexes[ps.GetLineNumber()].push_back(mLines.size() - 1);
 
 							startPoint = nextPoint;
 						}
@@ -172,28 +169,28 @@ namespace Coconut
 				}
                 else
                 {
-					auto ls = LineSegment(*start, *end, lineIndex++);
-					ls.setIsArc(ps->isArc());
-					ls.setIsRapidMovement(ps->isRapidMovement());
-					ls.setIsZMovement(ps->isZMovement());
+					auto ls = LineSegment(start, end, lineIndex++);
+					ls.setIsArc(ps.IsArc());
+					ls.setIsRapidMovement(ps.IsRapidMovement());
+					ls.setIsZMovement(ps.IsZMovement());
 					ls.setIsMetric(isMetric);
-					ls.setIsAbsolute(ps->isAbsolute());
-					ls.setSpeed(ps->getSpeed());
-					ls.setSpindleSpeed(ps->getSpindleSpeed());
-					ls.setDwell(ps->getDwell());
+					ls.setIsAbsolute(ps.IsAbsolute());
+					ls.setSpeed(ps.GetSpeed());
+					ls.setSpindleSpeed(ps.GetSpindleSpeed());
+					ls.setDwell(ps.GetDwell());
 
-					testExtremes(*end);
-					testLength(*start, *end);
+					TestExtremes(end);
+					TestLength(start, end);
 
 					mLines.push_back(ls);
-					mLineIndexes[ps->getLineNumber()].push_back(mLines.size() - 1);
+					mLineIndexes[ps.GetLineNumber()].push_back(mLines.size() - 1);
 				}
 			}
 			start = end;
 		}
 	}
 
-	vector<vector<int>> GCodeViewParser::getLinesIndexes() const
+	vector<vector<int>>& GCodeViewParser::GetLinesIndexes()
 	{
 		return mLineIndexes;
 	}

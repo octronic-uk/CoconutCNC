@@ -36,6 +36,7 @@ namespace Coconut
 
         string GetDirectory() const;
         string GetPath() const;
+        bool Create() const;
         void SetPath(string path);
         string ReadString() const;
     	vector<string> ReadAsLines() const;

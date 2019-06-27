@@ -79,52 +79,47 @@ namespace Coconut
 
 		static long ID;
 
-		static GCodeCommand* JogCancelCommand();
-		static GCodeCommand* AbsoluteXCommand(float);
-		static GCodeCommand* AbsoluteYCommand(float);
-		static GCodeCommand* AbsoluteZCommand(float);
-		static GCodeCommand* ControlXCommand();
-		static GCodeCommand* UnlockCommand();
-		static GCodeCommand* StatusUpdateCommand();
-		static GCodeCommand* ReSetCommand();
-		static GCodeCommand* SpindleCounterClockwiseCommand();
-		static GCodeCommand* SpindleClockwiseCommand();
-		static GCodeCommand* SpindleStopCommand();
-		static GCodeCommand* HomingCommand();
-		static GCodeCommand* ZeroXYCommand();
-		static GCodeCommand* GetGcodeParserParamsCommand();
-		static GCodeCommand* ZeroZCommand();
-		static GCodeCommand* CyclePauseResumeCommand();
-		static GCodeCommand* FeedHoldCommand();
-		static GCodeCommand* GetFirmwareConfigurationCommand();
-		static GCodeCommand* SetFirmwareConfigurationCommand(int param, string value);
-		static GCodeCommand* SetSafePositionCommand();
-		static GCodeCommand* GoToSafePositionCommand();
-		static GCodeCommand* GoToXYOriginCommand();
-		static GCodeCommand* GoToZOriginCommand();
+		static GCodeCommand& JogCancelCommand();
+		static GCodeCommand& AbsoluteXCommand(float);
+		static GCodeCommand& AbsoluteYCommand(float);
+		static GCodeCommand& AbsoluteZCommand(float);
+		static GCodeCommand& ControlXCommand();
+		static GCodeCommand& UnlockCommand();
+		static GCodeCommand& StatusUpdateCommand();
+		static GCodeCommand& ReSetCommand();
+		static GCodeCommand& SpindleCounterClockwiseCommand();
+		static GCodeCommand& SpindleClockwiseCommand();
+		static GCodeCommand& SpindleStopCommand();
+		static GCodeCommand& HomingCommand();
+		static GCodeCommand& ZeroXYCommand();
+		static GCodeCommand& GetGcodeParserParamsCommand();
+		static GCodeCommand& ZeroZCommand();
+		static GCodeCommand& CyclePauseResumeCommand();
+		static GCodeCommand& FeedHoldCommand();
+		static GCodeCommand& GetFirmwareConfigurationCommand();
+		static GCodeCommand& SetFirmwareConfigurationCommand(int param, string value);
+		static GCodeCommand& SetSafePositionCommand();
+		static GCodeCommand& GoToSafePositionCommand();
+		static GCodeCommand& GoToXYOriginCommand();
+		static GCodeCommand& GoToZOriginCommand();
+		static GCodeCommand& FeedOvDefault();
+		static GCodeCommand& FeedOvPlusOne();
+		static GCodeCommand& FeedOvPlusTen();
+		static GCodeCommand& FeedOvMinusOne();
+		static GCodeCommand& FeedOvMinusTen();
+		static GCodeCommand& RapidOvDefault();
+		static GCodeCommand& RapidOv50Percent();
+		static GCodeCommand& RapidOv25Percent();
+		static GCodeCommand& SpindleOvDefault();
+		static GCodeCommand& SpindleOvPlusOne();
+		static GCodeCommand& SpindleOvPlusTen();
+		static GCodeCommand& SpindleOvMinusOne();
+		static GCodeCommand& SpindleOvMinusTen();
 
-		static GCodeCommand* FeedOvDefault();
-		static GCodeCommand* FeedOvPlusOne();
-		static GCodeCommand* FeedOvPlusTen();
-		static GCodeCommand* FeedOvMinusOne();
-		static GCodeCommand* FeedOvMinusTen();
+    	static GCodeCommand NoParent;
 
-		static GCodeCommand* RapidOvDefault();
-		static GCodeCommand* RapidOv50Percent();
-		static GCodeCommand* RapidOv25Percent();
-
-		static GCodeCommand* SpindleOvDefault();
-		static GCodeCommand* SpindleOvPlusOne();
-		static GCodeCommand* SpindleOvPlusTen();
-		static GCodeCommand* SpindleOvMinusOne();
-		static GCodeCommand* SpindleOvMinusTen();
-
-
-		static GCodeCommand* JogCommand
-		(
-			double x, double y, double z,
-			int feedRate, bool inches, bool machineCoordinates
-		);
+		static GCodeCommand& JogCommand(double x, double y, double z,
+			int feedRate, bool inches, bool machineCoordinates);
 
 		bool operator==(const GCodeCommand& other);
 
@@ -156,11 +151,11 @@ namespace Coconut
 		int GetLine() const;
 		void SetLine(int line);
 
-		bool isRawCommand();
+		bool IsRawCommand();
 
 		long GetID();
 		bool HasID(long id);
-		unsigned char GetRawCommand();
+		unsigned char GetRawCommand() const;
 
 		string GetMarker() const;
 		bool IsMarker() const;
@@ -172,8 +167,10 @@ namespace Coconut
 
 		bool IsM30Command();
 
-	private:
+    protected:
 		static long nextID();
+
+	private:
 		unsigned char mRawCommand;
 		string mCommand;
 		GrblResponse mResponse;

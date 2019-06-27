@@ -51,13 +51,13 @@ namespace Coconut
 		  mTraverseSpeed(300),
 		  mLastSpindleSpeed(0)
 	{
-		cout << "GcodeParser: Constructing";
-		reset(vec3(NAN));
+		info("GcodeParser: Constructing");
+		Reset(vec3(NAN));
 	}
 
 	GCodeParser::~GCodeParser()
 	{
-		cout << "GcodeParser: Destructing";
+		info("GcodeParser: Destructing");
 		mPoints.clear();
 		mIsMetric = true;
 		mInAbsoluteMode = true;
@@ -75,103 +75,99 @@ namespace Coconut
 		mLastSpindleSpeed = 0;
 	}
 
-	bool GCodeParser::getConvertArcsToLines()
+	bool GCodeParser::GetConvertArcsToLines()
 	{
 		return mConvertArcsToLines;
 	}
 
-	void GCodeParser::setConvertArcsToLines(bool convertArcsToLines)
+	void GCodeParser::SetConvertArcsToLines(bool convertArcsToLines)
 	{
 		mConvertArcsToLines = convertArcsToLines;
 	}
 
-	bool GCodeParser::getRemoveAllWhitespace()
+	bool GCodeParser::GetRemoveAllWhitespace()
 	{
 		return mRemoveAllWhitespace;
 	}
 
-	void GCodeParser::setRemoveAllWhitespace(bool removeAllWhitespace)
+	void GCodeParser::SetRemoveAllWhitespace(bool removeAllWhitespace)
 	{
 		mRemoveAllWhitespace = removeAllWhitespace;
 	}
 
-	double GCodeParser::getSmallArcSegmentLength()
+	double GCodeParser::GetSmallArcSegmentLength()
 	{
 		return mSmallArcSegmentLength;
 	}
 
-	void GCodeParser::setSmallArcSegmentLength(double smallArcSegmentLength)
+	void GCodeParser::SetSmallArcSegmentLength(double smallArcSegmentLength)
 	{
 		mSmallArcSegmentLength = smallArcSegmentLength;
 	}
 
-	double GCodeParser::getSmallArcThreshold()
+	double GCodeParser::GetSmallArcThreshold()
 	{
 		return mSmallArcThreshold;
 	}
 
-	void GCodeParser::setSmallArcThreshold(double smallArcThreshold)
+	void GCodeParser::SetSmallArcThreshold(double smallArcThreshold)
 	{
 		mSmallArcThreshold = smallArcThreshold;
 	}
 
-	double GCodeParser::getSpeedOverride()
+	double GCodeParser::GetSpeedOverride()
 	{
 		return mSpeedOverride;
 	}
 
-	void GCodeParser::setSpeedOverride(double speedOverride)
+	void GCodeParser::SetSpeedOverride(double speedOverride)
 	{
 		mSpeedOverride = speedOverride;
 	}
 
-	int GCodeParser::getTruncateDecimalLength()
+	int GCodeParser::GetTruncateDecimalLength()
 	{
 		return mTruncateDecimalLength;
 	}
 
-	void GCodeParser::setTruncateDecimalLength(int truncateDecimalLength)
+	void GCodeParser::SetTruncateDecimalLength(int truncateDecimalLength)
 	{
 		mTruncateDecimalLength = truncateDecimalLength;
 	}
 
-	// Resets the current state.
-	void GCodeParser::reset(const vec3& initialPoint)
+	// ReSets the current state.
+	void GCodeParser::Reset(const vec3& initialPoint)
 	{
-
-		cout << "GcodeParser: Reseting parser with initial point"
-             << initialPoint.x << ","
-             << initialPoint.y << ","
-             << initialPoint.z << endl;
+		info("GcodeParser: ReSeting Parser with initial point {},{},{}", initialPoint.x, initialPoint.y,initialPoint.z);
 		mPoints.clear();
 		// The unspoken home location.
 		mCurrentPoint = initialPoint;
 		mCurrentPlane = PointSegment::XY;
-		mPoints.push_back(new PointSegment(nullptr, mCurrentPoint, -1));
+		mPoints.push_back(PointSegment(GCodeCommand::NoParent, mCurrentPoint, -1));
 	}
 
 	/**
 	* Add a command to be processed.
 	*/
-	PointSegment* GCodeParser::addCommand(GCodeCommand* command)
+	PointSegment GCodeParser::AddCommand(GCodeCommand& command)
 	{
-		string stripped = removeComment(command->GetCommand());
-		vector<string> args = splitCommand(stripped);
-		command->SetArgs(args);
+		string stripped = RemoveComment(command.GetCommand());
+		vector<string> args = SplitCommand(stripped);
+		command.SetArgs(args);
 
-		if (command->GetArgs().empty())
+		if (command.GetArgs().empty())
 		{
-			return new PointSegment(command);
+			return PointSegment(command);
 		}
 
-		return processCommand(command);
+		return ProcessCommand(command);
 	}
 
 	/**
 	* Warning, this should only be used when modifying live gcode, such as when
 	* expanding an arc or canned cycle into line segments.
 	*/
-	void GCodeParser::setLastGcodeCommand(float num)
+	void GCodeParser::SetLastGcodeCommand(float num)
 	{
 		mLastGcodeCommand = num;
 	}
@@ -179,47 +175,45 @@ namespace Coconut
 	/**
 	* Gets the point at the end of the list.
 	*/
-	vec3 GCodeParser::getCurrentPoint()
+	vec3 GCodeParser::GetCurrentPoint()
 	{
 		return mCurrentPoint;
 	}
 
 	/**
 	* Expands the last point in the list if it is an arc according to the
-	* the parsers settings.
+	* the Parsers Settings.
 	*/
-	vector<PointSegment*> GCodeParser::expandArc(GCodeCommand* parent)
+	vector<PointSegment> GCodeParser::ExpandArc(const GCodeCommand& parent)
 	{
-		//cout << "GcodeParser::expandArc()";
-		PointSegment* startSegment = mPoints[mPoints.size() - 2];
-		PointSegment* lastSegment = mPoints[mPoints.size() - 1];
+		info("GcodeParser::expandArc()");
+		PointSegment& startSegment = mPoints[mPoints.size() - 2];
+		PointSegment& lastSegment = mPoints[mPoints.size() - 1];
 
-		vector<PointSegment*> empty;
+		vector<PointSegment> empty;
 
 		// Can only expand arcs.
-		if (!lastSegment->isArc())
+		if (!lastSegment.IsArc())
 		{
 			return empty;
 		}
 
 		// Get precalculated stuff.
-		vec3* start = startSegment->getPoint();
-		vec3* end = lastSegment->getPoint();
-		vec3 center = lastSegment->center();
-		double radius = lastSegment->getRadius();
-		bool clockwise = lastSegment->isClockwise();
-		PointSegment::planes plane = startSegment->plane();
+		vec3& start = startSegment.GetPoint();
+		vec3& end = lastSegment.GetPoint();
+		vec3 center = lastSegment.Center();
+		double radius = lastSegment.GetRadius();
+		bool clockwise = lastSegment.IsClockwise();
+		PointSegment::planes plane = startSegment.Plane();
 
 		//
 		// Start expansion.
 		//
 
-		vector<vec3> expandedPoints =
-			generatePointsAlongArcBDring
-			(
-				plane, *start, *end, center, clockwise, radius,
-				mSmallArcThreshold, mSmallArcSegmentLength, false
-			);
+		vector<vec3> expandedPoints = GeneratePointsAlongArcBDring(
+			plane, start, end, center, clockwise, radius,
+			mSmallArcThreshold, mSmallArcSegmentLength, false
+		);
 
 		// Validate output of expansion.
 		if (expandedPoints.size() == 0)
@@ -232,7 +226,7 @@ namespace Coconut
 		mCommandNumber--;
 
 		// Initialize return value
-		vector<PointSegment*> psl;
+		vector<PointSegment> psl;
 
 		// Create line segments from points.
 
@@ -244,72 +238,69 @@ namespace Coconut
 
 		while (psi != expandedPoints.end())
 		{
-			auto temp = new PointSegment(parent, *psi++, mCommandNumber++);
-			temp->setIsArc(true);
-			temp->setIsMetric(lastSegment->isMetric());
+			PointSegment temp = PointSegment(parent, *psi++, mCommandNumber++);
+			temp.SetIsArc(true);
+			temp.SetIsMetric(lastSegment.IsMetric());
 			mPoints.push_back(temp);
 			psl.push_back(temp);
 		}
 
 		// Update the new endpoint.
-		mCurrentPoint = vec3(*mPoints.back()->getPoint());
+		mCurrentPoint = vec3(mPoints.back().GetPoint());
 
 		return psl;
 	}
 
-	vector<PointSegment*> GCodeParser::getPointSegmentHandlesList()
+	vector<PointSegment>& GCodeParser::GetPointSegmentList()
 	{
-		vector<PointSegment*> handles;
-		for (auto ps : mPoints)
-            handles.push_back(ps);
-		return handles;
+		return mPoints;
 	}
 
-	double GCodeParser::getTraverseSpeed() const
+	double GCodeParser::GetTraverseSpeed() const
 	{
 		return mTraverseSpeed;
 	}
 
-	void GCodeParser::setTraverseSpeed(double traverseSpeed)
+	void GCodeParser::SetTraverseSpeed(double traverseSpeed)
 	{
 		mTraverseSpeed = traverseSpeed;
 	}
 
-	int GCodeParser::getCommandNumber() const
+	int GCodeParser::GetCommandNumber() const
 	{
 		return mCommandNumber - 1;
 	}
 
-	PointSegment* GCodeParser::processCommand(GCodeCommand* command)
+	PointSegment GCodeParser::ProcessCommand(const GCodeCommand& command)
 	{
 		vector<float> gCodes;
-		PointSegment* ps = new PointSegment(command);
+		PointSegment ps = PointSegment(command);
 
-		vector<string> args = command->GetArgs();
+		vector<string> args = command.GetArgs();
 
 		// Handle F code
-		double speed = parseCoord(args, 'F');
+		double speed = ParseCoord(args, 'F');
 		if (!isnan(speed))
 		{
 			mLastSpeed = mIsMetric ? speed : speed * 25.4;
 		}
 
 		// Handle S code
-		double spindleSpeed = parseCoord(args, 'S');
+		double spindleSpeed = ParseCoord(args, 'S');
 		if (!isnan(spindleSpeed))
 		{
 			mLastSpindleSpeed = spindleSpeed;
 		}
 
 		// Handle P code
-		double dwell = parseCoord(args, 'P');
+		double dwell = ParseCoord(args, 'P');
 		if (!isnan(dwell))
 		{
-            mPoints.back()->setDwell(dwell);
+            mPoints.back().SetDwell(dwell);
 		}
 
 		// handle G codes.
-		gCodes = parseCodes(args, 'G');
+		gCodes = ParseCodes(args, 'G');
 
 		// If there was no command, add the implicit one to the party.
 		if (gCodes.empty() && mLastGcodeCommand != -1.0f)
@@ -319,15 +310,17 @@ namespace Coconut
 
 		for (float code : gCodes)
 		{
-			ps = handleGCode(command, code);
+			ps = HandleGCode(command, code);
 		}
 
 		return ps;
 	}
 
-	PointSegment* GCodeParser::addLinearPointSegment(GCodeCommand* parent, const vec3 &nextPoint, bool fastTraverse)
+	PointSegment
+    GCodeParser::AddLinearPointSegment
+    (const GCodeCommand& parent, const vec3 &nextPoint, bool fastTraverse)
 	{
-		auto ps = new PointSegment(parent, nextPoint, mCommandNumber++);
+		PointSegment ps = PointSegment(parent, nextPoint, mCommandNumber++);
 
 		bool zOnly = false;
 
@@ -338,12 +331,12 @@ namespace Coconut
 			zOnly = true;
 		}
 
-		ps->setIsMetric(mIsMetric);
-		ps->setIsZMovement(zOnly);
-		ps->setIsRapidMovement(fastTraverse);
-		ps->setIsAbsolute(mInAbsoluteMode);
-		ps->setSpeed(fastTraverse ? mTraverseSpeed : mLastSpeed);
-		ps->setSpindleSpeed(mLastSpindleSpeed);
+		ps.SetIsMetric(mIsMetric);
+		ps.SetIsZMovement(zOnly);
+		ps.SetIsRapidMovement(fastTraverse);
+		ps.SetIsAbsolute(mInAbsoluteMode);
+		ps.SetSpeed(fastTraverse ? mTraverseSpeed : mLastSpeed);
+		ps.SetSpindleSpeed(mLastSpindleSpeed);
 		mPoints.push_back(ps);
 
 		// Save off the endpoint.
@@ -351,12 +344,14 @@ namespace Coconut
 		return ps;
 	}
 
-	PointSegment* GCodeParser::addArcPointSegment(GCodeCommand* cmd, const vec3 &nextPoint, bool clockwise, const vector<string> &args)
+	PointSegment
+    GCodeParser::AddArcPointSegment
+    (const GCodeCommand& cmd, const vec3 &nextPoint, bool clockwise, const vector<string> &args)
 	{
-		auto ps = new PointSegment(cmd, nextPoint, mCommandNumber++);
+		PointSegment ps = PointSegment(cmd, nextPoint, mCommandNumber++);
 
-		vec3 center = updateCenterWithCommand(args, mCurrentPoint, nextPoint, mInAbsoluteIJKMode, clockwise);
-		double radius = parseCoord(args, 'R');
+		vec3 center = UpdateCenterWithCommand(args, mCurrentPoint, nextPoint, mInAbsoluteIJKMode, clockwise);
+		double radius = ParseCoord(args, 'R');
 
 		// Calculate radius if necessary.
 		if (isnan(radius))
@@ -382,15 +377,15 @@ namespace Coconut
 			);
 		}
 
-		ps->setIsMetric(mIsMetric);
-		ps->setArcCenter(center);
-		ps->setIsArc(true);
-		ps->setRadius(radius);
-		ps->setIsClockwise(clockwise);
-		ps->setIsAbsolute(mInAbsoluteMode);
-		ps->setSpeed(mLastSpeed);
-		ps->setSpindleSpeed(mLastSpindleSpeed);
-		ps->setPlane(mCurrentPlane);
+		ps.SetIsMetric(mIsMetric);
+		ps.SetArcCenter(center);
+		ps.SetIsArc(true);
+		ps.SetRadius(radius);
+		ps.SetIsClockwise(clockwise);
+		ps.SetIsAbsolute(mInAbsoluteMode);
+		ps.SetSpeed(mLastSpeed);
+		ps.SetSpindleSpeed(mLastSpindleSpeed);
+		ps.SetPlane(mCurrentPlane);
 		mPoints.push_back(ps);
 
 		// Save off the endpoint.
@@ -398,42 +393,43 @@ namespace Coconut
 		return ps;
 	}
 
-	void GCodeParser::handleMCode(float code, const vector<string> &args)
+	void GCodeParser::HandleMCode(float code, const vector<string> &args)
 	{
-		double spindleSpeed = parseCoord(args, 'S');
+		double spindleSpeed = ParseCoord(args, 'S');
 		if (!isnan(spindleSpeed))
 		{
 			mLastSpindleSpeed = spindleSpeed;
 		}
 	}
 
-	PointSegment* GCodeParser::handleGCode(GCodeCommand* command, float code)
+	PointSegment
+    GCodeParser::HandleGCode(const GCodeCommand& command, float code)
 	{
-		//cout << "GcodeParser: handleGCode" << code << args;
-		vector<string> args = command->GetArgs();
+		info("GcodeParser: handleGCode {}, {}", code );//<< args;
+		vector<string> args = command.GetArgs();
 
-		PointSegment* ps;
-		vec3 nextPoint = updatePointWithCommand(args, mCurrentPoint, mInAbsoluteMode);
+		PointSegment ps(command);
+		vec3 nextPoint = UpdatePointWithCommand(args, mCurrentPoint, mInAbsoluteMode);
 
 		if (code == GCODE_RAPID)
 		{
-			ps=addLinearPointSegment(command, nextPoint, true);
+			ps = AddLinearPointSegment(command, nextPoint, true);
 		}
 		else if (code == GCODE_LINEAR_INTERPOLATION)
 		{
-			ps=addLinearPointSegment(command, nextPoint, false);
+			ps = AddLinearPointSegment(command, nextPoint, false);
 		}
 		else if (code == GCODE_STRAIGHT_PROBE)
 		{
-			ps=addLinearPointSegment(command, nextPoint, false);
+			ps = AddLinearPointSegment(command, nextPoint, false);
 		}
 		else if (code == GCODE_ARC_MOVE_IJK)
 		{
-			ps=addArcPointSegment(command, nextPoint, true, args);
+			ps = AddArcPointSegment(command, nextPoint, true, args);
 		}
 		else if (code == GCODE_ARC_MOVE_RP)
 		{
-			ps=addArcPointSegment(command, nextPoint, false, args);
+			ps = AddArcPointSegment(command, nextPoint, false, args);
 		}
 		else if (code == GCODE_PLANE_XY)
 		{
@@ -531,7 +527,7 @@ namespace Coconut
 				newCommand = truncateDecimals(mTruncateDecimalLength, newCommand);
 			}
 
-			// If this is enabled we need to parse the gcode as we go along.
+			// If this is enabled we need to Parse the gcode as we go along.
 			if (mConvertArcsToLines)
 			{ // || this.expandCannedCycles) {
 				vector<string> arcLines = convertArcsToLines(newCommand);
@@ -587,13 +583,13 @@ namespace Coconut
 		}
 
 		// Create an array of new commands out of the of the segments in psl.
-		// Don't add them to the gcode parser since it is who expanded them.
+		// Don't add them to the gcode Parser since it is who expanded them.
 		foreach (PointSegment* segment, psl)
 		{
 			//Point3d end = segment.point();
-			vec3 *end = segment->getPointHandle();
+			vec3 *end = segment->GetPointHandle();
 			result.push_back(generateG1FromPoints(*start, *end, mInAbsoluteMode, mTruncateDecimalLength));
-			start = segment->getPointHandle();
+			start = segment->GetPointHandle();
 		}
 		return result;
 	}
@@ -603,12 +599,13 @@ namespace Coconut
 	* Searches the command string for an 'f' and replaces the speed value
 	* between the 'f' and the next space with a percentage of that speed.
 	* In that way all speed values become a ratio of the provided speed
-	* and don't get overridden with just a fixed speed.
+	* and don't Get overridden with just a fixed speed.
 	*/
-	string GCodeParser::overrideSpeed(string command, double speed)
+	string GCodeParser::OverrideSpeed(const string& command, double speed)
 	{
 		static regex re("[Ff]([0-9.]+)");
 		static smatch m;
+        string tmp = command;
 		if (regex_match(command,m,re))
 		{
             if (m.size() == 2)
@@ -618,21 +615,21 @@ namespace Coconut
                 auto first = whole_str.first;
 				auto last = whole_str.second;
                 auto speed_str = m[1];
-				command.replace(first,last, "F" + std::to_string(stod(speed_str) * speedMagnitude));
+            	tmp.replace(first,last, "F" + std::to_string(stod(speed_str) * speedMagnitude));
             }
 		}
-		return command;
+		return tmp;
 	}
 
 	/**
 	* Searches the command string for an 'f' and replaces the speed value
 	* between the 'f' and the next space with a percentage of that speed.
 	* In that way all speed values become a ratio of the provided speed
-	* and don't get overridden with just a fixed speed.
+	* and don't Get overridden with just a fixed speed.
 	*/
-	GCodeCommand* GCodeParser::overrideSpeed(const GCodeCommand *command, double speed)
+	GCodeCommand GCodeParser::OverrideSpeed(const GCodeCommand& command, double speed)
 	{
-		string cmd = command->GetCommand();
+		string cmd = command.GetCommand();
         static smatch m;
 		static regex re("[Ff]([0-9.]+)");
 		if (regex_match(cmd,m,re))
@@ -656,10 +653,12 @@ namespace Coconut
 	/**
 	* Removes any comments within parentheses or beginning with a semi-colon.
 	*/
-	string GCodeParser::removeComment(string command)
+	string GCodeParser::RemoveComment(const string& command)
 	{
 		static regex rx1("\\(+[^\\(]*\\)+");
 		static regex rx2(";.*");
+
+        string tmp = command;
 
 		// Remove any comments within ( parentheses ) using regex "\([^\(]*\)"
         if (command.find('(') != string::npos)
@@ -667,7 +666,7 @@ namespace Coconut
             smatch m;
             if (regex_match(command,m,rx1))
             {
-            	command.erase(m[0].first,m[0].second);
+            	tmp.erase(m[0].first,m[0].second);
             }
         }
 
@@ -677,23 +676,23 @@ namespace Coconut
             smatch m;
             if (regex_match(command,m,rx2))
             {
-            	command.erase(m[0].first,m[0].second);
+            	tmp.erase(m[0].first,m[0].second);
             }
         }
 
-		return Util::trim_copy(command);
+		return Util::trim_copy(tmp);
 	}
 
 	/**
 	* Searches for a comment in the input string and returns the first match.
 	*/
-	string GCodeParser::parseComment(const string command)
+	string GCodeParser::ParseComment(const string& command)
 	{
 		// REGEX: Find any comment, includes the comment characters:
 		// "(?<=\()[^\(\)]*|(?<=\;)[^;]*"
 		// "(?<=\\()[^\\(\\)]*|(?<=\\;)[^;]*"
 
-		cout << "GcodeParser: Parsing comment in command " << command;
+		debug("GcodeParser: Parsing comment in command {}",  command);
 		static regex re("(\\([^\\(\\)]*\\)|;[^;].*)");
         static smatch m;
 
@@ -706,10 +705,12 @@ namespace Coconut
 		return "";
 	}
 
-	string GCodeParser::truncateDecimals(int length, string command)
+	string GCodeParser::TruncateDecimals(int length, const string& command)
 	{
 		static regex re("(\\d*\\.\\d*)");
         static smatch m;
+
+        string tmp = command;
 
         while (regex_match(command,m,re))
         {
@@ -717,26 +718,27 @@ namespace Coconut
             stringstream s;
             s << fixed << setprecision(length) << stod(num);
 			string newNum = string(s.str());
-            command.replace(m[0].first,m[0].second,newNum);
+            tmp.replace(m[0].first,m[0].second,newNum);
         }
 
-		return command;
+		return tmp;
 	}
 
-	string GCodeParser::removeAllWhitespace(string command)
+	string GCodeParser::RemoveAllWhitespace(const string& command)
 	{
 		static regex rx("\\s");
         smatch m;
+        string tmp = command;
 
         while (regex_match(command,m,rx))
         {
-           command.erase(m[0].first, m[0].second);
+           tmp.erase(m[0].first, m[0].second);
         }
 
-		return command;
+		return tmp;
 	}
 
-	vector<float> GCodeParser::parseCodes(const vector<string> &args, char code)
+	vector<float> GCodeParser::ParseCodes(const vector<string>& args, char code)
 	{
 		vector<float> l;
 
@@ -751,7 +753,7 @@ namespace Coconut
 		return l;
 	}
 
-	vector<int> GCodeParser::parseGCodes(string command)
+	vector<int> GCodeParser::ParseGCodes(const string& command)
 	{
 		static regex re("[Gg]0*(\\d+)");
         smatch m;
@@ -770,7 +772,7 @@ namespace Coconut
 		return codes;
 	}
 
-	vector<int> GCodeParser::parseMCodes(string command)
+	vector<int> GCodeParser::ParseMCodes(const string& command)
 	{
 		static regex re("[Mm]0*(\\d+)");
         smatch sm;
@@ -792,17 +794,19 @@ namespace Coconut
 	/**
 	* Update a point given the arguments of a command.
 	*/
-	vec3 GCodeParser::updatePointWithCommand(const string &command, const vec3 &initial, bool absoluteMode)
+	vec3 GCodeParser::UpdatePointWithCommand
+    (const string &command, const vec3 &initial, bool absoluteMode)
 	{
-		vector<string> l = splitCommand(command);
-		return updatePointWithCommand(l, initial, absoluteMode);
+		vector<string> l = SplitCommand(command);
+		return UpdatePointWithCommand(l, initial, absoluteMode);
 	}
 
 	/**
-	* Update a point given the arguments of a command, using a pre-parsed list.
+	* Update a point given the arguments of a command, using a pre-Parsed list.
 	*/
-	vec3 GCodeParser::updatePointWithCommand(const vector<string> &commandArgs, const vec3 &initial,
-															 bool absoluteMode)
+	vec3
+    GCodeParser::UpdatePointWithCommand
+    (const vector<string> &commandArgs, const vec3 &initial, bool absoluteMode)
 	{
 		double x = NAN;
 		double y = NAN;
@@ -829,13 +833,15 @@ namespace Coconut
 			}
 		}
 
-		return updatePointWithCommand(initial, x, y, z, absoluteMode);
+		return UpdatePointWithCommand(initial, x, y, z, absoluteMode);
 	}
 
 	/**
 	* Update a point given the new coordinates.
 	*/
-	vec3 GCodeParser::updatePointWithCommand(const vec3 &initial, double x, double y, double z, bool absoluteMode)
+	vec3
+    GCodeParser::UpdatePointWithCommand
+    (const vec3 &initial, double x, double y, double z, bool absoluteMode)
 	{
 		vec3 newPoint(initial);// = vec3(qQNaN(),qQNaN(),qQNaN());
 
@@ -855,7 +861,10 @@ namespace Coconut
 		return newPoint;
 	}
 
-	vec3 GCodeParser::updateCenterWithCommand(vector<string> commandArgs, vec3 initial, vec3 nextPoint, bool absoluteIJKMode, bool clockwise)
+	vec3
+    GCodeParser::UpdateCenterWithCommand
+    (const vector<string>& commandArgs, const vec3& initial, const vec3& nextPoint,
+     bool absoluteIJKMode, bool clockwise)
 	{
 		double i = NAN;
 		double j = NAN;
@@ -888,13 +897,14 @@ namespace Coconut
 
 		if (isnan(i) && isnan(j) && isnan(k))
 		{
-			return convertRToCenter(initial, nextPoint, r, absoluteIJKMode, clockwise);
+			return ConvertRToCenter(initial, nextPoint, r, absoluteIJKMode, clockwise);
 		}
 
-		return updatePointWithCommand(initial, i, j, k, absoluteIJKMode);
+		return UpdatePointWithCommand(initial, i, j, k, absoluteIJKMode);
 	}
 
-	string GCodeParser::generateG1FromPoints(vec3 start, vec3 end, bool absoluteMode, int precision)
+	string GCodeParser::GenerateG1FromPoints(const vec3& start, const vec3& end,
+                                             bool absoluteMode, int precision)
 	{
 		stringstream sb;
 		sb << "G1";
@@ -943,7 +953,7 @@ namespace Coconut
 	* This command is about the same speed as the string.split(" ") command,
 	* but might be a little faster using precompiled regex.
 	*/
-	vector<string> GCodeParser::splitCommand(const string &command)
+	vector<string> GCodeParser::SplitCommand(const string& command)
 	{
 		vector<string> l;
 		bool readNumeric = false;
@@ -957,19 +967,19 @@ namespace Coconut
 		{
 			c = cmd[i];
 
-			if (readNumeric && !isDigit(c) && c != '.')
+			if (readNumeric && !IsDigit(c) && c != '.')
 			{
 				readNumeric = false;
 				l.push_back(sb);
 				sb.clear();
-				if (isLetter(c)) sb.push_back(c);
+				if (IsLetter(c)) sb.push_back(c);
 			}
-			else if (isDigit(c) || c == '.' || c == '-')
+			else if (IsDigit(c) || c == '.' || c == '-')
 			{
 				sb.push_back(c);
 				readNumeric = true;
 			}
-			else if (isLetter(c))
+			else if (IsLetter(c))
 			{
 				sb.push_back(c);
 			}
@@ -1003,7 +1013,7 @@ namespace Coconut
 
 	// TODO: Replace everything that uses this with a loop that loops through
 	// the string and creates a hash with all the values.
-	double GCodeParser::parseCoord(vector<string> argList, char c)
+	double GCodeParser::ParseCoord(const vector<string>& argList, char c)
 	{
 	//    int n = argList.length();
 
@@ -1024,7 +1034,8 @@ namespace Coconut
 	//    return l;
 	//}
 
-	vec3 GCodeParser::convertRToCenter(vec3 start, vec3 end, double rad, bool absoluteIJK, bool clockwise)
+	vec3 GCodeParser::ConvertRToCenter
+    (const vec3& start, const vec3& end, double rad, bool absoluteIJK, bool clockwise)
 	{
 		double radius = rad;
 		vec3 center;
@@ -1053,18 +1064,18 @@ namespace Coconut
 			radius = -radius;
 		}
 
-		double offsetX = 0.5 * (x - (y * height_x2_div_diameter));
-		double offsetY = 0.5 * (y + (x * height_x2_div_diameter));
+		double offSetX = 0.5 * (x - (y * height_x2_div_diameter));
+		double offSetY = 0.5 * (y + (x * height_x2_div_diameter));
 
 		if (!absoluteIJK)
 		{
-			center.x = start.x + offsetX;
-			center.y = start.y + offsetY;
+			center.x = start.x + offSetX;
+			center.y = start.y + offSetY;
 		}
 		else
 		{
-			center.x = offsetX;
-			center.y = offsetY;
+			center.x = offSetX;
+			center.y = offSetY;
 		}
 
 		return center;
@@ -1073,7 +1084,7 @@ namespace Coconut
 	/**
 	* Return the angle in radians when going from start to end.
 	*/
-	double GCodeParser::getAngle(vec3 start, vec3 end)
+	double GCodeParser::GetAngle(const vec3& start, const vec3& end)
 	{
 		double deltaX = end.x - start.x;
 		double deltaY = end.y - start.y;
@@ -1117,7 +1128,7 @@ namespace Coconut
 		return angle;
 	}
 
-	double GCodeParser::calculateSweep(double startAngle, double endAngle, bool isCw)
+	double GCodeParser::CalculateSweep(double startAngle, double endAngle, bool isCw)
 	{
 		double sweep;
 
@@ -1158,10 +1169,10 @@ namespace Coconut
 	* ArcPrecision = Minimum length of line in arc
 	*/
 	vector<vec3>
-	GCodeParser::generatePointsAlongArcBDring
+	GCodeParser::GeneratePointsAlongArcBDring
 	(
-			PointSegment::planes plane, vec3 start, vec3 end,
-			vec3 center, bool clockwise, double rad, double minArcLength,
+			PointSegment::planes plane, vec3& start, vec3& end,
+			vec3& center, bool clockwise, double rad, double minArcLength,
 			double arcPrecision, bool arcDegreeMode
 	){
 		double radius = rad;
@@ -1195,9 +1206,9 @@ namespace Coconut
 			radius = sqrt(pow((double)(start.x - center.x), 2.0) + pow((double)(end.y - center.y), 2.0));
 		}
 
-		double startAngle = getAngle(center, start);
-		double endAngle = getAngle(center, end);
-		double sweep = calculateSweep(startAngle, endAngle, clockwise);
+		double startAngle = GetAngle(center, start);
+		double endAngle = GetAngle(center, end);
+		double sweep = CalculateSweep(startAngle, endAngle, clockwise);
 
 		// Convert units.
 		double arcLength = sweep * radius;
@@ -1223,7 +1234,7 @@ namespace Coconut
 			numPoints = (int)ceil(arcLength/arcPrecision);
 		}
 
-		return generatePointsAlongArcBDring(
+		return GeneratePointsAlongArcBDring(
 			plane, start, end, center, clockwise,
 			radius, startAngle, sweep, numPoints
 		);
@@ -1233,10 +1244,10 @@ namespace Coconut
 	* Generates the points along an arc including the start and end points.
 	*/
 	vector<vec3>
-	GCodeParser::generatePointsAlongArcBDring
+	GCodeParser::GeneratePointsAlongArcBDring
 	(
-		PointSegment::planes plane, vec3 p1, vec3 p2,
-		vec3 center, bool isCw, double radius, double startAngle,
+		PointSegment::planes plane, vec3& p1, vec3& p2,
+		vec3& center, bool isCw, double radius, double startAngle,
 		double sweep, int numPoints
 	){
 		// Prepare rotation matrix to restore plane
@@ -1292,19 +1303,18 @@ namespace Coconut
 		return segments;
 	}
 
-	bool GCodeParser::isDigit(char c)
+	bool GCodeParser::IsDigit(char c)
 	{
 		return c > 47 && c < 58;
 	}
 
-	bool GCodeParser::isLetter(char c)
+	bool GCodeParser::IsLetter(char c)
 	{
 		return (c > 64 && c < 91) || (c > 96 && c < 123);
 	}
 
-	char GCodeParser::toUpper(char c)
+	char GCodeParser::ToUpper(char c)
 	{
 		return (c > 96 && c < 123) ? c - 32 : c;
 	}
-
 }

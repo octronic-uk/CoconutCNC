@@ -33,20 +33,9 @@ namespace Coconut
 		int GetSerialBaudRate() const;
 		void SetSerialBaudRate(int serialBaudRate);
 
-		bool GetIgnoreErrorMessages() const;
-		void SetIgnoreErrorMessages(bool ignoreErrorMessages);
-
-		bool GetSetParserState() const;
-		void SetSetParserState(bool SetParserState);
-
-		bool GetArcApproximation() const;
-		void SetArcApproximation(bool arcApproximation);
-
-		float GetArcApproximationLength() const;
-		void SetArcApproximationLength(float arcApproximationLength);
-
-		float GetArcApproximationDegrees() const;
-		void SetArcApproximationDegrees(float arcApproximationDegrees);
+        int GetTimeout() const;
+        int* GetTimeoutPtr();
+        void SetTimeout(int timeout);
 
         // JsonSerialization interface
         json ToJson() override;
@@ -55,19 +44,11 @@ namespace Coconut
 	private:
 		string mSerialPort;
 		int mSerialBaudRate;
-		bool mIgnoreErrorMessages;
-		bool mSetParserState;
-		bool mArcApproximation;
-		float mArcApproximationLength;
-		float mArcApproximationDegrees;
+        int mTimeout;
 
 		const static string SERIAL_PORT_NAME;
 		const static string SERIAL_BAUD_RATE;
-		const static string SERIAL_IGNORE_ERROR;
-		const static string SERIAL_SET_PARSER_STATE;
-		const static string SERIAL_ARC_APPROX;
-		const static string SERIAL_ARC_APPROX_LEN;
-		const static string SERIAL_ARC_APPROX_DEG;
+		const static string SERIAL_TIMEOUT;
 
 	};
 

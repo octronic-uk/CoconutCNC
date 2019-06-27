@@ -15,8 +15,10 @@
 #pragma once
 
 #include <string>
+#include <glm/vec4.hpp>
 #include "JsonSerialization.h"
 
+using glm::vec4;
 using std::string;
 
 namespace Coconut
@@ -27,22 +29,11 @@ namespace Coconut
 		InterfaceSettings();
 
 		float GetLineWidth() const;
+		float* GetLineWidthPtr();
 		void SetLineWidth(float lineWidth);
 
 		int GetFpsLock() const;
 		void SetFpsLock(int fpsLock);
-
-		bool GetAntiAliasing() const;
-		void SetAntiAliasing(bool antiAliasing);
-
-		bool GetVsync() const;
-		void SetVsync(bool vsync);
-
-		bool GetMsaa() const;
-		void SetMsaa(bool msaa);
-
-		bool GetZbuffer() const;
-		void SetZbuffer(bool zbuffer);
 
 		bool GetShowUiCommands() const;
 		void SetShowUiCommands(bool showUiCommands);
@@ -59,38 +50,49 @@ namespace Coconut
 		bool GetGrayscaleCode() const;
 		void SetGrayscaleCode(bool grayscaleCode);
 
-		string GetVisualiserColor() const;
-		void SetVisualiserColor(const string& visualiserColor);
+		vec4 GetVisualiserColor() const;
+		float* GetVisualiserColorArray();
+		void SetVisualiserColor(const vec4& visualiserColor);
 
-		string GetBackgroundColor() const;
-		void SetBackgroundColor(const string& backgroundColor);
+		vec4 GetBackgroundColor() const;
+		float* GetBackgroundColorArray();
+		void SetBackgroundColor(const vec4& backgroundColor);
 
-		string GetToolColor() const;
-		void SetToolColor(const string& toolColor);
+		vec4 GetToolColor() const;
+		float* GetToolColorArray();
+		void SetToolColor(const vec4& toolColor);
 
-		string GetToolPathColor() const;
-		void SetToolPathColor(const string& toolPathColor);
+		vec4 GetToolPathColor() const;
+		float* GetToolPathColorArray();
+		void SetToolPathColor(const vec4& toolPathColor);
 
-		string GetNormalColor() const;
-		void SetNormalColor(const string& normalColor);
+		vec4 GetNormalColor() const;
+		float* GetNormalColorArray();
+		void SetNormalColor(const vec4& normalColor);
 
-		string GetHighlightColor() const;
-		void SetHighlightColor(const string& highlightColor);
+		vec4 GetHighlightColor() const;
+		float* GetHighlightColorArray();
+		void SetHighlightColor(const vec4& highlightColor);
 
-		string GetStartPointColor() const;
-		void SetStartPointColor(const string& startPointColor);
+		vec4 GetStartPointColor() const;
+		float* GetStartPointColorArray();
+		void SetStartPointColor(const vec4& startPointColor);
 
-		string GetEndPointColor() const;
-		void SetEndPointColor(const string& endPointColor);
+		vec4 GetEndPointColor() const;
+		float* GetEndPointColorArray();
+		void SetEndPointColor(const vec4& endPointColor);
 
-		string GetTextColor() const;
-		void SetTextColor(const string& textColor);
+		vec4 GetTextColor() const;
+		float* GetTextColorArray();
+		void SetTextColor(const vec4& textColor);
 
-		string GetDrawnColor() const;
-		void SetDrawnColor(const string& drawnColor);
+		vec4 GetDrawnColor() const;
+		float* GetDrawnColorArray();
+		void SetDrawnColor(const vec4& drawnColor);
 
-		string GetZMovementColor() const;
-		void SetZMovementColor(const string& zMovementColor);
+		vec4 GetZMovementColor() const;
+		float* GetZMovementColorArray();
+		void SetZMovementColor(const vec4& zMovementColor);
 
         // JsonSerialization interface
         json ToJson() override;
@@ -104,17 +106,17 @@ namespace Coconut
 		bool mMsaa;
 		bool mZbuffer;
 		bool mShowUiCommands;
-		string mVisualiserColor;
-		string mBackgroundColor;
-		string mToolColor;
-		string mToolPathColor;
-		string mNormalColor;
-		string mHighlightColor;
-		string mStartPointColor;
-		string mEndPointColor;
-		string mTextColor;
-		string mDrawnColor;
-		string mZMovementColor;
+		vec4 mVisualiserColor;
+		vec4 mBackgroundColor;
+		vec4 mToolColor;
+		vec4 mToolPathColor;
+		vec4 mNormalColor;
+		vec4 mHighlightColor;
+		vec4 mStartPointColor;
+		vec4 mEndPointColor;
+		vec4 mTextColor;
+		vec4 mDrawnColor;
+		vec4 mZMovementColor;
 
         // Graphics
 		const static string GFX;

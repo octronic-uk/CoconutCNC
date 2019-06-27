@@ -1,13 +1,18 @@
 #pragma once
 
-#include "JsonSerialization.h"
 
 #include <vector>
+
+#include "../../Common/File.h"
+
+#include "JsonSerialization.h"
 #include "ConnectionSettings.h"
 #include "InterfaceSettings.h"
 #include "MachineSettings.h"
 #include "ToolHolderSettings.h"
 #include "ToolSettings.h"
+
+#define SETTINGS_FILE_PATH "coconut_settings.json"
 
 using std::vector;
 
@@ -31,8 +36,13 @@ namespace Coconut
         void AddToolSettings();
         void RemoveToolSettings(const ToolSettings& tsm);
         void AddToolHolderSettings();
+        bool SaveSettingsFile();
+
+    protected:
+    	void CreateOrOpenSettingsFile();
 
     private:
+        File mSettingsFile;
         AppState* mAppState;
         ConnectionSettings mConnectionSettings;
         InterfaceSettings mInterfaceSettings;

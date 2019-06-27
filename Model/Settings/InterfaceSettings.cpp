@@ -14,6 +14,9 @@
 
 #include "InterfaceSettings.h"
 #include "../../Common/Logger.h"
+#include <glm/gtc/type_ptr.hpp>
+
+using glm::value_ptr;
 
 namespace Coconut
 {
@@ -25,17 +28,17 @@ namespace Coconut
 		  mMsaa(true),
 		  mZbuffer(true),
 		  mShowUiCommands(false),
-		  mVisualiserColor(""),
-		  mBackgroundColor(""),
-		  mToolColor(""),
-		  mToolPathColor(""),
-		  mNormalColor(""),
-		  mHighlightColor(""),
-		  mStartPointColor(""),
-		  mEndPointColor(""),
-		  mTextColor(""),
-		  mDrawnColor(""),
-		  mZMovementColor("")
+		  mVisualiserColor(0),
+		  mBackgroundColor(0),
+		  mToolColor(0),
+		  mToolPathColor(0),
+		  mNormalColor(0),
+		  mHighlightColor(0),
+		  mStartPointColor(0),
+		  mEndPointColor(0),
+		  mTextColor(0),
+		  mDrawnColor(0),
+		  mZMovementColor(0)
 
 	{
 		debug("InterfaceSettings: Constructing");
@@ -45,6 +48,11 @@ namespace Coconut
 	{
 		return mLineWidth;
 	}
+
+	float* InterfaceSettings::GetLineWidthPtr()
+	{
+        return &mLineWidth;
+    }
 
 	void InterfaceSettings::SetLineWidth(float lineWidth)
 	{
@@ -61,46 +69,6 @@ namespace Coconut
 		mFpsLock = fpsLock;
 	}
 
-	bool InterfaceSettings::GetAntiAliasing() const
-	{
-		return mAntiAliasing;
-	}
-
-	void InterfaceSettings::SetAntiAliasing(bool antiAliasing)
-	{
-		mAntiAliasing = antiAliasing;
-	}
-
-	bool InterfaceSettings::GetVsync() const
-	{
-		return mVsync;
-	}
-
-	void InterfaceSettings::SetVsync(bool vsync)
-	{
-		mVsync = vsync;
-	}
-
-	bool InterfaceSettings::GetMsaa() const
-	{
-		return mMsaa;
-	}
-
-	void InterfaceSettings::SetMsaa(bool msaa)
-	{
-		mMsaa = msaa;
-	}
-
-	bool InterfaceSettings::GetZbuffer() const
-	{
-		return mZbuffer;
-	}
-
-	void InterfaceSettings::SetZbuffer(bool zbuffer)
-	{
-		mZbuffer = zbuffer;
-	}
-
 	bool InterfaceSettings::GetShowUiCommands() const
 	{
 		return mShowUiCommands;
@@ -111,112 +79,169 @@ namespace Coconut
 		mShowUiCommands = show;
 	}
 
-	string InterfaceSettings::GetVisualiserColor() const
+	vec4 InterfaceSettings::GetVisualiserColor() const
 	{
-		return mVisualiserColor;
-	}
+        return mVisualiserColor;
+    }
 
-	void InterfaceSettings::SetVisualiserColor(const string& visualiserColor)
+    float* InterfaceSettings::GetVisualiserColorArray()
+    {
+    	return value_ptr(mVisualiserColor);
+    }
+
+	void InterfaceSettings::SetVisualiserColor(const vec4& visualiserColor)
 	{
 		mVisualiserColor = visualiserColor;
 	}
 
-	string InterfaceSettings::GetBackgroundColor() const
+	vec4 InterfaceSettings::GetBackgroundColor() const
 	{
-		return mBackgroundColor;
-	}
+        return mBackgroundColor;
+    }
 
-	void InterfaceSettings::SetBackgroundColor(const string& backgroundColor)
+    float* InterfaceSettings::GetBackgroundColorArray()
+    {
+       return value_ptr(mBackgroundColor);
+    }
+
+	void InterfaceSettings::SetBackgroundColor(const vec4& backgroundColor)
 	{
 		mBackgroundColor = backgroundColor;
 	}
 
-	string InterfaceSettings::GetToolColor() const
+	vec4 InterfaceSettings::GetToolColor() const
 	{
-		return mToolColor;
-	}
+        return mToolColor;
+    }
 
-	void InterfaceSettings::SetToolColor(const string& toolColor)
+    float* InterfaceSettings::GetToolColorArray()
+    {
+       return value_ptr(mToolColor);
+    }
+
+	void InterfaceSettings::SetToolColor(const vec4& toolColor)
 	{
 		mToolColor = toolColor;
 	}
 
-	string InterfaceSettings::GetToolPathColor() const
+	vec4 InterfaceSettings::GetToolPathColor() const
 	{
-		return mToolPathColor;
-	}
+        return mToolPathColor;
+    }
 
-	void InterfaceSettings::SetToolPathColor(const string& toolPathColor)
+    float* InterfaceSettings::GetToolPathColorArray()
+    {
+
+       return value_ptr(mToolPathColor);
+    }
+
+	void InterfaceSettings::SetToolPathColor(const vec4& toolPathColor)
 	{
 		mToolPathColor = toolPathColor;
 	}
 
-	string InterfaceSettings::GetNormalColor() const
+	vec4 InterfaceSettings::GetNormalColor() const
 	{
-		return mNormalColor;
-	}
+        return mNormalColor;
+    }
 
-	void InterfaceSettings::SetNormalColor(const string& normalColor)
+    float* InterfaceSettings::GetNormalColorArray()
+    {
+       return value_ptr(mNormalColor);
+    }
+
+	void InterfaceSettings::SetNormalColor(const vec4& normalColor)
 	{
 		mNormalColor = normalColor;
 	}
 
-	string InterfaceSettings::GetHighlightColor() const
+	vec4 InterfaceSettings::GetHighlightColor() const
 	{
-		return mHighlightColor;
-	}
+        return mHighlightColor;
+    }
 
-	void InterfaceSettings::SetHighlightColor(const string& highlightColor)
+    float* InterfaceSettings::GetHighlightColorArray()
+    {
+       return value_ptr(mHighlightColor);
+    }
+
+	void InterfaceSettings::SetHighlightColor(const vec4& highlightColor)
 	{
 		mHighlightColor = highlightColor;
 	}
 
-	string InterfaceSettings::GetStartPointColor() const
+	vec4 InterfaceSettings::GetStartPointColor() const
 	{
-		return mStartPointColor;
-	}
+        return mStartPointColor;
+    }
 
-	void InterfaceSettings::SetStartPointColor(const string& startPointColor)
+    float* InterfaceSettings::GetStartPointColorArray()
+    {
+       return value_ptr(mStartPointColor);
+    }
+
+	void InterfaceSettings::SetStartPointColor(const vec4& startPointColor)
 	{
 		mStartPointColor = startPointColor;
 	}
 
-	string InterfaceSettings::GetEndPointColor() const
+	vec4 InterfaceSettings::GetEndPointColor() const
 	{
-		return mEndPointColor;
-	}
+        return mEndPointColor;
+    }
 
-	void InterfaceSettings::SetEndPointColor(const string& endPointColor)
+    float* InterfaceSettings::GetEndPointColorArray()
+    {
+       return value_ptr(mEndPointColor);
+    }
+
+	void InterfaceSettings::SetEndPointColor(const vec4& endPointColor)
 	{
 		mEndPointColor = endPointColor;
 	}
 
-	string InterfaceSettings::GetTextColor() const
+	vec4 InterfaceSettings::GetTextColor() const
 	{
-		return mTextColor;
-	}
+        return mTextColor;
+    }
 
-	void InterfaceSettings::SetTextColor(const string& textColor)
+    float* InterfaceSettings::GetTextColorArray()
+    {
+       return value_ptr(mTextColor);
+    }
+
+	void InterfaceSettings::SetTextColor(const vec4& textColor)
 	{
 		mTextColor = textColor;
 	}
 
-	string InterfaceSettings::GetDrawnColor() const
+	vec4 InterfaceSettings::GetDrawnColor() const
 	{
-		return mDrawnColor;
-	}
+        return mDrawnColor;
+    }
 
-	void InterfaceSettings::SetDrawnColor(const string& drawnColor)
+    float* InterfaceSettings::GetDrawnColorArray()
+    {
+       return value_ptr(mDrawnColor);
+    }
+
+	void InterfaceSettings::SetDrawnColor(const vec4& drawnColor)
 	{
 		mDrawnColor = drawnColor;
 	}
 
-	string InterfaceSettings::GetZMovementColor() const
+	vec4 InterfaceSettings::GetZMovementColor() const
 	{
-		return mZMovementColor;
-	}
+        return mZMovementColor;
+    }
 
-	void InterfaceSettings::SetZMovementColor(const string& zMovementColor)
+    float* InterfaceSettings::GetZMovementColorArray()
+    {
+
+       return value_ptr(mZMovementColor);
+    }
+
+	void InterfaceSettings::SetZMovementColor(const vec4& zMovementColor)
 	{
         mZMovementColor = zMovementColor;
     }

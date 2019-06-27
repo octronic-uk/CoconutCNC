@@ -3,19 +3,17 @@
 #include "../../Common/Logger.h"
 #include "../../Window.h"
 #include <nfd.h>
+#include "../../Model/Grbl/GrblMachineModel.h"
 
 namespace Coconut
 {
     MenuBar::MenuBar(AppState* state)
         : ImGuiWidget(state, "Menu Bar"),
           mFileSettingsClicked(false),
-        mFileOpenClicked(false),
-        mFileQuitClicked(false),
-        mFileCloseClicked(false)
-
-    {
-
-    }
+          mFileOpenClicked(false),
+          mFileQuitClicked(false),
+          mFileCloseClicked(false)
+    {}
 
     MenuBar::~MenuBar()
     {
@@ -24,13 +22,32 @@ namespace Coconut
 
     void MenuBar::Draw()
     {
+        SerialPortModel& serial_model = mAppState->GetSerialPortModel();
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        ConnectionSettings& cs = mAppState->GetSettingsModel().GetConnectionSettings();
+
         if (ImGui::BeginMainMenuBar())
         {
             DrawFileMenu();
             DrawViewMenu();
             DrawWizardsMenu();
             DrawLoggingMenu();
-
+            if (ImGui::Button(serial_model.IsPortOpen() ? "Disconnect":"Connect"))
+            {
+				if (serial_model.IsPortOpen())
+                {
+                    grbl.JoinWorkThread();
+                    serial_model.CloseSerialPort();
+                }
+                else
+                {
+                    serial_model.SetTimeout(cs.GetTimeout());
+                    serial_model.SetBaudRate(cs.GetSerialBaudRate());
+                    serial_model.SetSerialPort(cs.GetSerialPort());
+                	serial_model.OpenSerialPort();
+                    grbl.StartWorkThread();
+                }
+            }
             ImGui::EndMainMenuBar();
         }
 
@@ -50,11 +67,13 @@ namespace Coconut
 		}
     }
 
+
+
     void MenuBar::DrawViewMenu()
     {
         if (ImGui::BeginMenu("View"))
         {
-			for (ImGuiWidget* widget : mAppState->GetWindow()->GetImGuiWidgetsVector())
+			for (ImGuiWidget* widget : mAppState->GetWindow().GetImGuiWidgetsVector())
 			{
                 if (widget != this)
                 {
@@ -97,11 +116,19 @@ namespace Coconut
 				spdlog::set_level(currentLogLevel);
 			}
 
+            if (ImGui::RadioButton("Info", currentLogLevel == spdlog::level::info))
+			{
+				currentLogLevel = spdlog::level::info;
+				spdlog::set_level(currentLogLevel);
+			}
+
 			if (ImGui::RadioButton("Debug", currentLogLevel == spdlog::level::debug))
 			{
 				currentLogLevel = spdlog::level::debug;
 				spdlog::set_level(currentLogLevel);
 			}
+
+
 
 			ImGui::EndMenu();
 		}
@@ -111,21 +138,20 @@ namespace Coconut
     {
         debug("MenuBar: OpenFileAction");
         nfdchar_t *outPath = NULL;
-		nfdresult_t result = NFD_OpenDialog( NULL, NULL, &outPath );
+		nfdresult_t result = NFD_OpenDialog("nc,gcode", NULL, &outPath );
 
 		if ( result == NFD_OKAY )
         {
-			puts("Success!");
-			puts(outPath);
+			debug("Success! {}",outPath);
 			free(outPath);
 		}
 		else if ( result == NFD_CANCEL )
         {
-			puts("User pressed cancel.");
+			debug("User pressed cancel.");
 		}
 		else
         {
-			printf("Error: %s\n", NFD_GetError() );
+			error("Error: %s\n", NFD_GetError() );
 		}
         mFileOpenClicked = false;
     }

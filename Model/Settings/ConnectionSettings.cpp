@@ -19,16 +19,15 @@ namespace Coconut
 	ConnectionSettings::ConnectionSettings()
 		: mSerialPort("Not Set"),
 		  mSerialBaudRate(115200),
-		  mIgnoreErrorMessages(false),
-		  mSetParserState(false),
-		  mArcApproximation(false),
-		  mArcApproximationLength(0.0),
-		  mArcApproximationDegrees(0.0)
+		  mTimeout(1000)
 	{
 		debug("ConnectionSettings: Constructing");
 	}
 
-	ConnectionSettings::~ConnectionSettings() {}
+	ConnectionSettings::~ConnectionSettings()
+    {
+		debug("ConnectionSettings: Destructing");
+    }
 
 	string ConnectionSettings::GetSerialPort() const
 	{
@@ -50,91 +49,49 @@ namespace Coconut
 		mSerialBaudRate = serialBaudRate;
 	}
 
-	bool ConnectionSettings::GetIgnoreErrorMessages() const
+	int ConnectionSettings::GetTimeout() const
 	{
-		return mIgnoreErrorMessages;
+		return mTimeout;
 	}
 
-	void ConnectionSettings::SetIgnoreErrorMessages(bool ignoreErrorMessages)
+    int* ConnectionSettings::GetTimeoutPtr()
 	{
-		mIgnoreErrorMessages = ignoreErrorMessages;
+		return &mTimeout;
 	}
 
-	bool ConnectionSettings::GetSetParserState() const
+	void ConnectionSettings::SetTimeout(int timeout)
 	{
-		return mSetParserState;
+        mTimeout=timeout;
 	}
-
-	void ConnectionSettings::SetSetParserState(bool SetParserState)
-	{
-		mSetParserState = SetParserState;
-	}
-
-	bool ConnectionSettings::GetArcApproximation() const
-	{
-		return mArcApproximation;
-	}
-
-	void ConnectionSettings::SetArcApproximation(bool arcApproximation)
-	{
-		mArcApproximation = arcApproximation;
-	}
-
-	float ConnectionSettings::GetArcApproximationLength() const
-	{
-		return mArcApproximationLength;
-	}
-
-	void ConnectionSettings::SetArcApproximationLength(float arcApproximationLength)
-	{
-		mArcApproximationLength = arcApproximationLength;
-	}
-
-	float ConnectionSettings::GetArcApproximationDegrees() const
-	{
-		return mArcApproximationDegrees;
-	}
-
-	void ConnectionSettings::SetArcApproximationDegrees(float arcApproximationDegrees)
-	{
-        mArcApproximationDegrees = arcApproximationDegrees;
-    }
 
     json ConnectionSettings::ToJson()
     {
+        info("ConnectionSettings: {}",__FUNCTION__);
 		json j;
 		j[SERIAL_PORT_NAME] = GetSerialPort();
 		j[SERIAL_BAUD_RATE] = GetSerialBaudRate();
-		j[SERIAL_IGNORE_ERROR] = GetIgnoreErrorMessages();
-		j[SERIAL_SET_PARSER_STATE] = GetSetParserState();
-		j[SERIAL_ARC_APPROX] = GetArcApproximation();
-		j[SERIAL_ARC_APPROX_LEN] = GetArcApproximationLength();
-		j[SERIAL_ARC_APPROX_DEG] = GetArcApproximationDegrees();
+		j[SERIAL_TIMEOUT] = GetTimeout();
 		return j;
     }
 
     bool ConnectionSettings::FromJson(const json& j)
     {
-  		if(!j[SERIAL_PORT_NAME].is_string()) return false;
-        SetSerialPort(j[SERIAL_PORT_NAME]);
+        info("ConnectionSettings: {}",__FUNCTION__);
 
-		if(!j[SERIAL_BAUD_RATE].is_number()) return false;
-        SetSerialBaudRate(j[SERIAL_BAUD_RATE]);
+  		if(j.find(SERIAL_PORT_NAME) != j.end() && j[SERIAL_PORT_NAME].is_string())
+        {
+        	SetSerialPort(j[SERIAL_PORT_NAME]);
+        }
 
-		if(!j[SERIAL_IGNORE_ERROR].is_boolean()) return false;
-        SetIgnoreErrorMessages(j[SERIAL_IGNORE_ERROR]);
+		if(j.find(SERIAL_BAUD_RATE) != j.end() && j[SERIAL_BAUD_RATE].is_number())
+        {
+        	SetSerialBaudRate(j[SERIAL_BAUD_RATE]);
+        }
 
-		if(!j[SERIAL_SET_PARSER_STATE].is_boolean()) return false;
-        SetSetParserState(j[SERIAL_SET_PARSER_STATE]);
-
-		if(!j[SERIAL_ARC_APPROX].is_boolean()) return false;
-        SetArcApproximation(j[SERIAL_ARC_APPROX]);
-
-		if(!j[SERIAL_ARC_APPROX_LEN].is_number()) return false;
-        SetArcApproximationLength(j[SERIAL_ARC_APPROX_LEN]);
-
-		if(!j[SERIAL_ARC_APPROX_DEG].is_number()) return false;
-        SetArcApproximationDegrees(j[SERIAL_ARC_APPROX_DEG]);
+		if(j.find(SERIAL_TIMEOUT) != j.end() && j[SERIAL_TIMEOUT].is_number())
+        {
+        	SetTimeout(j[SERIAL_TIMEOUT]);
+    	}
 
         return true;
     }
@@ -142,10 +99,6 @@ namespace Coconut
     // Serial
 	const string ConnectionSettings::SERIAL_PORT_NAME = "port_name";
 	const string ConnectionSettings::SERIAL_BAUD_RATE = "baud_rate";
-    const string ConnectionSettings::SERIAL_IGNORE_ERROR = "ignore_errors";
-	const string ConnectionSettings::SERIAL_SET_PARSER_STATE = "set_parser_state";
-	const string ConnectionSettings::SERIAL_ARC_APPROX = "arc_approx";
-	const string ConnectionSettings::SERIAL_ARC_APPROX_LEN = "arc_approx_len";
-	const string ConnectionSettings::SERIAL_ARC_APPROX_DEG = "arc_approx_deg";
+    const string ConnectionSettings::SERIAL_TIMEOUT = "timeout";
 
 }

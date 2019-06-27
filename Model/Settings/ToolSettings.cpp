@@ -29,7 +29,7 @@ namespace Coconut
 		  mDiameter(diameter),
 		  mFaces(faces)
 	{
-		debug("ToolModelGeometryItem: Creating with id {} num {}" , id, tool_number);
+		debug("ToolSettings: Creating with id {} num {}" , id, tool_number);
 	}
 
 	float ToolSettings::GetDiameter() const
@@ -94,6 +94,7 @@ namespace Coconut
 
     json ToolSettings::ToJson()
 	{
+        info("ToolSettings: {}",__FUNCTION__);
         json j;
         j[TOOL_ID]        = GetID();
         j[TOOL_NAME]      = GetName();
@@ -113,31 +114,47 @@ namespace Coconut
 
 	bool ToolSettings::FromJson(const json& j)
 	{
-        if (!j[TOOL_ID].is_number()) return false;
-        SetID(j[TOOL_ID]);
+        info("ToolSettings: {}",__FUNCTION__);
 
-        if (!j[TOOL_NAME].is_string()) return false;
-        SetName(j[TOOL_NAME]);
-
-        if (!j[TOOL_NUMBER].is_number()) return false;
-        SetToolNumber(j[TOOL_NUMBER]);
-
-        if (!j[TOOL_HOLDER_ID].is_number()) return false;
-        SetToolHolderID(j[TOOL_HOLDER_ID]);
-
-        if (!j[TOOL_DIAMETER].is_number()) return false;
-        SetDiameter(j[TOOL_DIAMETER]);
-
-        if (!j[TOOL_FACES].is_number()) return false;
-        SetFaces(j[TOOL_FACES]);
-
-        if (!j[TOOL_CYLINDERS].is_array()) return false;
-        mCylinders.clear();
-        for (const json& cylinder_json : j[TOOL_CYLINDERS])
+        if (j.find(TOOL_ID) != j.end() && j[TOOL_ID].is_number())
         {
-            Cylinder cylinder;
-            cylinder.FromJson(cylinder_json);
-            mCylinders.push_back(cylinder);
+        	SetID(j[TOOL_ID]);
+        }
+
+        if (j.find(TOOL_NAME) != j.end() && j[TOOL_NAME].is_string())
+        {
+        	SetName(j[TOOL_NAME]);
+        }
+
+        if (j.find(TOOL_NUMBER) != j.end() && j[TOOL_NUMBER].is_number())
+        {
+        	SetToolNumber(j[TOOL_NUMBER]);
+        }
+
+        if (j.find(TOOL_HOLDER_ID) != j.end() && j[TOOL_HOLDER_ID].is_number())
+        {
+        	SetToolHolderID(j[TOOL_HOLDER_ID]);
+        }
+
+        if (j.find(TOOL_DIAMETER) != j.end() && j[TOOL_DIAMETER].is_number())
+        {
+        	SetDiameter(j[TOOL_DIAMETER]);
+        }
+
+        if (j.find(TOOL_FACES) != j.end() && j[TOOL_FACES].is_number())
+        {
+        	SetFaces(j[TOOL_FACES]);
+        }
+
+        if (j.find(TOOL_CYLINDERS) != j.end() && j[TOOL_CYLINDERS].is_array())
+        {
+			mCylinders.clear();
+			for (const json& cylinder_json : j[TOOL_CYLINDERS])
+			{
+				Cylinder cylinder;
+				cylinder.FromJson(cylinder_json);
+				mCylinders.push_back(cylinder);
+			}
         }
 
         return true;

@@ -17,7 +17,10 @@ using std::vector;
 #include "Deps/ImGui/imgui_impl_glfw.h"
 #include "Deps/ImGui/imgui_impl_opengl3.h"
 
-#define DEFAULT_FONT_PATH "droid-sans/DroidSans.ttf"
+#define DEFAULT_FONT_PATH "Fonts/DroidSans/DroidSans.ttf"
+#define FA_REGULAR_FONT_PATH "Fonts/FontAwesome/fa-regular-400.ttf"
+#define FA_SOLID_FONT_PATH "Fonts/FontAwesome/fa-solid-900.ttf"
+
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
@@ -46,11 +49,13 @@ namespace Coconut
 
         float GetFontSize() const;
         void SetFontSize(float fontSize);
+        ImFont* GetIconFont();
+        ImFont* GetDeafaultFont();
 
     	vector<ImGuiWidget*>& GetImGuiWidgetsVector();
     protected:
 
-        void LoadDefaultFont();
+        void LoadFonts();
 
     private:
         GLFWwindow* mWindow;
@@ -72,6 +77,7 @@ namespace Coconut
 		void DrawImGui();
         AppState* mAppState;
         ImFont* mDefaultFont;
+        ImFont* mIconFont;
         float mFontSize;
         vec3 mClearColor;
 	};

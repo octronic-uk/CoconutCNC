@@ -16,12 +16,10 @@ namespace Coconut
         void DrawMachineSettings();
         void DrawToolHolderSettings();
         void DrawToolSettings();
+        void DrawGrblSettings();
 
     private:
-        int mConnectionPortComboIndex;
         int mConnectionBaudRateComboIndex;
-        vector<string> mConnectionPortList;
-        vector<string> mConnectionBaudRateList;
         // Tool Settings Tab
         int mSelectedToolSettingsIndex;
     };
