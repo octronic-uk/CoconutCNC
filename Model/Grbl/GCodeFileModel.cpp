@@ -17,21 +17,25 @@
  */
 
 
+#include <iostream>
+
+#include "GCodeCommandNotFoundException.h"
 #include "GCodeFileModel.h"
 #include "GCodeParser.h"
-#include "GCodeCommandNotFoundException.h"
-#include <iostream>
+
+#include "../../AppState.h"
 #include "../../Common/Util.h"
 #include "../../Common/Logger.h"
+#include "../../Widgets/GL/GCodeDrawer.h"
 
 using std::cout;
 using std::endl;
 
 namespace Coconut
 {
-	GCodeFileModel::GCodeFileModel()
-		: mProgramLoading(false),
-		  mFileOpen(false)
+	GCodeFileModel::GCodeFileModel(AppState* state)
+        : mAppState(state),
+          mGCodeViewParser(state)
 	{
 		info("GCodeFileModel: Constructing");
 	}
@@ -39,29 +43,23 @@ namespace Coconut
 	GCodeFileModel::~GCodeFileModel()
 	{
 		info("GCodeFileModel: Destructing");
-		mData.clear();
-		mProgramLoading = false;
 	}
 
-	void GCodeFileModel::Load(const deque<string>& data)
+    void GCodeFileModel::ClearState()
+    {
+        mData.clear();
+        mMarkers.clear();
+        mGCodeParser.ClearState();
+        mGCodeViewParser.ClearState();
+        mAppState->GetGCodeDrawer().ClearState();
+    }
+
+	void GCodeFileModel::Load(vector<string> data)
 	{
 		info("GCodeFileModel: load(vector<string>)");
 
-		// Reset tables
-		//emit gcodeFileLoadStartedSignal();
 		// Prepare parser
-		mGcodeParser.SetTraverseSpeed(1);//mSettingsForm->rapidSpeed());
-		//if (mCodeDrawer->getIgnoreZ()) gp.reset(QVector3D(qQNaN(), qQNaN(), 0));
-
-		// Block parser updates on table changes
-		mProgramLoading = true;
-
-		// Prepare model
-		debug("GCodeFileModel: Clearing data");
-		mData.clear();
-		//emit clearExistingGcodeFileSignal();
-		//emit reserveGcodeRowsSignal(data.count());
-
+		mGCodeParser.SetTraverseSpeed(1);
 
 		// TODO - This should probably be moved to GcodeParser
 
@@ -73,27 +71,28 @@ namespace Coconut
 			vector<string> args;
 			GCodeCommand item;
 			command = data.front();
+            data.erase(data.begin());
 			trimmed = Util::trim_copy(command);
 			item.SetCommand(command);
 
-			debug("GCodeFileModel: Next Line {}", command);
+			info("GCodeFileModel: Next Line {}", command);
 			if (!trimmed.empty())
 			{
-				item.SetLine(mGcodeParser.GetCommandNumber());
+				item.SetLine(mGCodeParser.GetCommandNumber());
 				item.SetTableIndex(index);
 
-				mGcodeParser.AddCommand(item);
+				mGCodeParser.AddCommand(item);
 
 				if (item.GetCommand() == "%")
 				{
-					debug("GCodeFileModel: Skipping % at index ", index);
+					info("GCodeFileModel: Skipping % at index ", index);
 					continue;
 				}
 
 				if (item.GetArgs().empty())
 				{
 					string marker = GCodeParser::ParseComment(command);
-					debug("GCodeFileModel: marker ", marker);
+					info("GCodeFileModel: marker ", marker);
 					item.SetMarker(marker);
 					item.SetState(GcodeCommandState::Marker);
 					if (!item.GetMarker().empty())
@@ -111,11 +110,9 @@ namespace Coconut
 				index++;
 			}
 		}
-		mProgramLoading = false;
+
+        mGCodeViewParser.SetLinesFromParser(mGCodeParser);
 		PrintMarkers();
-		//emit gcodeFileLoadFinishedSignal(this);
-		//emit gcodeParserUpdatedSignal(mGcodeParser.data());
-		mFileOpen = true;
 	}
 
 	void GCodeFileModel::Load(const string& fileName)
@@ -125,10 +122,7 @@ namespace Coconut
 
 		// Read lines
 		vector<string> data_vec = mFile.ReadAsLines();
-		deque<string> data;
-        data.insert(data.begin(), data_vec.begin(), data_vec.end());
-
-		Load(data);
+		Load(data_vec);
 	}
 
 	double GCodeFileModel::UpdateProgramEstimatedTime(const vector<LineSegment>& lines)
@@ -210,32 +204,20 @@ namespace Coconut
 
 	vector<GCodeCommand>& GCodeFileModel::GetMarkers()
 	{
-		return mMarkers;
-	}
+        return mMarkers;
+    }
 
-	bool GCodeFileModel::IsOpen()
-	{
-	   return mFileOpen;
-	}
+    GCodeViewParser& GCodeFileModel::GetGCodeViewParser()
+    {
+    	return mGCodeViewParser;
+    }
 
 	void GCodeFileModel::PrintMarkers()
 	{
 	   debug("GCodeFileModel: Markers");
 	   for (GCodeCommand& marker : mMarkers)
 	   {
-		   debug("GCodeFileModel: {} marker->GetMarker()", marker.GetTableIndex());
+		   debug("GCodeFileModel: {} : {}", marker.GetTableIndex(), marker.GetCommand());
 	   }
-	}
-
-	bool GCodeFileModel::IsGcodeFile(const string& fileName)
-	{
-        auto extStart = fileName.find_last_of(".");
-        if (extStart != string::npos)
-        {
-            auto ext = fileName.substr(extStart+1);
-			return ext == ".txt" || ext == ".gcode"|| ext == ".nc"
-				|| ext == ".ncc" || ext == ".ngc" || ext == ".tap";
-        }
-        return false;
 	}
 }

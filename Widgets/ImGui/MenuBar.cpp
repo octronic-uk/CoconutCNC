@@ -59,10 +59,10 @@ namespace Coconut
     {
         if (ImGui::BeginMenu("File"))
 		{
-			mFileOpenClicked = ImGui::MenuItem("Open...");
-			mFileCloseClicked = ImGui::MenuItem("Close File");
+			mFileOpenClicked = ImGui::MenuItem("Open File...","CTRL+O");
+			mFileCloseClicked = ImGui::MenuItem("Close File","CTRL+W");
             ImGui::Separator();
-			mFileQuitClicked = ImGui::MenuItem("Quit");
+			mFileQuitClicked = ImGui::MenuItem("Quit","CTRL+Q");
 			ImGui::EndMenu();
 		}
     }
@@ -137,13 +137,16 @@ namespace Coconut
     void MenuBar::FileOpenAction()
     {
         debug("MenuBar: OpenFileAction");
-        nfdchar_t *outPath = NULL;
-		nfdresult_t result = NFD_OpenDialog("nc,gcode", NULL, &outPath );
+        nfdchar_t *selected_file_path = NULL;
+		nfdresult_t result = NFD_OpenDialog("nc,gcode", NULL, &selected_file_path );
 
 		if ( result == NFD_OKAY )
         {
-			debug("Success! {}",outPath);
-			free(outPath);
+			info("Success! {}",selected_file_path);
+            GCodeFileModel& file_model = mAppState->GetGCodeFileModel();
+            file_model.ClearState();
+            file_model.Load(string(selected_file_path));
+			free(selected_file_path);
 		}
 		else if ( result == NFD_CANCEL )
         {
@@ -159,6 +162,7 @@ namespace Coconut
     void MenuBar::FileCloseAction()
     {
         debug("MenuBar: CloseFileAction");
+        mAppState->GetGCodeFileModel().ClearState();
         mFileCloseClicked = false;
     }
 

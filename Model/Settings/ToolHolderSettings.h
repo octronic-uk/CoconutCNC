@@ -30,7 +30,13 @@ namespace Coconut
 	class ToolHolderSettings : public JsonSerialization
 	{
 	public:
+
+		static ToolHolderSettings None;
+
 		ToolHolderSettings(string name = "Unnamed ToolHolder", int id=-1);
+
+        bool operator==(const ToolHolderSettings& b);
+		bool operator!=(const ToolHolderSettings& b);
 
 		int GetID() const;
         void SetID(int id);
@@ -41,6 +47,8 @@ namespace Coconut
         json ToJson() override;
         bool FromJson(const json& j) override;
 
+        void AddCylinder(const Cylinder& c);
+        void RemoveCylinder(const Cylinder& c);
         vector<Cylinder>& GetCylindersVector();
 
     private:

@@ -3,22 +3,29 @@
 
 #include "ToolDrawer.h"
 
+#include <chrono>
+#include "../../AppState.h"
+#include "../../Model/Grbl/GrblMachineModel.h"
 #include "../../Model/Settings/ToolSettings.h"
 #include "../../Model/Settings/ToolHolderSettings.h"
+
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
 
 namespace Coconut
 {
 
 	ToolDrawer::ToolDrawer(AppState* state)
 		: GLWidget(state,"ToolDrawer"),
-		  mToolPosition(vec3(0, 0, 0)),
 		  mRotationAngle(0.0),
-		  mToolColor(vec4(0.5)),
-		  mToolHolderColor(vec4(0.5)),
-		  mTool(nullptr),
+		  mToolColor(vec4(.9f, 0.54f, 0.f, 1.f)),
+		  mToolHolderColor(vec4(.21f, .23f, .26f, 1.f)),
+          mToolLength(0.f),
 		  mSpindleRotating(false),
 		  mSpindleSpeed(10.0f),
-          mNeedsGeometryUpdate(true)
+          mNeedsGeometryUpdate(true),
+          mCurrentTime(0)
 
 	{
 		debug("ToolDrawer: Constructing");
@@ -31,46 +38,92 @@ namespace Coconut
 
 	bool ToolDrawer::Init()
 	{
+        info("ToolDrawer: {}",__FUNCTION__);
         GLWidget::Init();
         ClearLineVertexBuffer();
         ClearTriangleVertexBuffer();
-
-		if (!mTool)	return true;
 
 		GenerateToolGeometry();
 		GenerateToolHolderGeometry();
 
 		Rotate();
 
+        SubmitTriangleVertexBuffer();
         return true;
     }
 
     void ToolDrawer::GenerateToolGeometry()
     {
-
+        info("ToolDrawer: {}",__FUNCTION__);
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        int current_tool = grbl.GetToolNumber();
+        info("ToolDrawer: Current tool {}",current_tool);
+		if (current_tool > -1)
+		{
+			ToolSettings& tool = mAppState->GetSettingsModel().GetToolSettingsByToolNumber(current_tool);
+            if (tool != ToolSettings::None)
+            {
+				vector<Cylinder>& tool_cylinders = tool.GetCylindersVector();
+				info("ToolDrawer: Generating {} cylinders", tool_cylinders.size());
+				vec3 origin = grbl.GetMachinePosition();
+				for (const Cylinder& c : tool_cylinders)
+				{
+					AddTriangleVertices(GenerateCylinderGeometry(c,origin,mToolColor));
+					origin.z += c.GetLength();
+				}
+                mToolLength = origin.z;
+            }
+            else
+            {
+                info("ToolDrawer: Tool number {} not found",current_tool);
+            }
+        }
     }
 
     void ToolDrawer::GenerateToolHolderGeometry()
     {
+        info("ToolDrawer: {}",__FUNCTION__);
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        SettingsModel& settings = mAppState->GetSettingsModel();
+        int current_tool = grbl.GetToolNumber();
+        info("ToolDrawer: Current tool {}",current_tool);
+		if (current_tool > -1)
+		{
+			ToolSettings& tool = settings.GetToolSettingsByToolNumber(current_tool);
+            int tool_holder_id = tool.GetToolHolderID();
+			ToolHolderSettings& tool_holder = settings.GetToolHolderSettingsByID(tool_holder_id);
 
+            if (tool_holder != ToolHolderSettings::None)
+            {
+				vector<Cylinder>& tool_holder_cylinders = tool_holder.GetCylindersVector();
+				info("ToolDrawer: Generating {} cylinders", tool_holder_cylinders.size());
+				vec3 origin = grbl.GetMachinePosition();
+                origin.z += mToolLength;
+
+				for (const Cylinder& c : tool_holder_cylinders)
+				{
+					AddTriangleVertices(GenerateCylinderGeometry(c,origin,mToolHolderColor));
+					origin.z += c.GetLength();
+				}
+            }
+            else
+            {
+                info("ToolDrawer: Tool number {} not found",current_tool);
+            }
+        }
 	}
 
 	vector<GLWidgetVertex> ToolDrawer::GenerateCylinderGeometry
-    (Cylinder* cylinder, const vec3& origin, const vec4& color)
+    (const Cylinder& cylinder, const vec3& origin, const vec4& color)
 	{
-        debug("ToolDrawer: {}",__FUNCTION__);
+        info("ToolDrawer: {}",__FUNCTION__);
 
         vector<GLWidgetVertex> vertices;
-	    if (!cylinder)
-	    {
-			debug("ToolDrawer: No Cylinder passed");
-		    return vertices;
-	    }
 
-	   int slices = cylinder->GetFaces();
-	   float upperRadius = cylinder->GetUpperDiameter()/2;
-	   float lowerRadius = cylinder->GetLowerDiameter()/2;
-	   float length = cylinder->GetLength();
+	   int slices = cylinder.GetFaces();
+	   float upperRadius = cylinder.GetUpperDiameter()/2;
+	   float lowerRadius = cylinder.GetLowerDiameter()/2;
+	   float length = cylinder.GetLength();
 	   float twoPi = 2 * static_cast<float>(M_PI);
 
 	   for(int i=0; i<slices; i++)
@@ -162,6 +215,15 @@ namespace Coconut
 
 	void ToolDrawer::Update()
 	{
+	    mCurrentTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+        if(mNeedsGeometryUpdate)
+        {
+            ClearTriangleVertexBuffer();
+            GenerateToolGeometry();
+            GenerateToolHolderGeometry();
+            SubmitTriangleVertexBuffer();
+            mNeedsGeometryUpdate = false;
+        }
 		Rotate();
 		return;
 	}
@@ -174,16 +236,6 @@ namespace Coconut
 	void ToolDrawer::SetSpindleSpeed(float speed)
 	{
 	   mSpindleSpeed = speed;
-	}
-
-	ToolSettings* ToolDrawer::GetTool() const
-	{
-		return mTool;
-	}
-
-	void ToolDrawer::SetTool(ToolSettings* toolHandle)
-	{
-		mTool = toolHandle;
 	}
 
 	vec4 ToolDrawer::ToolColor() const
@@ -206,20 +258,6 @@ namespace Coconut
 		mToolHolderColor = color;
 	}
 
-    vec3 ToolDrawer::ToolPosition() const
-	{
-		return mToolPosition;
-	}
-
-	void ToolDrawer::SetToolPosition(const vec3 &toolPosition)
-	{
-		if (mToolPosition != toolPosition)
-		{
-			mToolPosition = toolPosition;
-			Update();
-		}
-	}
-
 	void ToolDrawer::Rotate()
 	{
 		mRotationAngle = NormalizeAngle(mRotationAngle + mSpindleSpeed);
@@ -234,6 +272,11 @@ namespace Coconut
 
 	bool ToolDrawer::NeedsUpdateGeometry() const
 	{
-		return mNeedsGeometryUpdate || mSpindleRotating;
-	}
+        return mNeedsGeometryUpdate;
+    }
+
+    void ToolDrawer::SetNeedsGeometryUpdate(bool b)
+    {
+     mNeedsGeometryUpdate = b;
+    }
 }

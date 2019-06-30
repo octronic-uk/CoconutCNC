@@ -6,8 +6,8 @@ using std::stringstream;
 namespace Coconut
 {
     JogWindow::JogWindow(AppState* project) : ImGuiWidget(project, "Jog"),
+        mJogFeedRate(1000.f),
 		mJogStepValue(10.f),
-		mJogFeedRate(1000.0f),
         mJogAbsoluteX(0.0f),
         mJogAbsoluteY(0.0f),
         mJogAbsoluteZ(0.0f)
@@ -20,94 +20,109 @@ namespace Coconut
     JogWindow::Draw
     ()
     {
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+
         ImGui::Begin(mName.c_str(), &mVisible);
 
-        ImVec2 space = ImGui::GetContentRegionAvail();
-        ImVec2 buttonSize((space.x - ImGui::GetItemsLineHeightWithSpacing())/4.0f,
-                          (space.y/3.0f - (ImGui::GetItemsLineHeightWithSpacing()/2.0f))/3.0f);
+
+        ImVec2 buttonSize(-1, 20);
 
         // Row 1
+        ImGui::Columns(4);
+
         if (ImGui::Button("-X/+Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(-mJogStepValue,mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
         if (ImGui::Button("+Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(-mJogStepValue,mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
         if (ImGui::Button("+X/+Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(mJogStepValue,mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
         if (ImGui::Button("Z+", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(0,0,mJogStepValue,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
         // Row 2
 		if (ImGui::Button("-X", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(-mJogStepValue,0,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
-        ImGui::SameLine();
 
-		if (ImGui::Button("Home\nXY", buttonSize))
+		if (ImGui::Button("Home XY", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::GoToXYOriginCommand();
+            grbl.SendManualGCodeCommand(jogCmd);
         }
-
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
 		if (ImGui::Button("+X", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(+mJogStepValue,0,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
-        ImGui::SameLine();
-
-		if (ImGui::Button("Home\nZ", buttonSize))
+		if (ImGui::Button("Home Z", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::GoToZOriginCommand();
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
 		// Row 3
 		if (ImGui::Button("-X/-Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(-mJogStepValue,-mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
-        ImGui::SameLine();
 
 		if (ImGui::Button("-Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(0,-mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
-        ImGui::SameLine();
 
 		if (ImGui::Button("+X/-Y", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(mJogStepValue,-mJogStepValue,0,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
+        ImGui::NextColumn();
 
-        ImGui::SameLine();
 
         if (ImGui::Button("-Z", buttonSize))
         {
-
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(0,0,-mJogStepValue,mJogFeedRate);
+            grbl.SendManualGCodeCommand(jogCmd);
         }
 
-        ImGui::Separator();
+        ImGui::Columns(1);
 
         ImGui::Text("Step");
-        float stepButtonWidth = (space.x - ImGui::GetItemsLineHeightWithSpacing())/5.0f;
+
 
         ImGui::PushItemWidth(-1);
         if (ImGui::DragFloat("##Step", &mJogStepValue, 1.0f,0.0f,0.0f,"%.3f mm"))
@@ -122,44 +137,45 @@ namespace Coconut
             }
         }
 
-        if (ImGui::Button("0.01",ImVec2(stepButtonWidth,20)))
+        ImGui::Columns(5);
+
+        if (ImGui::Button("0.01",buttonSize))
         {
             mJogStepValue = 0.01f;
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
-        if (ImGui::Button("0.1",ImVec2(stepButtonWidth,20)))
+        if (ImGui::Button("0.1",buttonSize))
         {
             mJogStepValue = 0.1f;
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
-        if (ImGui::Button("1",ImVec2(stepButtonWidth,20)))
+        if (ImGui::Button("1",buttonSize))
         {
             mJogStepValue = 1.f;
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
-        if (ImGui::Button("10",ImVec2(stepButtonWidth,20)))
+        if (ImGui::Button("10",buttonSize))
         {
             mJogStepValue = 10.f;
         }
-        ImGui::SameLine();
+        ImGui::NextColumn();
 
-        if (ImGui::Button("100",ImVec2(stepButtonWidth,20)))
+        if (ImGui::Button("100",buttonSize))
         {
             mJogStepValue = 100.f;
         }
+        ImGui::NextColumn();
 
-        ImGui::Separator();
+        ImGui::Columns(1);
 
         ImGui::Text("Feed Rate");
 
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##FeedRate",&mJogFeedRate,1.0f,0.0f,0.0f,"%.3f mm/min"))
-        {
 
-        }
+        ImGui::DragInt("##FeedRate",&mJogFeedRate,1.0f,0.0f,0.0f,"%d mm/min");
 
         ImGui::Text("Jog Absolute");
 

@@ -30,6 +30,9 @@ namespace Coconut
         int BytesToRead();
         int BytesToWrite();
 
+        void FlushRead();
+        void FlushWrite();
+
         int Read();
         int Write(const string& data);
 

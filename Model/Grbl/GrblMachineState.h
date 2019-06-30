@@ -77,7 +77,7 @@ namespace Coconut
 		return "Unknown";
 	}
 
-	static GrblMachineState stateFromString(string stateStr)
+	static GrblMachineState StateFromString(string stateStr)
 	{
 		if (Util::to_upper(stateStr) == "IDLE")
 		{

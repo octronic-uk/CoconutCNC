@@ -2,51 +2,60 @@
 // Copyright 2015-2016 Hayrullin Denis Ravilevich
 
 #include "GCodeDrawer.h"
+#include "../../AppState.h"
+#include "../../Model/Grbl/GCodeFileModel.h"
+#include "../../Model/Grbl/GCodeViewParser.h"
 
 namespace Coconut
 {
 	GCodeDrawer::GCodeDrawer(AppState* state)
 		: GLWidget(state,"GCodeDrawer", true),
 		  mIgnoreZ(false),
-		  mColorNormal(vec4(0,0,1,1)),
-		  mColorDrawn(vec4(0,0,0,0)),
-		  mColorHighlight(vec4(1,0,0,1)),
-		  mColorZMovement(vec4(1,1,0,1)),
-		  mColorStart(vec4(0,1,0,1)),
-		  mColorEnd(vec4(1,0,0,1)),
-		  mColorArc(vec4(0,1,0,1)),
-		  mColorRapid(vec4(1,0,0,1)),
-		  mGeometryUpdated(false)
+		  mColorNormal(vec3(0,0,1)),
+		  mColorDrawn(vec3(0,0,0)),
+		  mColorHighlight(vec3(1,0,0)),
+		  mColorZMovement(vec3(1,1,0)),
+		  mColorStart(vec3(0,1,0)),
+		  mColorEnd(vec3(1,0,0)),
+		  mColorArc(vec3(0,1,0)),
+		  mColorRapid(vec3(1,0,0))
 	{
-		mPosition = vec3(0,0,0);
 	}
 
-	void GCodeDrawer::Update()
+	bool GCodeDrawer::Init()
 	{
-		mIndexes.clear();
-		mGeometryUpdated = false;
+        GLWidget::Init();
+        return true;
 	}
 
-	void GCodeDrawer::Update(const vector<int>& indexes)
-	{
-		// Store segments to Update
-		mIndexes.insert(mIndexes.end(),indexes.begin(),indexes.end());
-	}
+    void GCodeDrawer::ReadFromFileModel()
+    {
+		mIgnoreZ = false;
+		mColorNormal = vec3(0,0,1);
+		mColorDrawn = vec3(0,0,0);
+		mColorHighlight = vec3(1,0,0);
+		mColorZMovement = vec3(1,1,0);
+		mColorStart = vec3(0,1,0);
+		mColorEnd = vec3(1,0,0);
+        PrepareVectors();
+    }
 
-	bool GCodeDrawer::UpdateData()
-	{
-		if (mIndexes.empty())
-		{
-			return false;//PrepareVectors();
-		}
-		else
-		{
-			return false;//UpdateVectors();
-		}
-	}
+    void GCodeDrawer::ClearState()
+    {
+    	ClearLineVertexBuffer();
+        ClearPointVertexBuffer();
+        ClearTriangleVertexBuffer();
+    }
 
-	bool GCodeDrawer::PrepareVectors(GCodeViewParser& mViewParser)
+    void GCodeDrawer::Update()
+    {
+
+    }
+
+	bool GCodeDrawer::PrepareVectors()
 	{
+        vec3 position(0.0f);
+        GCodeViewParser& mViewParser = mAppState->GetGCodeFileModel().GetGCodeViewParser();
 		debug("GCodeDrawer: preparing vectors");
 
 		vector<LineSegment> list = mViewParser.GetLineSegmentHandlesList();
@@ -58,7 +67,6 @@ namespace Coconut
         ClearLineVertexBuffer();
         ClearPointVertexBuffer();
         ClearTriangleVertexBuffer();
-
 
 		bool drawFirstPoint = true;
 		for (int i = 0; i < list.size(); i++)
@@ -72,7 +80,6 @@ namespace Coconut
 			// Find first point of toolpath
 			if (drawFirstPoint)
 			{
-
 				if (isnan(ls.getEnd().x) || isnan(ls.getEnd().y))
 				{
 					continue;
@@ -80,7 +87,7 @@ namespace Coconut
 
 				// Draw first toolpath point
 				vertex.Color = mColorStart;
-				vertex.Position = ls.getEnd() + mPosition;
+				vertex.Position = ls.getEnd() + position;
 				if (mIgnoreZ)
 				{
 					vertex.Position.z = (0);
@@ -91,33 +98,18 @@ namespace Coconut
 				continue;
 			}
 
-			// Prepare vertices
-			/*
-			if (ls.isRapidMovement())
-			{
-				vertex.start = ls.getStart();
-			}
-			else
-			{
-				vertex.start = vec3(NAN, NAN, NAN);
-			}
-				y tho?
-			*/
-
-
-
 			ls.setVertexIndex(mLineVertexBuffer.size());
 
 			// Set color
 			vertex.Color = GetSegmentColorVector(ls);
 
 			// Line start
-			vertex.Position = ls.getStart() + mPosition;
+			vertex.Position = ls.getStart() + position;
 			if (mIgnoreZ) vertex.Position.z = (0);
 			AddLineVertex(vertex);
 
 			// Line end
-			vertex.Position = ls.getEnd() + mPosition;
+			vertex.Position = ls.getEnd() + position;
 			if (mIgnoreZ) vertex.Position.z = (0);
 			AddLineVertex(vertex);
 
@@ -125,7 +117,7 @@ namespace Coconut
 			if (i == list.size() - 1)
 			{
 				vertex.Color = mColorEnd;
-				vertex.Position = ls.getEnd() + mPosition;
+				vertex.Position = ls.getEnd() + position;
 
 				if (mIgnoreZ)
 				{
@@ -135,8 +127,9 @@ namespace Coconut
 				AddPointVertex(vertex);
 			}
 		}
-		mGeometryUpdated = true;
-		//mIndexes.clear();
+
+        SubmitPointVertexBuffer();
+        SubmitLineVertexBuffer();
 		return true;
 	}
 
@@ -190,12 +183,12 @@ namespace Coconut
 
 
 
-	vec4 GCodeDrawer::GetSegmentColorVector(const LineSegment& segment)
+	vec3 GCodeDrawer::GetSegmentColorVector(const LineSegment& segment)
 	{
 		return GetSegmentColor(segment);
 	}
 
-	vec4 GCodeDrawer::GetSegmentColor(const LineSegment& segment)
+	vec3 GCodeDrawer::GetSegmentColor(const LineSegment& segment)
 	{
 
 		if (segment.isZMovement())
@@ -223,110 +216,62 @@ namespace Coconut
 		return mColorNormal;
 	}
 
-	vec3 GCodeDrawer::GetSizes(const GCodeViewParser& vp) const
-	{
-		vec3 min = vp.GetMinimumExtremes();
-		vec3 max = vp.GetMaximumExtremes();
-		return vec3(max.x - min.x, max.y - min.y, max.z - min.z);
-	}
-
-	vec3 GCodeDrawer::GetMinimumExtremes(const GCodeViewParser& vp) const
-	{
-		vec3 v = vp.GetMinimumExtremes();
-		if (mIgnoreZ) v.z = (0);
-		return v;
-	}
-
-	vec3 GCodeDrawer::GetMaximumExtremes(const GCodeViewParser& vp) const
-	{
-		vec3 v = vp.GetMaximumExtremes();
-		if (mIgnoreZ) v.z = (0);
-		return v;
-	}
-
-	bool GCodeDrawer::Init()
-	{
-		mIgnoreZ = false;
-		mColorNormal = vec4(0,0,1,1);
-		mColorDrawn = vec4(0,0,0,1);
-		mColorHighlight = vec4(1,0,0,1);
-		mColorZMovement = vec4(1,1,0,1);
-		mColorStart = vec4(0,1,0,1);
-		mColorEnd = vec4(1,0,0,1);
-		mGeometryUpdated = false;
-		//mViewParser->clear();
-		//mViewParser = GCodeViewParser(mAppState);
-		Update();
-        return true;
-	}
-
-	void GCodeDrawer::UpdateViewParser(GCodeParser& parser, GCodeViewParser& vp)
-	{
-		vp.SetLinesFromParser(parser,10,true);
-		Update();
-	}
-
-	bool GCodeDrawer::GeometryUpdated()
-	{
-		return mGeometryUpdated;
-	}
-
-	vec4 GCodeDrawer::ColorNormal() const
+	vec3 GCodeDrawer::ColorNormal() const
 	{
 		return mColorNormal;
 	}
 
-	void GCodeDrawer::SetColorNormal(const vec4 &colorNormal)
+	void GCodeDrawer::SetColorNormal(const vec3 &colorNormal)
 	{
 		mColorNormal = colorNormal;
 	}
 
-	vec4 GCodeDrawer::ColorHighlight() const
+	vec3 GCodeDrawer::ColorHighlight() const
 	{
 		return mColorHighlight;
 	}
 
-	void GCodeDrawer::SetColorHighlight(const vec4 &colorHighlight)
+	void GCodeDrawer::SetColorHighlight(const vec3 &colorHighlight)
 	{
 		mColorHighlight = colorHighlight;
 	}
 
-	vec4 GCodeDrawer::ColorZMovement() const
+	vec3 GCodeDrawer::ColorZMovement() const
 	{
 		return mColorZMovement;
 	}
 
-	void GCodeDrawer::SetColorZMovement(const vec4 &colorZMovement)
+	void GCodeDrawer::SetColorZMovement(const vec3 &colorZMovement)
 	{
 		mColorZMovement = colorZMovement;
 	}
 
-	vec4 GCodeDrawer::ColorDrawn() const
+	vec3 GCodeDrawer::ColorDrawn() const
 	{
 		return mColorDrawn;
 	}
 
-	void GCodeDrawer::SetColorDrawn(const vec4 &colorDrawn)
+	void GCodeDrawer::SetColorDrawn(const vec3 &colorDrawn)
 	{
 		mColorDrawn = colorDrawn;
 	}
 
-	vec4 GCodeDrawer::ColorStart() const
+	vec3 GCodeDrawer::ColorStart() const
 	{
 		return mColorStart;
 	}
 
-	void GCodeDrawer::SetColorStart(const vec4 &colorStart)
+	void GCodeDrawer::SetColorStart(const vec3 &colorStart)
 	{
 		mColorStart = colorStart;
 	}
 
-	vec4 GCodeDrawer::ColorEnd() const
+	vec3 GCodeDrawer::ColorEnd() const
 	{
 		return mColorEnd;
 	}
 
-	void GCodeDrawer::SetColorEnd(const vec4 &colorEnd)
+	void GCodeDrawer::SetColorEnd(const vec3 &colorEnd)
 	{
 		mColorEnd = colorEnd;
 	}
@@ -339,16 +284,5 @@ namespace Coconut
 	void GCodeDrawer::SetIgnoreZ(bool ignoreZ)
 	{
 		mIgnoreZ = ignoreZ;
-	}
-
-	vec3 GCodeDrawer::GetPosition() const
-	{
-		return mPosition;
-	}
-
-	void GCodeDrawer::SetPosition(vec3 position)
-	{
-		mPosition = position;
-		Update();
 	}
 }

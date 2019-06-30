@@ -13,8 +13,5 @@ namespace Coconut
     protected:
         void DrawProgressBar();
         void DrawBufferUsageBar();
-    private:
-        float mProgress;
-        float mBufferUsage;
     };
 }

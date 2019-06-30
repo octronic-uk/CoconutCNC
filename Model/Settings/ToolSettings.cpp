@@ -167,9 +167,33 @@ namespace Coconut
 
     void ToolSettings::AddCylinder(const Cylinder& c)
 	{
-        mCylinders.push_back(c);
+        mCylinders.insert(mCylinders.begin(),c);
     }
 
+    void ToolSettings::RemoveCylinder(const Cylinder& c)
+	{
+    	auto itr = mCylinders.begin();
+        while (itr != mCylinders.end() && (*itr).GetID() != c.GetID())
+        {
+            itr++;
+        }
+        if (itr != mCylinders.end())
+        {
+            mCylinders.erase(itr);
+        }
+	}
+
+	bool ToolSettings::operator==(const ToolSettings& b)
+	{
+        return mID == b.GetID() &&
+               mName == b.GetName();
+	}
+
+    bool ToolSettings::operator!=(const ToolSettings& b)
+	{
+        return mID != b.GetID() &&
+               mName != b.GetName();
+	}
 
     // Tool
 	const string ToolSettings::TOOL_ID = "id";
@@ -179,6 +203,8 @@ namespace Coconut
 	const string ToolSettings::TOOL_DIAMETER = "diameter";
 	const string ToolSettings::TOOL_FACES = "faces";
 	const string ToolSettings::TOOL_CYLINDERS = "cylinders";
+
+	ToolSettings ToolSettings::None("None",-1,-1,-1,-1,-1);
 }
 
 

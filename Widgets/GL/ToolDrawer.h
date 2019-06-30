@@ -28,12 +28,6 @@ namespace  Coconut
 		float ToolDiameter() const;
 		void SetToolDiameter(float toolDiameter);
 
-		float ToolLength() const;
-		void SetToolLength(float toolLength);
-
-		vec3 ToolPosition() const;
-		void SetToolPosition(const vec3 &toolPosition);
-
 		float ToolAngle() const;
 		void SetToolAngle(float toolAngle);
 
@@ -43,31 +37,29 @@ namespace  Coconut
 		vec4 ToolHolderColor() const;
 		void SetToolHolderColor(const vec4& color);
 
-		ToolSettings* GetTool() const;
-		void SetTool(ToolSettings* toolHandle);
-
 		void SetSpindleRotating(bool);
 		void SetSpindleSpeed(float);
 
 		bool NeedsUpdateGeometry() const;
+        void SetNeedsGeometryUpdate(bool);
 
 	protected:
 		float NormalizeAngle(float angle);
         void GenerateToolGeometry();
         void GenerateToolHolderGeometry();
 		vector<GLWidgetVertex> GenerateCylinderGeometry
-        (Cylinder* cylinder, const vec3& origin, const vec4& color);
+        (const Cylinder& cylinder, const vec3& origin, const vec4& color);
 		void Rotate();
 
 	private:
-		ToolSettings* mTool;
-		vec3 mToolPosition;
 		float mRotationAngle;
 		vec4 mToolColor;
 		vec4 mToolHolderColor;
 		bool mSpindleRotating;
 		float mSpindleSpeed;
 		bool mNeedsGeometryUpdate;
+        long mCurrentTime;
+        float mToolLength;
 	};
 
 }

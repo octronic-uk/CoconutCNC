@@ -93,9 +93,38 @@ namespace Coconut
         return mCylinders;
 	}
 
+    void ToolHolderSettings::AddCylinder(const Cylinder& c)
+	{
+        mCylinders.insert(mCylinders.begin(),c);
+    }
+
+    void ToolHolderSettings::RemoveCylinder(const Cylinder& c)
+	{
+    	auto itr = mCylinders.begin();
+        while (itr != mCylinders.end() && (*itr).GetID() != c.GetID())
+        {
+            itr++;
+        }
+        if (itr != mCylinders.end())
+        {
+            mCylinders.erase(itr);
+        }
+	}
+
+	bool ToolHolderSettings::operator==(const ToolHolderSettings& b)
+	{
+        return mID == b.GetID() &&
+               mName == b.GetName();
+	}
+
+    bool ToolHolderSettings::operator!=(const ToolHolderSettings& b)
+	{
+        return mID != b.GetID() &&
+               mName != b.GetName();
+	}
+
     const string ToolHolderSettings::TOOLHOLDER_ID = "id";
     const string ToolHolderSettings::TOOLHOLDER_NAME = "name";
     const string ToolHolderSettings::TOOLHOLDER_CYLINDERS = "cylinders";
-
-
+    ToolHolderSettings ToolHolderSettings::None("None",-1);
 }

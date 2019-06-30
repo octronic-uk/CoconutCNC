@@ -107,6 +107,25 @@ namespace Coconut
         return true;
     }
 
+    bool Cylinder::operator==(const Cylinder& other)
+    {
+        return mID == other.mID &&
+        		mUpperDiameter == other.mUpperDiameter &&
+                mLowerDiameter == other.mLowerDiameter &&
+                mLength == other.mLength &&
+                mFaces == other.mFaces;
+    }
+
+    bool Cylinder::operator!=(const Cylinder& other)
+    {
+		return mID != other.mID ||
+			mUpperDiameter != other.mUpperDiameter ||
+			mLowerDiameter != other.mLowerDiameter ||
+			mLength != other.mLength ||
+			mFaces != other.mFaces;
+    }
+
+
     const string Cylinder::CYLINDER_ID = "id";
     const string Cylinder::CYLINDER_FACES = "faces";
     const string Cylinder::CYLINDER_UPPER_DIAMETER = "upper_diameter";

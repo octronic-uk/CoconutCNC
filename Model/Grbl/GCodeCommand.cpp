@@ -131,7 +131,13 @@ namespace Coconut
 		return gc;
 	}
 
-	GCodeCommand& GCodeCommand::ReSetCommand()
+    GCodeCommand& GCodeCommand::CheckModeCommand()
+	{
+		static GCodeCommand gc("$C\r");
+		return gc;
+	}
+
+	GCodeCommand& GCodeCommand::ResetCommand()
 	{
 		static GCodeCommand gc(0x18);
 		return gc;
@@ -206,15 +212,15 @@ namespace Coconut
 	GCodeCommand& GCodeCommand::JogCommand(double x, double y, double z,
 		int feedRate, bool inches, bool machineCoordinates)
 	{
-		static string jogString = "$J=%1 %2 X%3 Y%4 Z%5 F%6\r";
-        static stringstream s;
-        s.clear();
+		//static string jogString = "$J=%1 %2 X%3 Y%4 Z%5 F%6\r";
+        stringstream s;
         s << "$J=" << (inches?"G20 ":"G21 ");
 	    s << (machineCoordinates?"G53 ":"G91 ");
 		s << "X" << fixed << setprecision(3) << x;
 		s << "Y" << fixed << setprecision(3) << y;
 		s << "Z" << fixed << setprecision(3) << z;
-        s << feedRate;
+        s << "F" << fixed << setprecision(3) << feedRate;
+        s << "\r";
 
 		static GCodeCommand gc;
 		gc = GCodeCommand(s.str());
@@ -483,6 +489,27 @@ namespace Coconut
 	{
 		return mState;
 	}
+
+    string GCodeCommand::GetStateString() const
+	{
+        switch (mState)
+        {
+            case Coconut::Marker:
+        		return "Marker";
+            case Coconut::InQueue:
+                return "In Queue";
+            case Coconut::Sent:
+                return "Sent";
+            case Coconut::Processed:
+                return "Processed";
+            case Coconut::Skipped:
+                return "Skipped";
+            case Coconut::None:
+            default:
+                return "None";
+        }
+	}
+
 
 	void GCodeCommand::SetState(const GcodeCommandState state)
 	{

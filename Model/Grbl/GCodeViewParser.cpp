@@ -6,12 +6,17 @@
 // Copyright 2015-2016 Hayrullin Denis Ravilevich
 
 #include "GCodeViewParser.h"
+
+#include "GCodeFileModel.h"
+#include "../../AppState.h"
 #include "../../Common/Logger.h"
 #include "../../Common/Util.h"
+#include "../../Widgets/GL/GCodeDrawer.h"
 
 namespace Coconut
 {
-	GCodeViewParser::GCodeViewParser()
+	GCodeViewParser::GCodeViewParser(AppState* state)
+        : mAppState(state)
 	{
 		mAbsoluteMode = true;
 		mAbsoluteIJK = false;
@@ -70,14 +75,21 @@ namespace Coconut
 		return mLines;
 	}
 
-	void GCodeViewParser::Reset()
+	void GCodeViewParser::ClearState()
 	{
+        mAbsoluteMode = true;
+		mAbsoluteIJK = false;
+		mCurrentLine = 0;
+		mDebug = true;
+
+		mMin = vec3(NAN, NAN, NAN);
+		mMax = vec3(NAN, NAN, NAN);
+
+		mMinLength = NAN;
+
 		mLines.clear();
 		mLineIndexes.clear();
 		mCurrentLine = 0;
-		mMin = vec3(NAN, NAN, NAN);
-		mMax = vec3(NAN, NAN, NAN);
-		mMinLength = NAN;
 	}
 
 	double GCodeViewParser::GetMinLength() const
@@ -97,11 +109,12 @@ namespace Coconut
 	void GCodeViewParser::SetLinesFromParser
 	(GCodeParser& gp, double arcPrecision, bool arcDegreeMode)
 	{
+        info("GCodeViewParser: {}",__FUNCTION__);
 		// Remove old
 		mLines.clear();
 
 		vector <PointSegment> psl = gp.GetPointSegmentList();
-		debug("GCodeViewParser: Point Segments {}", psl.size());
+		info("GCodeViewParser: Point Segments {}", psl.size());
 
 		// For a line segment list ALL arcs must be converted to lines.
 		double minArcLength = 0.1;
@@ -116,7 +129,7 @@ namespace Coconut
 		int lineIndex = 0;
 		for (PointSegment& segment : psl)
 		{
-			PointSegment ps = segment;
+			PointSegment& ps = segment;
 			bool isMetric = ps.IsMetric();
 			ps.ConvertToMetric();
 
@@ -188,6 +201,7 @@ namespace Coconut
 			}
 			start = end;
 		}
+        mAppState->GetGCodeDrawer().ReadFromFileModel();
 	}
 
 	vector<vector<int>>& GCodeViewParser::GetLinesIndexes()

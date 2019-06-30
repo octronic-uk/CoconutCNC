@@ -1,6 +1,7 @@
 #include "SettingsWindow.h"
 #include "../../AppState.h"
 
+#include "../GL/ToolDrawer.h"
 #include "../../Model/Grbl/GrblConfigurationModel.h"
 #include "../../Model/Settings/ToolSettings.h"
 #include "../../Model/Settings/ToolHolderSettings.h"
@@ -14,7 +15,11 @@ namespace Coconut
 {
     SettingsWindow::SettingsWindow(AppState* project)
         : ImGuiWidget(project, "Settings"),
-        mSelectedToolSettingsIndex(-1)
+        mSelectedToolSettingsIndex(-1),
+        mToolSettingsIndexToRemove(-1),
+        mSelectedToolHolderSettingsIndex(-1),
+        mToolHolderSettingsIndexToRemove(-1),
+        mUpdateToolDrawer(false)
 	{}
 
     SettingsWindow::~SettingsWindow ()
@@ -61,8 +66,32 @@ namespace Coconut
 			    ImGui::EndTabItem();
 		   }
 		   ImGui::EndTabBar();
-	   }
+	    }
         ImGui::End();
+
+        SettingsModel& settings = mAppState->GetSettingsModel();
+
+        if (mToolSettingsIndexToRemove > -1)
+        {
+            auto itr = settings.GetToolSettingsVector().begin() + mToolSettingsIndexToRemove;
+            settings.RemoveToolSettings(*itr);
+        	mToolSettingsIndexToRemove = -1;
+        	mSelectedToolSettingsIndex = -1;
+        }
+
+        if (mToolHolderSettingsIndexToRemove > -1)
+        {
+            auto itr = settings.GetToolHolderSettingsVector().begin() + mToolHolderSettingsIndexToRemove;
+            settings.RemoveToolHolderSettings(*itr);
+	   		mToolHolderSettingsIndexToRemove = -1;
+	   		mSelectedToolHolderSettingsIndex = -1;
+        }
+
+        if (mUpdateToolDrawer)
+        {
+            mAppState->GetToolDrawer().SetNeedsGeometryUpdate(true);
+            mUpdateToolDrawer = false;
+        }
     }
 
     void SettingsWindow::DrawConnectionSettings()
@@ -164,7 +193,7 @@ namespace Coconut
 
 
     }
-// MACINE // -------------------------------------------------------------------
+
     void SettingsWindow::DrawMachineSettings()
     {
         MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
@@ -189,7 +218,144 @@ namespace Coconut
 
     void SettingsWindow::DrawToolHolderSettings()
     {
+        SettingsModel& settings = mAppState->GetSettingsModel();
 
+		ImGui::Columns(2);
+
+        // Left Pane -----------------------------------------------------------
+
+        ImGui::BeginChild("ToolHoldersLeftPane");
+        {
+
+			if(ImGui::Button("Add Tool Holder"))
+			{
+				settings.AddToolHolderSettings();
+			}
+
+            if (!settings.GetToolHolderSettingsVector().empty())
+            {
+
+            	for (int i=0; i<settings.GetToolHolderSettingsVector().size(); i++ )
+            	{
+					ToolHolderSettings& ts = settings.GetToolHolderSettingsVector().at(i);
+					if (ImGui::TreeNodeEx((void*)((intptr_t)ts.GetID()),
+						ImGuiTreeNodeFlags_Leaf, "%s", ts.GetName().c_str()))
+					{
+						ImGui::TreePop();
+					}
+
+					if (ImGui::IsItemClicked())
+					{
+						mSelectedToolHolderSettingsIndex = i;
+						info("SettingsWindow: Selected ToolHolder {}", i);
+					}
+
+				}
+
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::NextColumn();
+
+        // Right Pane ----------------------------------------------------------
+
+        ImGui::BeginChild("ToolHoldersRightPane");
+        {
+            if (mSelectedToolHolderSettingsIndex > -1)
+            {
+                ToolHolderSettings& ts = settings.GetToolHolderSettingsVector().at(mSelectedToolHolderSettingsIndex);
+				char name_buffer[128] = {0};
+                strncpy(name_buffer, ts.GetName().c_str(),128);
+				if (ImGui::InputText("Name",name_buffer, 128))
+				{
+					ts.SetName(name_buffer);
+				}
+
+				if(ImGui::Button("Remove Tool Holder"))
+				{
+                    mToolHolderSettingsIndexToRemove = mSelectedToolHolderSettingsIndex;
+				}
+
+				ImGui::Separator();
+
+				ImGui::Text("Tool Holder Geometry");
+
+				ImGui::Columns(5);
+
+				ImGui::Text("Length"); ImGui::NextColumn();
+				ImGui::Text("Upper Diameter"); ImGui::NextColumn();
+				ImGui::Text("Lower Diameter"); ImGui::NextColumn();
+				ImGui::Text("Faces"); ImGui::NextColumn();
+				ImGui::Text("Remove"); ImGui::NextColumn();
+				ImGui::Separator();
+				vector<Cylinder>& cylinders = ts.GetCylindersVector();
+				vector<Cylinder>::iterator cylinder_to_remove = cylinders.end();
+				for (Cylinder& c : cylinders)
+				{
+					float length, ud, ld;
+					length = c.GetLength();
+					ud = c.GetUpperDiameter();
+					ld = c.GetLowerDiameter();
+					int faces = c.GetFaces();
+
+                    ImGui::PushID(c.GetID());
+
+					if (ImGui::InputFloat("##Length", &length))
+					{
+					   c.SetLength(length);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
+
+					if (ImGui::InputFloat("##Upper Diameter",&ud))
+					{
+					   c.SetUpperDiameter(ud);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
+
+					if(ImGui::InputFloat("##Lower Diameter",&ld))
+					{
+					   c.SetLowerDiameter(ld);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
+
+					if(ImGui::InputInt("##Faces",&faces))
+					{
+					   c.SetFaces(faces);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
+
+					if (ImGui::Button("Remove"))
+					{
+						cylinder_to_remove = find(cylinders.begin(),cylinders.end(),c);
+                        mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
+
+                    ImGui::PopID();
+				}
+
+                if (cylinder_to_remove != cylinders.end())
+                {
+                    cylinders.erase(cylinder_to_remove);
+                }
+
+				ImGui::Columns(1);
+
+				if(ImGui::Button("Add Cylinder"))
+				{
+				   ts.AddCylinder(Cylinder());
+				   mUpdateToolDrawer = true;
+				}
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Columns(1);
     }
 
     void SettingsWindow::DrawToolSettings()
@@ -208,17 +374,25 @@ namespace Coconut
 				settings.AddToolSettings();
 			}
 
-
-            for (int i=0; i<settings.GetToolSettingsVector().size(); i++ )
+            if (!settings.GetToolSettingsVector().empty())
             {
-                ToolSettings& ts = settings.GetToolSettingsVector().at(i);
-				if (ImGui::TreeNodeEx((void*)((intptr_t)ts.GetID()),
-            		ImGuiTreeNodeFlags_Leaf, "%s", ts.GetName().c_str()))
-                {
-                    mSelectedToolSettingsIndex = i;
-                    ImGui::TreePop();
-                }
 
+				for (int i=0; i<settings.GetToolSettingsVector().size(); i++ )
+				{
+					ToolSettings& ts = settings.GetToolSettingsVector().at(i);
+					if (ImGui::TreeNodeEx((void*)((intptr_t)ts.GetID()),
+						ImGuiTreeNodeFlags_Leaf, "%s", ts.GetName().c_str()))
+					{
+						ImGui::TreePop();
+					}
+
+					if (ImGui::IsItemClicked())
+					{
+						mSelectedToolSettingsIndex = i;
+						info("SettingsWindow: Selected tool {}", i);
+					}
+
+				}
             }
         }
         ImGui::EndChild();
@@ -245,17 +419,28 @@ namespace Coconut
 					ts.SetToolNumber(toolNumber);
 				}
 
-				int current_tool_holder = 0;
-				vector<string> th;
-				th.push_back("test");
-				if (StringCombo("Tool Holder",&current_tool_holder,th))
-				{
+				vector<ToolHolderSettings>& tool_holders = settings.GetToolHolderSettingsVector();
 
+				auto selected_th = find(tool_holders.begin(), tool_holders.end(),
+                     settings.GetToolHolderSettingsByID(ts.GetToolHolderID()));
+
+				int current_tool_holder = distance(tool_holders.begin(),selected_th);
+
+                vector<string> names;
+				for (ToolHolderSettings& th : tool_holders)
+				{
+					names.push_back(th.GetName());
+				}
+
+				if (StringCombo("Tool Holder",&current_tool_holder,names))
+				{
+					ts.SetToolHolderID(tool_holders.at(current_tool_holder).GetID());
 				}
 
 				if(ImGui::Button("Remove Tool"))
 				{
-					settings.RemoveToolSettings(ts);
+                    mToolSettingsIndexToRemove = mSelectedToolSettingsIndex;
+                    mSelectedToolSettingsIndex = -1;
 				}
 
 				ImGui::Separator();
@@ -263,53 +448,69 @@ namespace Coconut
 				ImGui::Text("Tool Geometry");
 
 				ImGui::Columns(5);
+
+				ImGui::Text("Length"); ImGui::NextColumn();
+				ImGui::Text("Upper Diameter"); ImGui::NextColumn();
+				ImGui::Text("Lower Diameter"); ImGui::NextColumn();
+				ImGui::Text("Faces"); ImGui::NextColumn();
+				ImGui::Text("Remove"); ImGui::NextColumn();
+				ImGui::Separator();
+				vector<Cylinder>& cylinders = ts.GetCylindersVector();
+				vector<Cylinder>::iterator cylinder_to_remove = cylinders.end();
+
+				for (Cylinder& c : cylinders)
 				{
-					ImGui::Text("Length"); ImGui::NextColumn();
-					ImGui::Text("Upper Diameter"); ImGui::NextColumn();
-					ImGui::Text("Lower Diameter"); ImGui::NextColumn();
-					ImGui::Text("Faces"); ImGui::NextColumn();
-					ImGui::Text("Remove"); ImGui::NextColumn();
-					ImGui::Separator();
-                    vector<Cylinder>& cylinders = ts.GetCylindersVector();
-                    for (Cylinder& c : cylinders)
-                    {
-                        float length, ud, ld, faces;
-                        length = c.GetLength();
-                        ud = c.GetUpperDiameter();
-                        ld = c.GetLowerDiameter();
-                        faces = c.GetFaces();
+					float length, ud, ld;
+					length = c.GetLength();
+					ud = c.GetUpperDiameter();
+					ld = c.GetLowerDiameter();
+					int faces = c.GetFaces();
 
-						if (ImGui::InputFloat("##Length", &length))
-                        {
-                           c.SetLength(length);
-                        }
-                        ImGui::NextColumn();
+                    ImGui::PushID(c.GetID());
 
-						if (ImGui::InputFloat("##Upper Diameter",&ud))
-                        {
-                           c.SetUpperDiameter(ud);
-                        }
-                        ImGui::NextColumn();
+					if (ImGui::InputFloat("##Length", &length))
+					{
+					   c.SetLength(length);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
 
-						if(ImGui::InputFloat("##Lower Diameter",&ld))
-                        {
-                           c.SetLowerDiameter(ld);
-                        }
-                        ImGui::NextColumn();
+					if (ImGui::InputFloat("##Upper Diameter",&ud))
+					{
+					   c.SetUpperDiameter(ud);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
 
-						if(ImGui::InputFloat("##Faces",&faces))
-                        {
-                           c.SetFaces(faces);
-                        }
-                        ImGui::NextColumn();
+					if(ImGui::InputFloat("##Lower Diameter",&ld))
+					{
+					   c.SetLowerDiameter(ld);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
 
-                        if (ImGui::Button("Remove"))
-                        {
+					if(ImGui::InputInt("##Faces",&faces))
+					{
+					   c.SetFaces(faces);
+                       mUpdateToolDrawer = true;
+					}
+					ImGui::NextColumn();
 
-                        }
-                        ImGui::NextColumn();
-                    }
+					if (ImGui::Button("Remove"))
+					{
+						cylinder_to_remove = find(cylinders.begin(),cylinders.end(), c);
+                       mUpdateToolDrawer = true;
+					}
+
+					ImGui::NextColumn();
+
+                    ImGui::PopID();
 				}
+
+                if (cylinder_to_remove != cylinders.end())
+                {
+                    cylinders.erase(cylinder_to_remove);
+                }
 
 				ImGui::Columns(1);
 
@@ -327,10 +528,11 @@ namespace Coconut
 
 	void SettingsWindow::DrawGrblSettings()
     {
-        GrblConfigurationModel& configModel = mAppState->GetGrblMachineModel().GetConfigurationModel();
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        GrblConfigurationModel& configModel = grbl.GetConfigurationModel();
 		if (ImGui::Button("Read Firmware Settings"))
         {
-
+			grbl.SendManualGCodeCommand(GCodeCommand::GetFirmwareConfigurationCommand());
         }
 
         ImGui::SameLine();
@@ -350,6 +552,7 @@ namespace Coconut
 
         for (pair<int,string> p : GrblConfigurationModel::ConfigurationKeys)
         {
+            ImGui::PushID(p.first);
 			ImGui::Text("$%d",p.first); ImGui::NextColumn();
 			ImGui::Text("%s",p.second.c_str()); ImGui::NextColumn();
             char buf[BUFSIZ] = {0};
@@ -361,6 +564,7 @@ namespace Coconut
             }
             ImGui::NextColumn();
         	ImGui::Separator();
+            ImGui::PopID();
         }
         ImGui::EndChild();
     }

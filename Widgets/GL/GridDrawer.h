@@ -34,13 +34,13 @@ namespace Coconut
 
         GridDrawer(
             AppState* p,
-            AxisPair xp = AxisPair::XZ,
+            AxisPair xp = AxisPair::XY,
             vec3 position = vec3(0.0f),
-            float majorSpacing = 10.0f,
-            float minorSpacing = 1.0f,
-            float size = 100.0f,
-            vec3 majorColour = vec3(1.0f),
-            vec3 minorColour = vec3(0.6f)
+            float majorSpacing = 100.0f,
+            float minorSpacing = 10.0f,
+            float size = 300.0f,
+            vec3 majorColour = vec3(0.0f),
+            vec3 minorColour = vec3(0.4f)
         );
 
         ~GridDrawer() override;
@@ -72,7 +72,6 @@ namespace Coconut
     protected: // Member functions
         void InitMajorGridData();
         void InitMinorGridData();
-        void InitAxisLines();
 
     protected: // Variables
         AxisPair mAxisPair;

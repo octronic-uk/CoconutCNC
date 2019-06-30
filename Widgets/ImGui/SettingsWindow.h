@@ -20,7 +20,10 @@ namespace Coconut
 
     private:
         int mConnectionBaudRateComboIndex;
-        // Tool Settings Tab
         int mSelectedToolSettingsIndex;
+        int mToolSettingsIndexToRemove;
+        int mSelectedToolHolderSettingsIndex;
+        int mToolHolderSettingsIndexToRemove;
+        bool mUpdateToolDrawer;
     };
 }

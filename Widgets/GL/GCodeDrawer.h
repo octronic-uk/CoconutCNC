@@ -6,12 +6,9 @@
 #include "GLWidget.h"
 
 #include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include "../../Model/Grbl/LineSegment.h"
-#include "../../Model/Grbl/GCodeViewParser.h"
 
 using glm::vec3;
-using glm::vec4;
 
 namespace Coconut
 {
@@ -22,18 +19,11 @@ namespace Coconut
 
 		GCodeDrawer(AppState* state);
 
+        bool Init() override;
 		void Update() override;
-		void Update(const vector<int>& indexes);
-		bool UpdateData();
 
-		vec3 GetSizes(const GCodeViewParser& vp) const;
-		vec3 GetMinimumExtremes(const GCodeViewParser& vp) const ;
-		vec3 GetMaximumExtremes(const GCodeViewParser& vp) const ;
-
-		bool Init() override;
-		void UpdateViewParser(GCodeParser&, GCodeViewParser& vp);
-
-		GCodeViewParser& GetViewParser();
+    	void ReadFromFileModel();
+        void ClearState();
 
 		bool Simplify() const;
 		void SetSimplify(bool simplify);
@@ -41,53 +31,43 @@ namespace Coconut
 		double SimplifyPrecision() const;
 		void SetSimplifyPrecision(double simplifyPrecision);
 
-		bool GeometryUpdated();
+		vec3 ColorNormal() const;
+		void SetColorNormal(const vec3 &colorNormal);
 
-		vec4 ColorNormal() const;
-		void SetColorNormal(const vec4 &colorNormal);
+		vec3 ColorHighlight() const;
+		void SetColorHighlight(const vec3 &colorHighlight);
 
-		vec4 ColorHighlight() const;
-		void SetColorHighlight(const vec4 &colorHighlight);
+		vec3 ColorZMovement() const;
+		void SetColorZMovement(const vec3 &colorZMovement);
 
-		vec4 ColorZMovement() const;
-		void SetColorZMovement(const vec4 &colorZMovement);
+		vec3 ColorDrawn() const;
+		void SetColorDrawn(const vec3 &colorDrawn);
 
-		vec4 ColorDrawn() const;
-		void SetColorDrawn(const vec4 &colorDrawn);
+		vec3 ColorStart() const;
+		void SetColorStart(const vec3 &colorStart);
 
-		vec4 ColorStart() const;
-		void SetColorStart(const vec4 &colorStart);
-
-		vec4 ColorEnd() const;
-		void SetColorEnd(const vec4 &colorEnd);
+		vec3 ColorEnd() const;
+		void SetColorEnd(const vec3 &colorEnd);
 
 		bool GetIgnoreZ() const;
 		void SetIgnoreZ(bool ignoreZ);
 
-		GCodeParser GetParser() const;
-		void SetParser(const GCodeParser& parser);
-
-		vec3 GetPosition() const;
-		void SetPosition(vec3 position);
-
     protected:
-		bool PrepareVectors(GCodeViewParser& viewParesr);
+		bool PrepareVectors();
 		bool UpdateVectors();
-		vec4 GetSegmentColorVector(const LineSegment& segment);
-		vec4 GetSegmentColor(const LineSegment& segment);
+		vec3 GetSegmentColorVector(const LineSegment& segment);
+		vec3 GetSegmentColor(const LineSegment& segment);
 
 	private:
 		bool mIgnoreZ;
-		vec4 mColorNormal;
-		vec4 mColorDrawn;
-		vec4 mColorHighlight;
-		vec4 mColorZMovement;
-		vec4 mColorStart;
-		vec4 mColorEnd;
-		vec4 mColorArc;
-		vec4 mColorRapid;
+		vec3 mColorNormal;
+		vec3 mColorDrawn;
+		vec3 mColorHighlight;
+		vec3 mColorZMovement;
+		vec3 mColorStart;
+		vec3 mColorEnd;
+		vec3 mColorArc;
+		vec3 mColorRapid;
 		vector<int> mIndexes;
-		bool mGeometryUpdated;
-		vec3 mPosition;
 	};
 }

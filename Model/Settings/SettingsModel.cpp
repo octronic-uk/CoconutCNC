@@ -119,9 +119,20 @@ namespace Coconut
         mToolSettingsVector.push_back(ToolSettings());
     }
 
-    void SettingsModel::AddToolHolderSettings()
+    ToolSettings& SettingsModel::GetToolSettingsByToolNumber(int id)
     {
-        mToolHolderSettingsVector.push_back(ToolHolderSettings());
+        auto itr = mToolSettingsVector.begin();
+        while (itr != mToolSettingsVector.end() && (*itr).GetToolNumber() != id)
+        {
+            itr++;
+        }
+        if (itr != mToolSettingsVector.end())
+        {
+            info("SettingsModel: found tool {}",id);
+            return (*itr);
+        }
+
+        return ToolSettings::None;
     }
 
     void SettingsModel::RemoveToolSettings(const ToolSettings& tsm)
@@ -133,9 +144,53 @@ namespace Coconut
         }
         if (itr != mToolSettingsVector.end())
         {
+            info("SettingsModel: Erasing tool {}",tsm.GetID());
             mToolSettingsVector.erase(itr);
         }
+        else
+        {
+        	error("SettingsModel: Could not remove tool {} id not found",tsm.GetID());
+        }
 	}
+
+	void SettingsModel::AddToolHolderSettings()
+    {
+        mToolHolderSettingsVector.push_back(ToolHolderSettings());
+    }
+
+    ToolHolderSettings& SettingsModel::GetToolHolderSettingsByID(int id)
+    {
+        auto itr = mToolHolderSettingsVector.begin();
+        while (itr != mToolHolderSettingsVector.end() && (*itr).GetID() != id)
+        {
+            itr++;
+        }
+        if (itr != mToolHolderSettingsVector.end())
+        {
+            info("SettingsModel: found toolholder {}",id);
+    		return *itr;
+        }
+        return ToolHolderSettings::None;
+    }
+
+    void SettingsModel::RemoveToolHolderSettings(const ToolHolderSettings& tsm)
+	{
+    	auto itr = mToolHolderSettingsVector.begin();
+        while (itr != mToolHolderSettingsVector.end() && (*itr).GetID() != tsm.GetID())
+        {
+            itr++;
+        }
+        if (itr != mToolHolderSettingsVector.end())
+        {
+            info("SettingsModel: Erasing toolholder {}",tsm.GetID());
+            mToolHolderSettingsVector.erase(itr);
+        }
+        else
+        {
+        	error("SettingsModel: Could not remove toolholder {} id not found",tsm.GetID());
+        }
+	}
+
 
 	bool SettingsModel::SaveSettingsFile()
     {

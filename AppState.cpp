@@ -12,6 +12,7 @@ namespace Coconut
         mSettingsModel(this),
         mSerialPortModel(this),
         mGrblMachineModel(this),
+        mGCodeFileModel(this),
         // ImGui Widgets
         mConsoleWindow(this),
         mControlWindow(this),
@@ -24,7 +25,9 @@ namespace Coconut
         mStateWindow(this),
 		// GL Widgets
         mGridDrawer(this),
-        mToolDrawer(this)
+        mToolDrawer(this),
+        mOriginDrawer(this),
+        mGCodeDrawer(this)
 	{
 		debug("AppState: Constructor");
     }
@@ -63,6 +66,12 @@ namespace Coconut
         if(!mToolDrawer.Init()) return false;
         mWindow.AddGLWidget(&mToolDrawer);
 
+        if (!mOriginDrawer.Init()) return false;
+        mWindow.AddGLWidget(&mOriginDrawer);
+
+        if (!mGCodeDrawer.Init()) return false;
+        mWindow.AddGLWidget(&mGCodeDrawer);
+
         return true;
     }
 
@@ -86,9 +95,24 @@ namespace Coconut
         return mPreviewWindow;
     }
 
+    ConsoleWindow& AppState::GetConsoleWindow()
+    {
+       return mConsoleWindow;
+    }
+
     GrblMachineModel& AppState::GetGrblMachineModel()
     {
-       return mGrblMachineModel;
+        return mGrblMachineModel;
+    }
+
+    GCodeDrawer& AppState::GetGCodeDrawer()
+    {
+       return mGCodeDrawer;
+    }
+
+    ToolDrawer& AppState::GetToolDrawer()
+    {
+       return mToolDrawer;
     }
 
     bool AppState::GetLooping() const

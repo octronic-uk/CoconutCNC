@@ -1,5 +1,6 @@
 #include "GCodeTableWindow.h"
 #include "../../AppState.h"
+#include "../../Model/Grbl/GCodeFileModel.h"
 
 namespace Coconut
 {
@@ -36,12 +37,15 @@ namespace Coconut
         ImVec2 space = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("MarkersChild",ImVec2(-1,space.y - 30));
         {
-			for (int i=0; i<5; i++)
+            vector<GCodeCommand>& markers = mAppState->GetGCodeFileModel().GetMarkers();
+            int i=0;
+            for (GCodeCommand& marker : markers)
             {
-                if(ImGui::TreeNodeEx((void*)(intptr_t)i,ImGuiTreeNodeFlags_Leaf,"..."))
+                if(ImGui::TreeNodeEx((void*)(intptr_t)i,ImGuiTreeNodeFlags_Leaf,"%s",marker.GetCommand().c_str()))
                 {
 					ImGui::TreePop();
                 }
+                i++;
             }
         }
         ImGui::EndChild();
@@ -50,54 +54,73 @@ namespace Coconut
 
     void GCodeTableWindow::DrawTablePane()
     {
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
         ImVec2 space = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("GCodeTable",ImVec2(-1,space.y - 30));
+        {
 
-		// Buttons
+			// Buttons
 
-		if (ImGui::Button("Check Mode ($C)"))
-		{
+			if (ImGui::Button("Check Mode ($C)"))
+			{
+				grbl.SendManualGCodeCommand(GCodeCommand::CheckModeCommand());
+			}
 
-		}
+			ImGui::SameLine();
 
-		ImGui::SameLine();
+			if (ImGui::Button("Auto Scroll"))
+			{
 
-		if (ImGui::Button("Auto Scroll"))
-		{
+			}
 
-		}
+			ImGui::SameLine();
 
-		ImGui::SameLine();
+			if (ImGui::Button("Send"))
+			{
 
-		if (ImGui::Button("Send"))
-		{
+			}
 
-		}
+			ImGui::Separator();
 
-		ImGui::Separator();
+			// Table
+			ImGui::Columns(4);
 
-		// Table
-		ImGui::Columns(4);
+			// Header
 
-		// Header
+			ImGui::Text("Line");
+			ImGui::NextColumn();
 
-		ImGui::Text("Line");
-		ImGui::NextColumn();
+			ImGui::Text("Command");
+			ImGui::NextColumn();
 
-		ImGui::Text("Command");
-		ImGui::NextColumn();
+			ImGui::Text("Status");
 
-		ImGui::Text("Status");
+			ImGui::NextColumn();
 
-		ImGui::NextColumn();
+			ImGui::Text("Response");
+			ImGui::NextColumn();
 
-		ImGui::Text("Response");
-		ImGui::NextColumn();
+			ImGui::Separator();
 
-		ImGui::Separator();
+			// Data
+			vector<GCodeCommand>& commands = mAppState->GetGCodeFileModel().GetData();
+			for (GCodeCommand& cmd : commands)
+			{
+				ImGui::Text("%d",cmd.GetLine());
+				ImGui::NextColumn();
 
-		// Data
+				ImGui::Text("%s",cmd.GetCommand().c_str());
+				ImGui::NextColumn();
 
+				ImGui::Text("%s",cmd.GetStateString().c_str());
+				ImGui::NextColumn();
+
+				ImGui::Text("%s",cmd.GetResponse().GetData().c_str());
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+			}
+        }
         ImGui::EndChild();
     }
 }

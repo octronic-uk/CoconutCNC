@@ -502,15 +502,31 @@ namespace Coconut
         mLineVertexBuffer.push_back(lv);
     }
 
+    void GLWidget::AddLineVertices(const vector<GLWidgetVertex>& lv)
+    {
+        mLineVertexBuffer.insert(mLineVertexBuffer.end(),lv.begin(),lv.end());
+    }
+
     void GLWidget::AddTriangleVertex(const GLWidgetVertex& lv)
     {
         mTriangleVertexBuffer.push_back(lv);
+    }
+
+    void GLWidget::AddTriangleVertices(const vector<GLWidgetVertex>& lv)
+    {
+        mTriangleVertexBuffer.insert(mTriangleVertexBuffer.end(), lv.begin(), lv.end());
     }
 
     void GLWidget::AddPointVertex(const GLWidgetVertex& lv)
     {
         mPointVertexBuffer.push_back(lv);
     }
+
+    void GLWidget::AddPointVertices(const vector<GLWidgetVertex>& lv)
+    {
+        mPointVertexBuffer.insert(mPointVertexBuffer.end(), lv.begin(), lv.end());
+    }
+
 
     void GLWidget::ClearLineVertexBuffer()
     {
@@ -529,34 +545,43 @@ namespace Coconut
 
 	void GLWidget::SubmitLineVertexBuffer()
     {
-        // Vertex Array
-        glBindVertexArray(mLineVao);
-        glBindBuffer(GL_ARRAY_BUFFER, mLineVbo);
-        glBufferData(GL_ARRAY_BUFFER,
-        	static_cast<GLint>(mLineVertexBuffer.size() * sizeof(GLWidgetVertex)),
-        	&mLineVertexBuffer[0], GL_STATIC_DRAW);
-        glBindVertexArray(0);
+        if (!mLineVertexBuffer.empty())
+        {
+			// Vertex Array
+			glBindVertexArray(mLineVao);
+			glBindBuffer(GL_ARRAY_BUFFER, mLineVbo);
+			glBufferData(GL_ARRAY_BUFFER,
+				static_cast<GLint>(mLineVertexBuffer.size() * sizeof(GLWidgetVertex)),
+				&mLineVertexBuffer[0], GL_STATIC_DRAW);
+			glBindVertexArray(0);
+        }
     }
 
 	void GLWidget::SubmitTriangleVertexBuffer()
     {
-        // Vertex Array
-        glBindVertexArray(mTriangleVao);
-        glBindBuffer(GL_ARRAY_BUFFER, mTriangleVbo);
-        glBufferData(GL_ARRAY_BUFFER,
-        	static_cast<GLint>(mTriangleVertexBuffer.size() * sizeof(GLWidgetVertex)),
-        	&mTriangleVertexBuffer[0], GL_STATIC_DRAW);
-        glBindVertexArray(0);
+        if (!mTriangleVertexBuffer.empty())
+        {
+			// Vertex Array
+			glBindVertexArray(mTriangleVao);
+			glBindBuffer(GL_ARRAY_BUFFER, mTriangleVbo);
+			glBufferData(GL_ARRAY_BUFFER,
+				static_cast<GLint>(mTriangleVertexBuffer.size() * sizeof(GLWidgetVertex)),
+				&mTriangleVertexBuffer[0], GL_STATIC_DRAW);
+			glBindVertexArray(0);
+        }
     }
 
     void GLWidget::SubmitPointVertexBuffer()
     {
-        // Vertex Array
-        glBindVertexArray(mPointVao);
-        glBindBuffer(GL_ARRAY_BUFFER, mPointVbo);
-        glBufferData(GL_ARRAY_BUFFER,
-        	static_cast<GLint>(mPointVertexBuffer.size() * sizeof(GLWidgetVertex)),
-        	&mPointVertexBuffer[0], GL_STATIC_DRAW);
-        glBindVertexArray(0);
+        if (!mPointVertexBuffer.empty())
+        {
+			// Vertex Array
+			glBindVertexArray(mPointVao);
+			glBindBuffer(GL_ARRAY_BUFFER, mPointVbo);
+			glBufferData(GL_ARRAY_BUFFER,
+				static_cast<GLint>(mPointVertexBuffer.size() * sizeof(GLWidgetVertex)),
+				&mPointVertexBuffer[0], GL_STATIC_DRAW);
+			glBindVertexArray(0);
+        }
     }
 }

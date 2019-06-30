@@ -24,7 +24,7 @@ namespace Coconut
 		GCodeParser();
 		~GCodeParser();
 
-		void Init();
+		void ClearState();
 
 		bool GetConvertArcsToLines();
 		void SetConvertArcsToLines(bool convertArcsToLines);
@@ -119,28 +119,28 @@ namespace Coconut
 
 	private:
 		// Current state
-		bool mIsMetric;
-		bool mInAbsoluteMode;
-		bool mInAbsoluteIJKMode;
+		bool  mIsMetric;
+		bool  mInAbsoluteMode;
+		bool  mInAbsoluteIJKMode;
 		float mLastGcodeCommand;
-		vec3 mCurrentPoint;
-		int mCommandNumber;
+		vec3  mCurrentPoint;
+		int   mCommandNumber;
 		PointSegment::planes mCurrentPlane;
+		vector<PointSegment> mPoints; // The gcode.
 
 		// Settings
 		double mSpeedOverride;
-		int mTruncateDecimalLength;
-		bool mRemoveAllWhitespace;
-		bool mConvertArcsToLines;
+		int    mTruncateDecimalLength;
+		bool   mRemoveAllWhitespace;
+		bool   mConvertArcsToLines;
 		double mSmallArcThreshold;
+
 		// Not configurable outside, but maybe it should be.
 		double mSmallArcSegmentLength;
-
 		double mLastSpeed;
 		double mTraverseSpeed;
 		double mLastSpindleSpeed;
 
-		// The gcode.
-		vector<PointSegment> mPoints;
+
 	};
 }

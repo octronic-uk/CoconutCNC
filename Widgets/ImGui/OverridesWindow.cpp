@@ -18,56 +18,66 @@ namespace Coconut
     {
         ImGui::Begin(mName.c_str(), &mVisible);
 
-
- 		ImVec2 space = ImGui::GetContentRegionAvail();
-        float threeButtonWidth = (space.x - ImGui::GetItemsLineHeightWithSpacing())/3.0f;
-        float fiveButtonWidth = (space.x - ImGui::GetItemsLineHeightWithSpacing())/5.0f;
-        float buttonHeight = 20.0f;
+        ImVec2 buttonSize(-1,20);
 
         // Spindle
         ImGui::Text("Spindle Override");
-        if (ImGui::Button("-10%##Spindle",ImVec2(fiveButtonWidth,buttonHeight)))
+
+        ImGui::Columns(5);
+
+        if (ImGui::Button("-10%##Spindle",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("-1%##Spindle",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("-1%##Spindle",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("100%##Spindle",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("100%##Spindle",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("+1%##Spindle",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("+1%##Spindle",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("+10%##Spindle",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("+10%##Spindle",buttonSize))
         {}
 
         // Feed
+        ImGui::Columns(1);
         ImGui::Text("Feed Rate Override");
-        if (ImGui::Button("-10%##Feed",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::Columns(5);
+
+        if (ImGui::Button("-10%##Feed",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("-1%##Feed",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("-1%##Feed",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("100%##Feed",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("100%##Feed",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("+1%##Feed",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("+1%##Feed",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("+10%##Feed",ImVec2(fiveButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("+10%##Feed",buttonSize))
         {}
+        ImGui::NextColumn();
+
 
         // Rapid
+        ImGui::Columns(1);
         ImGui::Text("Rapid Override");
-        if (ImGui::Button("25%##Rapid",ImVec2(threeButtonWidth,buttonHeight)))
+        ImGui::Columns(3);
+
+        if (ImGui::Button("25%##Rapid",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("50%##Rapid",ImVec2(threeButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("50%##Rapid",buttonSize))
         {}
-        ImGui::SameLine();
-        if (ImGui::Button("100%##Rapid",ImVec2(threeButtonWidth,buttonHeight)))
+        ImGui::NextColumn();
+        if (ImGui::Button("100%##Rapid",buttonSize))
         {}
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
 
 		ImGui::End();
 

@@ -39,6 +39,7 @@ namespace Coconut
 		Status,
 		Help,
 		Configuration,
+        Message,
 		None
 	};
 

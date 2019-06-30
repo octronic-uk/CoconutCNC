@@ -104,20 +104,40 @@ namespace Coconut
         return btw;
     }
 
+    void SerialPortModel::FlushRead()
+    {
+        debug("SerialPortModel: {}",__FUNCTION__);
+		sp_flush(mPort,sp_buffer::SP_BUF_INPUT);
+    }
+
+    void SerialPortModel::FlushWrite()
+    {
+        debug("SerialPortModel: {}",__FUNCTION__);
+		sp_flush(mPort,sp_buffer::SP_BUF_OUTPUT);
+    }
+
     int SerialPortModel::Read()
     {
-		if (!mPort) return -1;
+        if (!mPort)
+        {
+            error("SerialPortModel: Cannot read mPort is null");
+            return -1;
+        }
         memset(mReadBuffer,0,BUFSIZ);
-        int br = sp_blocking_read(mPort,mReadBuffer,BUFSIZ,mTimeout);
-        info("SerialPortModel: {} : {}",__FUNCTION__,br);
+        int br = sp_nonblocking_read(mPort,mReadBuffer,BUFSIZ);
+        debug("SerialPortModel: {} : {}",__FUNCTION__,br);
         return br;
     }
 
     int SerialPortModel::Write(const string& data)
     {
-		if (!mPort) return -1;
-        int bw = sp_blocking_write(mPort,data.c_str(),data.size(),mTimeout);
-        info("SerialPortModel: {} : {}",__FUNCTION__,bw);
+        if (!mPort)
+        {
+            error("SerialPortModel: Cannot write, mPort is null");
+            return -1;
+        }
+        int bw = sp_nonblocking_write(mPort,data.c_str(),data.size());
+        debug("SerialPortModel: {} : wrote {} bytes {}",__FUNCTION__,bw,data);
         return bw;
     }
 

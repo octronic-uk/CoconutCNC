@@ -11,9 +11,8 @@ namespace Coconut
         ~JogWindow() override;
         void Draw() override;
     private:
+        int mJogFeedRate;
         float mJogStepValue;
-        float mJogFeedRate;
-
         float mJogAbsoluteX;
         float mJogAbsoluteY;
         float mJogAbsoluteZ;

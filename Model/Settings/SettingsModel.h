@@ -34,8 +34,13 @@ namespace Coconut
         vector<ToolSettings>& GetToolSettingsVector();
 
         void AddToolSettings();
+        ToolSettings& GetToolSettingsByToolNumber(int id);
         void RemoveToolSettings(const ToolSettings& tsm);
+
         void AddToolHolderSettings();
+        ToolHolderSettings& GetToolHolderSettingsByID(int id);
+        void RemoveToolHolderSettings(const ToolHolderSettings& tsm);
+
         bool SaveSettingsFile();
 
     protected:

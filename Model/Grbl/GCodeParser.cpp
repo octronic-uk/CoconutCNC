@@ -22,7 +22,7 @@
 using std::smatch;
 using std::ssub_match;
 using std::regex;
-using std::regex_match;
+using std::regex_search;
 using glm::mat4;
 using std::cout;
 using std::endl;
@@ -31,6 +31,7 @@ using glm::rotate;
 using std::stringstream;
 using std::fixed;
 using std::setprecision;
+using std::exception;
 
 namespace Coconut
 {
@@ -49,7 +50,8 @@ namespace Coconut
 		  mSmallArcSegmentLength(0.3),
 		  mLastSpeed(0),
 		  mTraverseSpeed(300),
-		  mLastSpindleSpeed(0)
+		  mLastSpindleSpeed(0),
+          mCurrentPlane(PointSegment::planes::XY)
 	{
 		info("GcodeParser: Constructing");
 		Reset(vec3(NAN));
@@ -74,6 +76,25 @@ namespace Coconut
 		mTraverseSpeed = 300;
 		mLastSpindleSpeed = 0;
 	}
+
+    void GCodeParser::ClearState()
+    {
+        mPoints.clear();
+		mIsMetric = true;
+		mInAbsoluteMode = true;
+		mInAbsoluteIJKMode = false;
+		mLastGcodeCommand = -1;
+		mCommandNumber = 0;
+		mSpeedOverride = -1;
+		mTruncateDecimalLength = 40;
+		mRemoveAllWhitespace = true;
+		mConvertArcsToLines = false;
+		mSmallArcThreshold = 1.0;
+		mSmallArcSegmentLength = 0.3;
+		mLastSpeed = 0;
+		mTraverseSpeed = 300;
+		mLastSpindleSpeed = 0;
+    }
 
 	bool GCodeParser::GetConvertArcsToLines()
 	{
@@ -238,7 +259,8 @@ namespace Coconut
 
 		while (psi != expandedPoints.end())
 		{
-			PointSegment temp = PointSegment(parent, *psi++, mCommandNumber++);
+			PointSegment temp = PointSegment(parent, *psi, mCommandNumber++);
+            psi++;
 			temp.SetIsArc(true);
 			temp.SetIsMetric(lastSegment.IsMetric());
 			mPoints.push_back(temp);
@@ -405,7 +427,7 @@ namespace Coconut
 	PointSegment
     GCodeParser::HandleGCode(const GCodeCommand& command, float code)
 	{
-		info("GcodeParser: handleGCode {}, {}", code );//<< args;
+		info("GcodeParser: handleGCode {}", code );//<< args;
 		vector<string> args = command.GetArgs();
 
 		PointSegment ps(command);
@@ -606,7 +628,7 @@ namespace Coconut
 		static regex re("[Ff]([0-9.]+)");
 		static smatch m;
         string tmp = command;
-		if (regex_match(command,m,re))
+		if (regex_search(tmp,m,re))
 		{
             if (m.size() == 2)
             {
@@ -632,7 +654,7 @@ namespace Coconut
 		string cmd = command.GetCommand();
         static smatch m;
 		static regex re("[Ff]([0-9.]+)");
-		if (regex_match(cmd,m,re))
+		if (regex_search(cmd,m,re))
 		{
             if (m.size() == 2)
             {
@@ -664,7 +686,7 @@ namespace Coconut
         if (command.find('(') != string::npos)
         {
             smatch m;
-            if (regex_match(command,m,rx1))
+            if (regex_search(tmp,m,rx1))
             {
             	tmp.erase(m[0].first,m[0].second);
             }
@@ -674,7 +696,7 @@ namespace Coconut
 
         {
             smatch m;
-            if (regex_match(command,m,rx2))
+            if (regex_search(tmp,m,rx2))
             {
             	tmp.erase(m[0].first,m[0].second);
             }
@@ -696,7 +718,7 @@ namespace Coconut
 		static regex re("(\\([^\\(\\)]*\\)|;[^;].*)");
         static smatch m;
 
-		if (regex_match(command,m,re))
+		if (regex_search(command,m,re))
 		{
 			string cap = m[0];
 			debug("GcodeParser: Found comment right here {}", cap);
@@ -712,7 +734,7 @@ namespace Coconut
 
         string tmp = command;
 
-        while (regex_match(command,m,re))
+        while (regex_search(tmp,m,re))
         {
             string num = m[0];
             stringstream s;
@@ -730,7 +752,7 @@ namespace Coconut
         smatch m;
         string tmp = command;
 
-        while (regex_match(command,m,rx))
+        while (regex_search(tmp,m,rx))
         {
            tmp.erase(m[0].first, m[0].second);
         }
@@ -761,7 +783,7 @@ namespace Coconut
 		vector<int> codes;
 		int pos = 0;
 
-		if (regex_match(command, m, re))
+		if (regex_search(command, m, re))
 		{
             for (int i=1; i<m.size(); i++)
             {
@@ -780,7 +802,7 @@ namespace Coconut
 		vector<int> codes;
 		int pos = 0;
 
-        if (regex_match(command,sm,re))
+        if (regex_search(command,sm,re))
         {
            for (int i=0; i<sm.size(); i++)
            {
@@ -821,13 +843,35 @@ namespace Coconut
 				switch (c)
 				{
 				case 'X':
-					x = stod(commandArgs.at(i).substr(1));
+					try
+                    {
+						x = stod(commandArgs.at(i).substr(1));
+                    }
+                    catch (exception& e)
+                    {
+                    	info("No X Value found in command");
+                    }
 					break;
 				case 'Y':
-					y = stod(commandArgs.at(i).substr(1));
+                    try
+                    {
+						y = stod(commandArgs.at(i).substr(1));
+                    }
+                    catch (exception& e)
+                    {
+                    	info("No Y Value found in command");
+                    }
+
 					break;
 				case 'Z':
-					z = stod(commandArgs.at(i).substr(1));
+					try
+					{
+						z = stod(commandArgs.at(i).substr(1));
+                    }
+                    catch (exception& e)
+                    {
+                    	info("No Z Value found in command");
+                    }
 					break;
 				}
 			}

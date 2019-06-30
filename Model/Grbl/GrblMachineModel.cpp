@@ -23,9 +23,6 @@
  * [2] This model is designed to be run in a separate thread to the UI thread
  *     as it relies on blocking for status updates.
  *
- * [3] Grbl Machine Flow
- *
- *
  */
 
 #include <glm/vec3.hpp>
@@ -43,6 +40,7 @@
 using std::regex;
 using std::smatch;
 using std::regex_match;
+using std::regex_search;
 using std::this_thread::yield;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -54,8 +52,8 @@ namespace Coconut
 		: mAppState(state),
           mConfigurationModel(state),
           mWorkThreadRunning(false),
-          mLastTime(0),
-          mCurrentTime(0)
+          mGotStartupMessage(false),
+          mStatusRecievedTime(0)
 	{
         debug("GrblMachineModel: Constructor");
         ClearState();
@@ -74,13 +72,23 @@ namespace Coconut
         info("GrblMachineModel: Work thread has started");
     }
 
+    long GrblMachineModel::GetCurrentTime()
+    {
+    	return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    }
+
     void GrblMachineModel::WorkFunction()
     {
 		while(mWorkThreadRunning)
         {
-            mCurrentTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-
             SerialPortModel& sp = mAppState->GetSerialPortModel();
+
+            if (!sp.IsPortOpen())
+            {
+                error("GrblMachineModel: Serial port was closed");
+                mWorkThreadRunning = false;
+                break;
+            }
 
             if (sp.BytesToRead() > 0)
             {
@@ -88,7 +96,7 @@ namespace Coconut
 				if ((bytes_read = sp.Read()) > 0)
 				{
 				   char* buffer = sp.GetReadBuffer();
-				   info("GrblMachineModel: Read {} bytes : {}",bytes_read,buffer);
+				   debug("GrblMachineModel: Read {} bytes : {}", bytes_read,buffer);
 
                    	while (*buffer)
                     {
@@ -97,7 +105,7 @@ namespace Coconut
                             string current = Util::trim_copy(mCurrentLine.str());
                             if (!current.empty())
                             {
-								info("GrblMachineModel: Pushing back line {}",current);
+								debug("GrblMachineModel: Pushing back line {}",current);
 								mLinesRead.push_back(current);
                                 mCurrentLine.str(std::string());
                             }
@@ -113,16 +121,14 @@ namespace Coconut
 
             for (string line : mLinesRead)
 			{
-				if(!line.empty())
-				{
-					GrblResponse response(line);
-					ProcessResponse(response);
-				}
+				GrblResponse response(line);
+				ProcessResponse(response);
 			}
 
 			mLinesRead.clear();
 
-            if (GetTimeDelta() > mStatusInterval)
+            if (mGotStartupMessage && !mStatusRequested &&
+                GetCurrentTime() > mStatusRecievedTime+mStatusInterval)
             {
 				RequestStatus();
             }
@@ -130,7 +136,6 @@ namespace Coconut
             SendNextPacket();
 
             yield();
-            mLastTime = mCurrentTime;
         }
     }
 
@@ -149,12 +154,14 @@ namespace Coconut
         smatch m;
 		static regex machinePositionExpression("MPos:([^,]*),([^,]*),([^,|]*)");
 
-        if (regex_match(data,m,machinePositionExpression))
+        if (regex_search(data,m,machinePositionExpression))
         {
             mMachinePosition.x = stod(m[1]);
 			mMachinePosition.y = stod(m[2]);
             mMachinePosition.z = stod(m[3]);
         }
+
+        mAppState->GetToolDrawer().SetPosition(mMachinePosition);
 	}
 
 	void GrblMachineModel::UpdateFeedRateAndSpindleSpeed(const GrblResponse& response)
@@ -162,7 +169,7 @@ namespace Coconut
 		static regex feedSpeedRegex("\\|FS:(\\d+),(\\d+)\\|");
         smatch m;
         string data = response.GetData();
-        if (regex_match(data,m,feedSpeedRegex))
+        if (regex_search(data,m,feedSpeedRegex))
         {
           mFeedRate = stod(m[1]);
           mSpindleSpeed = stod(m[1]);
@@ -175,7 +182,7 @@ namespace Coconut
 		static regex workCoordExpression("WCO:([^,]*),([^,]*),([^,^>]*)");
         smatch m;
         string data = resp.GetData();
-		if (regex_match(data,m,workCoordExpression))
+		if (regex_search(data,m,workCoordExpression))
 		{
 			mWorkCoordinateOffset.x = stod(m[1]);
 			mWorkCoordinateOffset.y = stod(m[2]);
@@ -194,7 +201,7 @@ namespace Coconut
         smatch m;
         string data = resp.GetData();
 
-		if (regex_match(data,m,overridesRegex))
+		if (regex_search(data,m,overridesRegex))
 		{
 		   mFeedOverride = stod(m[1]);
 		   mRapidOverride = stod(m[2]);
@@ -242,31 +249,29 @@ namespace Coconut
 			case GrblResponseType::Startup:
 				ParseGrblVersion(response);
 				mStatusRequested = false;
-				mWaitingForStatus = false;
+                mGotStartupMessage = true;
 				mState = GrblMachineState::Locked;
+                SendManualGCodeCommand(GCodeCommand::GetFirmwareConfigurationCommand());
 				break;
 			case GrblResponseType::Locked:
 				mState = GrblMachineState::Locked;
-				//emit appendResponseToConsoleSignal(response);
+				AppendResponseToConsole(response);
 				break;
 			case GrblResponseType::Unlocked:
 				mError = false;
 				mState = GrblMachineState::Unlocked;
-				GCodeCommandManualSend(GCodeCommand::GetFirmwareConfigurationCommand());
+				SendManualGCodeCommand(GCodeCommand::GetFirmwareConfigurationCommand());
 				break;
 			case GrblResponseType::Status:
-				if (!mError)
-				{
-					UpdateStatus(response);
-					UpdateMachinePosition(response);
-					UpdateWorkCoordinateOffset(response);
-					UpdateOverrides(response);
-					UpdateFeedRateAndSpindleSpeed(response);
-					UpdateWorkPosition();
-					debug("GrblMachineModel: Got status!");
-					mStatusRequested = false;
-					mWaitingForStatus = false;
-				}
+				UpdateStatus(response);
+				UpdateMachinePosition(response);
+				UpdateWorkCoordinateOffset(response);
+				UpdateOverrides(response);
+				UpdateFeedRateAndSpindleSpeed(response);
+				UpdateWorkPosition();
+				debug("GrblMachineModel: Got status!");
+				mStatusRecievedTime = GetCurrentTime();
+				mStatusRequested = false;
 				break;
 			case GrblResponseType::Ok:
 				if (mError)
@@ -275,7 +280,6 @@ namespace Coconut
 					mError = false;
 					mProgramRunning = false;
 					mStatusRequested = false;
-					mWaitingForStatus = false;
 				}
 				else if (!mCommandBuffer.empty())
 				{
@@ -296,8 +300,6 @@ namespace Coconut
 
 					if (next.IsM30Command())
 					{
-						//emit setCompletionProgressSignal(100);
-						//emit jobCompletedSignal();
 						mProgramRunning = false;
 
 					}
@@ -308,25 +310,20 @@ namespace Coconut
 				// command in the Queue/Buffer and the program has finished.
 				if (mProgramRunning && mCommandQueue.empty() && mCommandBuffer.empty())
 				{
-					//qDebug() << "GrblMachineModel: Program Finished";
-					//emit setCompletionProgressSignal(100);
-					//emit jobCompletedSignal();
+					debug("GrblMachineModel: Program Finished");
 					mProgramRunning = false;
 				}
 
-				//emit appendResponseToConsoleSignal(response);
+				AppendResponseToConsole(response);
 
 				break;
 			case GrblResponseType::Error:
 				ParseError(response);
 				mError = true;
-				mWaitingForStatus = false;
 				mStatusRequested = false;
 				ClearCommandQueue();
 				ClearCommandBuffer();
 				mState = GrblMachineState::Error;
-				//emit errorSignal(mErrorString);
-				//emit appendResponseToConsoleSignal(response);
 				break;
 			case GrblResponseType::Configuration:
 				ParseConfigurationResponse(response);
@@ -334,11 +331,6 @@ namespace Coconut
             default:
                 break;
 		};
-
-		if (mState != mLastState)
-		{
-			//emit machineStateUpdatedSignal(mState);
-		}
 	}
 
 	void GrblMachineModel::ParseError(const GrblResponse& error)
@@ -350,78 +342,87 @@ namespace Coconut
 			static regex errorStrRegex("error:(.+)$");
             smatch num_m, str_m;
 
-			if (regex_match(trimmedError, num_m, errorNumRegex))
+			if (regex_search(trimmedError, num_m, errorNumRegex))
 			{
 				mErrorCode = stoi(num_m[1]);
 				mErrorString = ERROR_STRINGS.at(mErrorCode);
 			}
-			else if (regex_match(trimmedError,str_m, errorStrRegex))
+			else if (regex_search(trimmedError,str_m, errorStrRegex))
 			{
 				mErrorString = str_m[1];
 			}
 		}
 	}
 
-	int GrblMachineModel::GetProcessedPercent()
+	float GrblMachineModel::GetPercentCompleted()
 	{
 		if (mCommandQueue.size() > 0)
         {
-			return static_cast<int>((static_cast<double>(mCountProcessedCommands)/ static_cast<double>(mCommandQueueInitialSize))* 100);
+			return (static_cast<double>(mCountProcessedCommands) /
+                    static_cast<double>(mCommandQueueInitialSize))*100.f;
         }
 		else
         {
-			return 0;
+			return 0.f;
         }
 	}
 
+    float GrblMachineModel::GetPercentBufferUsed()
+    {
+        return mBufferUsedPercentage;
+    }
+
+    void GrblMachineModel::AppendCommandToConsole(const GCodeCommand& command)
+    {
+       ConsoleWindow& cw = mAppState->GetConsoleWindow();
+       cw.PushConsoleLine(ConsoleLine{command.GetCommand(),ConsoleLineType::Command});
+    }
+
+    void GrblMachineModel::AppendResponseToConsole(const GrblResponse& response)
+    {
+       ConsoleWindow& cw = mAppState->GetConsoleWindow();
+       cw.PushConsoleLine(ConsoleLine{response.GetData(),ConsoleLineType::Response});
+    }
+
 	void GrblMachineModel::SendNextPacket()
 	{
-	    info("GrblMachineModel: {}", __FUNCTION__);
+	    debug("GrblMachineModel: {}", __FUNCTION__);
 		SerialPortModel& serial_port = mAppState->GetSerialPortModel();
 
 		if (mError)
 		{
-			mStatusRequested = false;
-			mWaitingForStatus = false;
+            mStatusRequested = false;;
 		}
 
-		if (mStatusRequested)
-		{
-			if (mWaitingForStatus && !mError)
-			{
-				info("GrblMachineModel: Still waiting for last status request to respond");
-				return;
-			}
+		SendNextCommandFromQueue();
 
-			else if (serial_port.IsPortOpen() && mBytesWaiting == 0 && !mError)
-			{
-				info("GrblMachineModel: Requesting status");
-				mBytesWaiting += serial_port.Write(GCodeCommand::StatusUpdateCommand().GetCommand());
-                serial_port.Write("\n");
-				mStatusRequested = true;
-				mWaitingForStatus = true;
-			}
-		}
-		else if (!mWaitingForStatus)
-		{
-			SendNextCommandFromQueue();
-		}
 	}
 
 	void GrblMachineModel::RequestStatus()
 	{
-		if (!mWaitingForStatus)
+		debug("GrblMachineModel: Requesting Status");
+        SerialPortModel& serial_port = mAppState->GetSerialPortModel();
+		if (!mError)
 		{
-            info("GrblMachineModel: Requesting Status");
+			serial_port.Write(GCodeCommand::StatusUpdateCommand().GetCommand());
 			mStatusRequested = true;
-        }
+		}
     }
 
     bool GrblMachineModel::IsWorkThreadRunning()
     {
-    	return mWorkThreadRunning;
+        return mWorkThreadRunning;
     }
 
+    string GrblMachineModel::GetStateAsString()
+    {
+        return StateToString(GetState());
+    }
+
+    GrblMachineState GrblMachineModel::GetState()
+    {
+       return mState;
+    }
 
 	void GrblMachineModel::ClearState()
 	{
@@ -436,21 +437,23 @@ namespace Coconut
 		mWorkPosition = vec3(0.0,0.0,0.0);
 		mWorkCoordinateOffset = vec3(0.0,0.0,0.0);
 		mProgramSendInterval = 1000.0f/10.0f;
-		mStatusInterval = 1000.0f/ 5.0f;
+		mStatusInterval = 1000.0f/ 20.0f;
 		mCountProcessedCommands = 0;
 		mCommandQueueInitialSize = 0;
 		mFeedOverride = 100;
 		mSpindleOverride =100;
 		mRapidOverride = 100;
+        mSpindleSpeed = 0;
+        mFeedRate = 0;
+        mToolNumber = 1;
 		mError = false;
 		mErrorCode = -1;
         mBufferUsedPercentage = 0.0f;
 		mBytesWaiting = 0;
 		mStatusRequested = false;
-		mWaitingForStatus = false;
 		mProgramRunning = false;
 		mToolChangeWaiting = false;
-		mFeedRate = 0;
+		mFeedRate = 10.f;
 		mSpindleSpeed = 0;
 	}
 
@@ -585,14 +588,17 @@ namespace Coconut
         smatch m;
         string data = response.GetData();
 
-
-		if (regex_match(data,m,statusRegex))
+		if (regex_search(data,m,statusRegex))
 		{
 			string stateStr = m[1];
 			debug("GrblMachineModel: parsing state from {}", stateStr);
 			mLastState = mState;
-			mState = stateFromString(stateStr);
+			mState = StateFromString(stateStr);
 		}
+        else
+        {
+        	error("GrblMachineModel: UpdateStatus regex match falied");
+        }
 	}
 
 	void GrblMachineModel::ParseConfigurationResponse(GrblResponse response)
@@ -603,7 +609,7 @@ namespace Coconut
        string data = response.GetData();
 	   string value = "";
 
-	   if (regex_match(data,m,configRegex))
+	   if (regex_search(data,m,configRegex))
 	   {
 		  param = stoi(m[1]);
 		  value = m[2];
@@ -617,7 +623,7 @@ namespace Coconut
 		static regex alarmRegex("ALARM:(\\d+)");
         smatch m;
         string data = response.GetData();
-		if (regex_match(data, m, alarmRegex))
+		if (regex_search(data, m, alarmRegex))
 		{
 		   int alarmNum = stoi(m[1]);
 		   return;
@@ -641,7 +647,7 @@ namespace Coconut
 		return mCommandQueue.size();
 	}
 
-	void GrblMachineModel::GCodeCommandManualSend(const GCodeCommand& command)
+	void GrblMachineModel::SendManualGCodeCommand(const GCodeCommand& command)
 	{
         SerialPortModel& serial_port = mAppState->GetSerialPortModel();
 		if (serial_port.IsPortOpen())
@@ -657,7 +663,7 @@ namespace Coconut
 				debug("GrblMachineController: Manual ASCII Gcode Send {}" ,command.GetCommand());
 				mBytesWaiting += serial_port.Write(command.GetCommand());
 			}
-			//appendCommandToConsoleSignal(command);
+			AppendCommandToConsole(command);
 		}
 	}
 
@@ -784,20 +790,36 @@ namespace Coconut
 		}
 
 		return string("Unknown");
-	}
-
-
-	GrblConfigurationModel& GrblMachineModel::GetConfigurationModel()
-    {
-        return mConfigurationModel;
     }
 
-
-    long GrblMachineModel::GetTimeDelta()
+    int GrblMachineModel::GetToolNumber() const
     {
-        /* cap off time deltas greater than 1 sec */
-        long delta = mCurrentTime - mLastTime;
-        return delta > 1000 ? 1000 : delta;
+        return mToolNumber;
+    }
+
+    int GrblMachineModel::GetSpindleSpeed() const
+    {
+        return mSpindleSpeed;
+    }
+
+    void GrblMachineModel::SetSpindleSpeed(int speed)
+    {
+        mSpindleSpeed = speed;
+    }
+
+    float GrblMachineModel::GetFeedRate() const
+    {
+        return mFeedRate;
+    }
+
+    void GrblMachineModel::SetFeedRate(float feed)
+    {
+        mFeedRate = feed;
+    }
+
+    GrblConfigurationModel& GrblMachineModel::GetConfigurationModel()
+    {
+        return mConfigurationModel;
     }
 
 	const int GrblMachineModel::BUFFER_LENGTH_LIMIT = 127;

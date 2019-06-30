@@ -44,13 +44,18 @@ namespace Coconut
 
 	void GrblResponse::IdentifyType()
 	{
-        info("Identifying type of response: {}",mData);
+        debug("GrblRespoonse: Identifying type of response: {}",mData);
 
 		if (mData.find("Grbl") == 0)
 		{
 			mType = GrblResponseType::Startup;
 			return;
 		}
+        if (mData.find("[MSG:") != string::npos)
+        {
+			mType = GrblResponseType::Message;
+            return;
+        }
 		if (mData[0] == '<' && mData[mData.size()-1] == '>')
 		{
 			mType = GrblResponseType::Status;
@@ -101,7 +106,7 @@ namespace Coconut
 			mType = GrblResponseType::Probe;
 			return;
 		}
-		if (mData[0] == '$' == 0 && mData.find("=") != string::npos)
+		if (mData[0] == '$' && mData.find("=") != string::npos)
 		{
 			mType = GrblResponseType::Configuration;
 			return;

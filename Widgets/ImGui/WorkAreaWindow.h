@@ -26,10 +26,11 @@ namespace Coconut
 		bool InitGL();
         bool InitFramebuffer();
         bool InitTexture();
+        bool InitDepthStencilBuffer();
         void InitViewMatrix();
         void InitProjectionMatrix();
 
-   	 	bool BindFramebufferTexture();
+   	 	bool BindFramebuffer();
 
         int GetContentAreaWidth();
         int GetContentAreaHeight();
@@ -44,17 +45,30 @@ namespace Coconut
         mat4 GetViewMatrix();
         mat4 GetProjectionMatrix();
 
+    protected:
+        void UpdateCameraPosition();
+
     private:
 
         GLuint mFBO;
         GLuint mTexture;
+        GLuint mDepthStencilBuffer;
 
+        float mCameraRadius;
+        float mCameraRadiusMin;
+        float mCameraPitch;
+        float mCameraYaw;
         vec3 mCameraPosition;
         vec3 mCameraTarget;
+        float mCameraSpeedScale;
         vec3 mUpVector;
         mat4 mViewMatrix;
         mat4 mProjectionMatrix;
         ProjectionType mProjectionType;
+        bool mFollowTool;
+        float mNearClip;
+        float mFarClip;
+        float mCameraPitchMax;
 
         ImVec2 mLastContentAreaSize;
         ImVec2 mContentAreaSize;

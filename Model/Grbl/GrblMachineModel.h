@@ -79,7 +79,7 @@ namespace Coconut
 
 		void SendProgram();
 		void SendProgramFromLine(long fromId);
-		void GCodeCommandManualSend(const GCodeCommand& cmd);
+		void SendManualGCodeCommand(const GCodeCommand& cmd);
 
 		void UpdateSpindleOverride(float speed);
 		void UpdateFeedOverride(float rate);
@@ -90,13 +90,27 @@ namespace Coconut
 
         GrblConfigurationModel& GetConfigurationModel();
         bool IsWorkThreadRunning();
+        string GetStateAsString();
+        GrblMachineState GetState();
 
-	protected: // Member Functions
+        float GetFeedRate() const;
+        void SetFeedRate(float);
+        int GetSpindleSpeed() const;
+        void SetSpindleSpeed(int);
+        int GetToolNumber() const;
+
+		float GetPercentCompleted();
+        float GetPercentBufferUsed();
+
+    protected: // Member Functions
+        void AppendCommandToConsole(const GCodeCommand& command);
+        void AppendResponseToConsole(const GrblResponse& command);
+
+    	long GetCurrentTime();
 		GCodeCommand FeedOverride(const GCodeCommand& command, double overridePercent);
 		GCodeCommand GetNextCommand(GCodeFileModel& gcodeFile);
 
 		bool IsSpaceInBuffer(const GCodeCommand& cmd);
-		int  GetProcessedPercent();
 
 		void UpdateWorkPosition();
 		void UpdateStatus(GrblResponse response);
@@ -112,8 +126,6 @@ namespace Coconut
 		void ParseConfigurationResponse(GrblResponse response);
 		void ParseAlarmResponse(const GrblResponse& response);
         void RequestStatus();
-
-        long GetTimeDelta();
 
 		static string StateToString(GrblMachineState state);
 		const static map<int,string> ERROR_STRINGS;
@@ -141,6 +153,9 @@ namespace Coconut
 		float mFeedOverride;
 		float mSpindleOverride;
 		float mRapidOverride;
+        int mSpindleSpeed;
+        float mFeedRate;
+        int mToolNumber;
 		bool mError;
 		int mErrorCode;
 		float mBufferUsedPercentage;
@@ -149,16 +164,13 @@ namespace Coconut
 		int mBytesWaiting;
 
 		bool mStatusRequested;
-		bool mWaitingForStatus;
 
 		bool mProgramRunning;
 		bool mToolChangeWaiting;
-		int mFeedRate;
-		int mSpindleSpeed;
+        bool mGotStartupMessage;
 
         thread mWorkThread;
         bool mWorkThreadRunning;
-        long mCurrentTime;
-        long mLastTime;
+        long mStatusRecievedTime;
 	};
 }

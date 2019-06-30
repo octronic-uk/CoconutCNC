@@ -65,13 +65,8 @@ namespace Coconut
 	class GCodeCommand
 	{
 	public:
-		GCodeCommand(
-			string cmd = "",
-			int tableIndex = -1,
-			bool showInConsole = true,
-			int consoleIndex = -1,
-			GcodeCommandState state = GcodeCommandState::InQueue
-		);
+		GCodeCommand(string cmd = "", int tableIndex = -1, bool showInConsole = true,
+			int consoleIndex = -1, GcodeCommandState state = GcodeCommandState::InQueue);
 
 		GCodeCommand(const GCodeCommand& other);
 		GCodeCommand(const GCodeCommand* other);
@@ -79,6 +74,7 @@ namespace Coconut
 
 		static long ID;
 
+        static GCodeCommand& CheckModeCommand();
 		static GCodeCommand& JogCancelCommand();
 		static GCodeCommand& AbsoluteXCommand(float);
 		static GCodeCommand& AbsoluteYCommand(float);
@@ -86,7 +82,7 @@ namespace Coconut
 		static GCodeCommand& ControlXCommand();
 		static GCodeCommand& UnlockCommand();
 		static GCodeCommand& StatusUpdateCommand();
-		static GCodeCommand& ReSetCommand();
+		static GCodeCommand& ResetCommand();
 		static GCodeCommand& SpindleCounterClockwiseCommand();
 		static GCodeCommand& SpindleClockwiseCommand();
 		static GCodeCommand& SpindleStopCommand();
@@ -119,7 +115,7 @@ namespace Coconut
     	static GCodeCommand NoParent;
 
 		static GCodeCommand& JogCommand(double x, double y, double z,
-			int feedRate, bool inches, bool machineCoordinates);
+			int feedRate, bool inches = false, bool machineCoordinates = false);
 
 		bool operator==(const GCodeCommand& other);
 
@@ -147,6 +143,7 @@ namespace Coconut
 
 		GcodeCommandState GetState() const;
 		void SetState(GcodeCommandState state);
+    	string GetStateString() const;
 
 		int GetLine() const;
 		void SetLine(int line);

@@ -16,6 +16,7 @@
  * this file belongs to.
  */
 #include "GrblConfigurationModel.h"
+#include "../../Common/Logger.h"
 
 namespace Coconut
 {
@@ -26,11 +27,13 @@ namespace Coconut
 
     string GrblConfigurationModel::GetValue(int v)
     {
+        info("GrblConfigurationModel: Get value of param {}",v);
         return mValues[v];
     }
 
     void GrblConfigurationModel::SetValue(int i, string v)
     {
+        info("GrblConfigurationModel: Set value of param {} = {}",i,v);
         mValues[i] = v;
     }
 

@@ -30,6 +30,9 @@ namespace Coconut
         json ToJson() override;
         bool FromJson(const json& j) override;
 
+        bool operator==(const Cylinder& other);
+        bool operator!=(const Cylinder& other);
+
     protected:
         int mID;
         int mFaces;

@@ -37,8 +37,13 @@ namespace Coconut
 
     protected:
         void AddLineVertex(const GLWidgetVertex& v);
+        void AddLineVertices(const vector<GLWidgetVertex>& v);
+
         void AddTriangleVertex(const GLWidgetVertex& v);
+        void AddTriangleVertices(const vector<GLWidgetVertex>& v);
+
         void AddPointVertex(const GLWidgetVertex& v);
+        void AddPointVertices(const vector<GLWidgetVertex>& v);
 
         virtual void SetShader();
         bool InitShader();

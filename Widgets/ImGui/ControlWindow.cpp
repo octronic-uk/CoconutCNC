@@ -17,51 +17,70 @@ namespace Coconut
     ControlWindow::Draw
     ()
     {
+		GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
 
         ImGui::Begin(mName.c_str(), &mVisible);
 
-        ImVec2 space = ImGui::GetContentRegionAvail();
-        ImVec2 buttonSize((space.x - ImGui::GetItemsLineHeightWithSpacing())/4.0f,
-                          (space.y - (ImGui::GetItemsLineHeightWithSpacing()/2.0f))/3.0f);
+        ImVec2 buttonSize(-1, 20);
+
+        ImGui::Columns(3);
 
         // Row 1
         if (ImGui::Button("Home", buttonSize))
-        {}
-        ImGui::SameLine();
-        if (ImGui::Button("Z\nProbe", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("Zero\nXY", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("Zero\nZ", buttonSize))
-        {}
+        {
+       		grbl.SendManualGCodeCommand(GCodeCommand::HomingCommand());
+        }
+        ImGui::NextColumn();
+
+        if (ImGui::Button("Reset", buttonSize))
+        {
+            grbl.SendManualGCodeCommand(GCodeCommand::ResetCommand());
+        }
+        ImGui::NextColumn();
+
+		if (ImGui::Button("Unlock", buttonSize))
+        {
+            grbl.SendManualGCodeCommand(GCodeCommand::UnlockCommand());
+        }
+        ImGui::NextColumn();
 
         // Row 2
- 		if (ImGui::Button("G28.1", buttonSize))
-        {}
-        ImGui::SameLine();
-        if (ImGui::Button("G28", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("Reset", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("Clear\nAlarm", buttonSize))
-        {}
+        if (ImGui::Button("Z Probe", buttonSize))
+        {
+        }
+        ImGui::NextColumn();
+
+        if (ImGui::Button("Zero XY", buttonSize))
+        {
+       		grbl.SendManualGCodeCommand(GCodeCommand::ZeroXYCommand());
+        }
+        ImGui::NextColumn();
+
+		if (ImGui::Button("Zero Z", buttonSize))
+        {
+       		grbl.SendManualGCodeCommand(GCodeCommand::ZeroZCommand());
+        }
+        ImGui::NextColumn();
 
         // Row 3
-        if (ImGui::Button("User\n1", buttonSize))
-        {}
-        ImGui::SameLine();
-        if (ImGui::Button("User\n2", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("User\n3", buttonSize))
-        {}
-        ImGui::SameLine();
-		if (ImGui::Button("User\n4", buttonSize))
-        {}
+ 		if (ImGui::Button("G28.1", buttonSize))
+        {
+       		grbl.SendManualGCodeCommand(GCodeCommand::SetSafePositionCommand());
+        }
+        ImGui::NextColumn();
+
+        if (ImGui::Button("G28", buttonSize))
+        {
+            grbl.SendManualGCodeCommand(GCodeCommand::GoToSafePositionCommand());
+        }
+        ImGui::NextColumn();
+        ImGui::NextColumn();
+
+
+
+
+        ImGui::Columns(1);
+
 		ImGui::End();
     }
 }

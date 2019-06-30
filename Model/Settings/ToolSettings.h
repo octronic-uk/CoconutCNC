@@ -28,8 +28,15 @@ namespace Coconut
 	class ToolSettings : public JsonSerialization
 	{
 	public:
+
+        static ToolSettings None;
+
 		ToolSettings(string name="Unnamed Tool", int id=-1, int tool_number = -1,
 			float length = 1, float diameter=1, int faces = 6);
+
+
+		bool operator==(const ToolSettings& b);
+		bool operator!=(const ToolSettings& b);
 
         int  GetID() const;
 		void SetID(int id);
@@ -52,14 +59,13 @@ namespace Coconut
         float GetDiameter() const;
 		void  SetDiameter(float diameter);
 
-
         void AddCylinder(const Cylinder& c);
+        void RemoveCylinder(const Cylinder& c);
+        vector<Cylinder>& GetCylindersVector();
 
-        // JsonSerialization interface
         json ToJson() override;
         bool FromJson(const json& j) override;
 
-        vector<Cylinder>& GetCylindersVector();
 
     private:
         int    mID;
@@ -79,4 +85,5 @@ namespace Coconut
         const static string TOOL_FACES;
         const static string TOOL_CYLINDERS;
     };
+
 }

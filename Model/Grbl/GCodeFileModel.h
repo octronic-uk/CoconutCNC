@@ -24,7 +24,9 @@
 #include <deque>
 
 #include "GCodeParser.h"
+#include "GCodeViewParser.h"
 #include "GCodeCommand.h"
+#include "LineSegment.h"
 #include "../../Common/File.h"
 
 using std::string;
@@ -33,20 +35,16 @@ using std::deque;
 
 namespace Coconut
 {
-	class LineSegment;
-
+	class AppState;
 	class GCodeFileModel
 	{
 	public:
-		GCodeFileModel();
+		GCodeFileModel(AppState* state);
 		~GCodeFileModel();
 
-		void Initialise();
-		void Load(const deque<string>& data);
+		void ClearState();
+		void Load(vector<string> data);
 		void Load(const string& fileName);
-		bool IsGcodeFile(const string& fileName);
-		bool HasFileChanged();
-		void SetFileChanged(bool changed);
 		double UpdateProgramEstimatedTime(const vector<LineSegment>& lines);
 		string GetCurrentFileName();
 		GCodeCommand& GetCommand(int index);
@@ -54,19 +52,17 @@ namespace Coconut
 		int CountCommands();
 		vector<GCodeCommand>& GetData();
 		vector<GCodeCommand>& GetMarkers();
-		bool IsOpen();
+        GCodeViewParser& GetGCodeViewParser();
 
 	protected:
 		void PrintMarkers();
 
 	private:
-		bool mProgramLoading;
-		File mFile;
-		bool mFileOpen;
+        AppState* mAppState;
+        File mFile;
 		vector<GCodeCommand> mData;
-		GCodeParser mGcodeParser;
 		vector<GCodeCommand> mMarkers;
-
-
+		GCodeParser mGCodeParser;
+        GCodeViewParser mGCodeViewParser;
 	};
 }

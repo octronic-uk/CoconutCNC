@@ -18,10 +18,11 @@ using glm::vec3;
 
 namespace Coconut
 {
+    class AppState;
 	class GCodeViewParser
 	{
 	public:
-		explicit GCodeViewParser();
+		GCodeViewParser(AppState*);
 		~GCodeViewParser();
 
 		vec3 GetMinimumExtremes() const ;
@@ -30,9 +31,9 @@ namespace Coconut
 		vec2 GetResolution() const;
 		vector<LineSegment>& GetLineSegmentHandlesList();
 		vector<vector<int>>& GetLinesIndexes();
-		void SetLinesFromParser(GCodeParser& gp, double arcPrecision, bool arcDegreeMode);
+		void SetLinesFromParser(GCodeParser& gp, double arcPrecision = 1.0, bool arcDegreeMode=true);
 
-		void Reset();
+		void ClearState();
 
     protected:
         void TestExtremes(const vec3 &p3d);
@@ -40,6 +41,7 @@ namespace Coconut
 		void TestLength(const vec3 &start, const vec3 &end);
 
 	private:
+        AppState* mAppState;
 		bool mAbsoluteMode;
 		bool mAbsoluteIJK;
 

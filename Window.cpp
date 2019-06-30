@@ -265,7 +265,8 @@ namespace Coconut
            pw.InitViewMatrix();
            pw.InitProjectionMatrix();
            pw.InitTexture();
-           pw.BindFramebufferTexture();
+           pw.InitDepthStencilBuffer();
+           pw.BindFramebuffer();
         }
 
         float w = pw.GetContentAreaWidth();
@@ -280,6 +281,8 @@ namespace Coconut
         glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, 0.0f);
         GLCheckError();
 
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         GLCheckError();
 
@@ -287,9 +290,11 @@ namespace Coconut
 		{
 			if(widget->GetVisible())
 			{
+                widget->Update();
 				widget->Draw();
 			}
 		}
+        glDisable(GL_DEPTH_TEST);
         GLCheckError();
 
         glBindFramebuffer(GL_FRAMEBUFFER,0);

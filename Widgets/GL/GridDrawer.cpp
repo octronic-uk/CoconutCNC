@@ -59,78 +59,53 @@ namespace Coconut
     ()
     {
         debug("Grid: {}",__FUNCTION__);
-        float halfSize = mSize/2.0f;
 
         // Major Grid
-        for (float axis = mMajorSpacing; axis <= halfSize; axis += mMajorSpacing)
+        for (float step = 0; step <= mSize; step += mMajorSpacing)
         {
-            GLWidgetVertex posStart, posEnd, negStart, negEnd;
-            posStart.Color = mMajorColour;
-            posEnd.Color = mMajorColour;
-            negStart.Color = mMajorColour;
-            negEnd.Color = mMajorColour;
+            GLWidgetVertex lineStart, lineEnd;
+
+            lineStart.Color = mMajorColour;
+            lineEnd.Color = mMajorColour;
 
             switch (mAxisPair)
             {
                 case XZ:
                     // X
-                    posStart.Position = vec3( axis, 0.0f,-halfSize);
-                    posEnd.Position   = vec3( axis, 0.0f, halfSize);
-                    negStart.Position = vec3(-axis, 0.0f,-halfSize);
-                    negEnd.Position   = vec3(-axis, 0.0f, halfSize);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(step, 0.0f, 0);
+                    lineEnd.Position   = vec3(step, 0.0f, mSize);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Z
-                    posStart.Position = vec3(-halfSize, 0.0f, axis);
-                    posEnd.Position   = vec3( halfSize, 0.0f, axis);
-                    negStart.Position = vec3(-halfSize, 0.0f,-axis);
-                    negEnd.Position   = vec3( halfSize, 0.0f,-axis);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0, 0.0f, step);
+                    lineEnd.Position   = vec3(mSize, 0.0f, step);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     break;
                 case YZ:
                     // Y
-                    posStart.Position = vec3(0.0f, axis,-halfSize);
-                    posEnd.Position   = vec3(0.0f, axis, halfSize);
-                    negStart.Position = vec3(0.0f,-axis,-halfSize);
-                    negEnd.Position   = vec3(0.0f,-axis, halfSize);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0.0f, step, 0);
+                    lineEnd.Position   = vec3(0.0f, step, mSize);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Z
-                    posStart.Position = vec3(0.0f,-halfSize, axis);
-                    posEnd.Position   = vec3(0.0f, halfSize, axis);
-                    negStart.Position = vec3(0.0f,-halfSize,-axis);
-                    negEnd.Position   = vec3(0.0f, halfSize,-axis);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0.0f, 0.0f, step);
+                    lineEnd.Position   = vec3(0.0f, mSize, step);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     break;
                 case XY:
                     // X
-                    posStart.Position = vec3( axis,-halfSize, 0.0f);
-                    posEnd.Position   = vec3( axis, halfSize, 0.0f);
-                    negStart.Position = vec3(-axis,-halfSize, 0.0f);
-                    negEnd.Position   = vec3(-axis, halfSize, 0.0f);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(step, 0.0f, 0);
+                    lineEnd.Position   = vec3(step, mSize, 0.0f);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Y
-                    posStart.Position = vec3(-halfSize, axis, 0.0f);
-                    posEnd.Position   = vec3( halfSize, axis, 0.0f);
-                    negStart.Position = vec3(-halfSize,-axis, 0.0f);
-                    negEnd.Position   = vec3( halfSize,-axis, 0.0f);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0, step, 0.0f);
+                    lineEnd.Position   = vec3(mSize, step, 0.0f);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
+
                     break;
             }
         }
@@ -141,147 +116,56 @@ namespace Coconut
     ()
     {
         debug("Grid: {}",__FUNCTION__);
-        float halfSize = (mSize/2.0f);
 
         // Major Grid
-        for (float axis = mMinorSpacing; axis <= halfSize; axis += mMinorSpacing)
+        for (float step = 0; step <= mSize; step += mMinorSpacing)
         {
-            GLWidgetVertex posStart, posEnd, negStart, negEnd;
-            posStart.Color = mMinorColour;
-            posEnd.Color   = mMinorColour;
-            negStart.Color = mMinorColour;
-            negEnd.Color   = mMinorColour;
+            if (fmod(step,mMajorSpacing) == 0.0f) continue;
+
+            GLWidgetVertex lineStart, lineEnd;
+            lineStart.Color = mMinorColour;
+            lineEnd.Color   = mMinorColour;
 
             switch (mAxisPair)
             {
-                case XZ:
+            	case XZ:
                     // X
-                    posStart.Position = vec3( axis, 0.0f,-halfSize);
-                    posEnd.Position   = vec3( axis, 0.0f, halfSize);
-                    negStart.Position = vec3(-axis, 0.0f,-halfSize);
-                    negEnd.Position   = vec3(-axis, 0.0f, halfSize);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(step, 0.0f, 0);
+                    lineEnd.Position   = vec3(step, 0.0f, mSize);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Z
-                    posStart.Position = vec3(-halfSize, 0.0f, axis);
-                    posEnd.Position   = vec3( halfSize, 0.0f, axis);
-                    negStart.Position = vec3(-halfSize, 0.0f,-axis);
-                    negEnd.Position   = vec3( halfSize, 0.0f,-axis);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0, 0.0f, step);
+                    lineEnd.Position   = vec3(mSize, 0.0f, step);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     break;
                 case YZ:
                     // Y
-                    posStart.Position = vec3(0.0f, axis,-halfSize);
-                    posEnd.Position   = vec3(0.0f, axis, halfSize);
-                    negStart.Position = vec3(0.0f,-axis,-halfSize);
-                    negEnd.Position   = vec3(0.0f,-axis, halfSize);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0.0f, step, 0);
+                    lineEnd.Position   = vec3(0.0f, step, mSize);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Z
-                    posStart.Position = vec3(0.0f,-halfSize, axis);
-                    posEnd.Position   = vec3(0.0f, halfSize, axis);
-                    negStart.Position = vec3(0.0f,-halfSize,-axis);
-                    negEnd.Position   = vec3(0.0f, halfSize,-axis);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0.0f, 0.0f, step);
+                    lineEnd.Position   = vec3(0.0f, mSize, step);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     break;
                 case XY:
                     // X
-                    posStart.Position = vec3( axis,-halfSize, 0.0f);
-                    posEnd.Position   = vec3( axis, halfSize, 0.0f);
-                    negStart.Position = vec3(-axis,-halfSize, 0.0f);
-                    negEnd.Position   = vec3(-axis, halfSize, 0.0f);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(step, 0.0f, 0);
+                    lineEnd.Position   = vec3(step, mSize, 0.0f);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     // Y
-                    posStart.Position = vec3(-halfSize, axis, 0.0f);
-                    posEnd.Position   = vec3( halfSize, axis, 0.0f);
-                    negStart.Position = vec3(-halfSize,-axis, 0.0f);
-                    negEnd.Position   = vec3( halfSize,-axis, 0.0f);
-                    AddLineVertex(posStart);
-                    AddLineVertex(posEnd);
-                    AddLineVertex(negStart);
-                    AddLineVertex(negEnd);
+                    lineStart.Position = vec3(0, step, 0.0f);
+                    lineEnd.Position   = vec3(mSize, step, 0.0f);
+                    AddLineVertex(lineStart);
+                    AddLineVertex(lineEnd);
                     break;
             }
         }
-    }
-
-    void GridDrawer::InitAxisLines()
-    {
-        debug("Grid: {}",__FUNCTION__);
-        vec3 red(1,0,0);
-        vec3 green(0,1,0);
-        vec3 blue(0,0,1);
-
-        GLWidgetVertex xStart, xEnd;
-        xStart.Position = vec3(0);
-        xStart.Color = red;
-        xEnd.Position = vec3(mSize/2,0,0);
-        xEnd.Color = red;
-        AddLineVertex(xStart);
-        AddLineVertex(xEnd);
-
-        GLWidgetVertex yStart, yEnd;
-        yStart.Position = vec3(0);
-        yStart.Color = green;
-        yEnd.Position = vec3(0,mSize/2,0);
-        yEnd.Color = green;
-        AddLineVertex(yStart);
-        AddLineVertex(yEnd);
-
-        GLWidgetVertex zStart, zEnd;
-        zStart.Position = vec3(0);
-        zStart.Color = blue;
-        zEnd.Position = vec3(0,0,mSize/2);
-        zEnd.Color = blue;
-        AddLineVertex(zStart);
-        AddLineVertex(zEnd);
-
-        GLWidgetVertex ax1HomeStart, ax1HomeEnd, ax2HomeStart, ax2HomeEnd;
-        ax1HomeStart.Color = mMajorColour;
-        ax1HomeEnd.Color   = mMajorColour;
-        ax2HomeStart.Color = mMajorColour;
-        ax2HomeEnd.Color   = mMajorColour;
-
-        switch (mAxisPair)
-        {
-            case XZ:
-                ax1HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax1HomeEnd.Position   = vec3(-(mSize/2.0f),0.0f,0.0f);
-                ax2HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax2HomeEnd.Position   = vec3(0.0f,0.0f,-(mSize/2.0f));
-                break;
-            case YZ:
-                ax1HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax1HomeEnd.Position   = vec3(0.0f,-(mSize/2.0f),0.0f);
-                ax2HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax2HomeEnd.Position   = vec3(0.0f,0.0f,-(mSize/2.0f));
-                break;
-            case XY:
-                ax1HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax1HomeEnd.Position   = vec3(-(mSize/2.0f),0.0f,0.0f);
-                ax2HomeStart.Position = vec3(0.0f,0.0f,0.0f);
-                ax2HomeEnd.Position   = vec3(0.0f,-(mSize/2.0f),0.0f);
-                break;
-
-        }
-
-        AddLineVertex(ax1HomeStart);
-        AddLineVertex(ax1HomeEnd);
-        AddLineVertex(ax2HomeStart);
-        AddLineVertex(ax2HomeEnd);
     }
 
     GridDrawer::AxisPair GridDrawer::GetAxisPair() const
@@ -368,7 +252,6 @@ namespace Coconut
         debug("Grid: {}",__FUNCTION__);
         mLineVertexBuffer.clear();
         ClearLineVertexBuffer();
-        InitAxisLines();
         InitMajorGridData();
         InitMinorGridData();
         SubmitLineVertexBuffer();

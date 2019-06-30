@@ -21,6 +21,8 @@
 // GL Widgets
 #include "Widgets/GL/GridDrawer.h"
 #include "Widgets/GL/ToolDrawer.h"
+#include "Widgets/GL/OriginDrawer.h"
+#include "Widgets/GL/GCodeDrawer.h"
 
 namespace Coconut
 {
@@ -39,11 +41,15 @@ namespace Coconut
 
         Window& GetWindow();
         WorkAreaWindow& GetPreviewWindow();
+        ConsoleWindow& GetConsoleWindow();
 
         SettingsModel& GetSettingsModel();
         SerialPortModel& GetSerialPortModel();
         GCodeFileModel& GetGCodeFileModel();
         GrblMachineModel& GetGrblMachineModel();
+        GCodeDrawer& GetGCodeDrawer();
+
+        ToolDrawer& GetToolDrawer();
 
     protected:
         bool CreateImGuiWidgets();
@@ -73,5 +79,7 @@ namespace Coconut
         // GL Widgets
         GridDrawer mGridDrawer;
         ToolDrawer mToolDrawer;
+        OriginDrawer mOriginDrawer;
+        GCodeDrawer mGCodeDrawer;
 	};
 }
