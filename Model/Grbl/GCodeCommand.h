@@ -51,7 +51,7 @@ using std::vector;
 
 namespace Coconut
 {
-	enum GcodeCommandState
+	enum GCodeCommandState
 	{
 		None,
 		Marker,
@@ -66,7 +66,7 @@ namespace Coconut
 	{
 	public:
 		GCodeCommand(string cmd = "", int tableIndex = -1, bool showInConsole = true,
-			int consoleIndex = -1, GcodeCommandState state = GcodeCommandState::InQueue);
+			int consoleIndex = -1, GCodeCommandState state = GCodeCommandState::InQueue);
 
 		GCodeCommand(const GCodeCommand& other);
 		GCodeCommand(const GCodeCommand* other);
@@ -126,9 +126,6 @@ namespace Coconut
 		string GetCommand() const;
 		void SetCommand(const string& command);
 
-		int GetTableIndex() const;
-		void SetTableIndex(int tableIndex);
-
 		bool GetShowInConsole() const;
 		void SetShowInConsole(bool showInConsole);
 
@@ -141,8 +138,8 @@ namespace Coconut
 		vector<string> GetArgs() const;
 		void SetArgs(const vector<string>& args);
 
-		GcodeCommandState GetState() const;
-		void SetState(GcodeCommandState state);
+		GCodeCommandState GetState() const;
+		void SetState(GCodeCommandState state);
     	string GetStateString() const;
 
 		int GetLine() const;
@@ -154,9 +151,9 @@ namespace Coconut
 		bool HasID(long id);
 		unsigned char GetRawCommand() const;
 
-		string GetMarker() const;
+		string GetMarkerString() const;
 		bool IsMarker() const;
-		void SetMarker(const string marker);
+		void SetMarkerString(const string marker);
 
 		bool IsToolChangeCommand();
 		string RemoveM6();
@@ -171,11 +168,10 @@ namespace Coconut
 		unsigned char mRawCommand;
 		string mCommand;
 		GrblResponse mResponse;
-		GcodeCommandState mState;
+		GCodeCommandState mState;
 		vector<string> mArgs;
 		long mID;
 		int mLine;
-		int mTableIndex;
 		int mConsoleIndex;
 		bool mShowInConsole;
 		string mMarker;

@@ -35,16 +35,13 @@
 #include "../../Common/Logger.h"
 
 #include <regex>
-#include <chrono>
+
 
 using std::regex;
 using std::smatch;
 using std::regex_match;
 using std::regex_search;
 using std::this_thread::yield;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::steady_clock;
 
 namespace Coconut
 {
@@ -72,10 +69,39 @@ namespace Coconut
         info("GrblMachineModel: Work thread has started");
     }
 
-    long GrblMachineModel::GetCurrentTime()
+    void GrblMachineModel::ReadFromGrbl()
     {
-    	return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    	SerialPortModel& sp = mAppState->GetSerialPortModel();
+        if (sp.BytesToRead() > 0)
+		{
+			int bytes_read = 0;
+			if ((bytes_read = sp.Read()) > 0)
+			{
+			   char* buffer = sp.GetReadBuffer();
+			   debug("GrblMachineModel: Read {} bytes : {}", bytes_read,buffer);
+
+				while (*buffer)
+				{
+					if(*buffer == '\n')
+					{
+						string current = Util::trim_copy(mCurrentLine.str());
+						if (!current.empty())
+						{
+							debug("GrblMachineModel: Pushing back line {}",current);
+							mLinesRead.push_back(current);
+							mCurrentLine.str(std::string());
+						}
+					}
+					else
+					{
+						mCurrentLine << *buffer;
+					}
+					buffer++;
+				}
+			}
+		}
     }
+
 
     void GrblMachineModel::WorkFunction()
     {
@@ -90,34 +116,7 @@ namespace Coconut
                 break;
             }
 
-            if (sp.BytesToRead() > 0)
-            {
-				int bytes_read = 0;
-				if ((bytes_read = sp.Read()) > 0)
-				{
-				   char* buffer = sp.GetReadBuffer();
-				   debug("GrblMachineModel: Read {} bytes : {}", bytes_read,buffer);
-
-                   	while (*buffer)
-                    {
-                        if(*buffer == '\n')
-                        {
-                            string current = Util::trim_copy(mCurrentLine.str());
-                            if (!current.empty())
-                            {
-								debug("GrblMachineModel: Pushing back line {}",current);
-								mLinesRead.push_back(current);
-                                mCurrentLine.str(std::string());
-                            }
-                        }
-                        else
-                        {
-                        	mCurrentLine << *buffer;
-                        }
-                        buffer++;
-                    }
-				}
-            }
+            ReadFromGrbl();
 
             for (string line : mLinesRead)
 			{
@@ -128,12 +127,15 @@ namespace Coconut
 			mLinesRead.clear();
 
             if (mGotStartupMessage && !mStatusRequested &&
-                GetCurrentTime() > mStatusRecievedTime+mStatusInterval)
+                Time::GetCurrentTime() > mStatusRecievedTime+mStatusInterval)
             {
 				RequestStatus();
             }
 
-            SendNextPacket();
+            if (mProgramRunning)
+            {
+            	SendNextCommand();
+            }
 
             yield();
         }
@@ -160,8 +162,6 @@ namespace Coconut
 			mMachinePosition.y = stod(m[2]);
             mMachinePosition.z = stod(m[3]);
         }
-
-        mAppState->GetToolDrawer().SetPosition(mMachinePosition);
 	}
 
 	void GrblMachineModel::UpdateFeedRateAndSpindleSpeed(const GrblResponse& response)
@@ -172,7 +172,7 @@ namespace Coconut
         if (regex_search(data,m,feedSpeedRegex))
         {
           mFeedRate = stod(m[1]);
-          mSpindleSpeed = stod(m[1]);
+          mSpindleSpeed = stod(m[2]);
         }
 	}
 
@@ -239,7 +239,7 @@ namespace Coconut
 		debug("GrblMachineModel: Process Response {}" , response.GetData());
 
 		mLastState = mState;
-		GCodeCommand next;
+        GCodeFileModel& file_model = mAppState->GetGCodeFileModel();
 
 		switch (response.GetType())
 		{
@@ -258,7 +258,6 @@ namespace Coconut
 				AppendResponseToConsole(response);
 				break;
 			case GrblResponseType::Unlocked:
-				mError = false;
 				mState = GrblMachineState::Unlocked;
 				SendManualGCodeCommand(GCodeCommand::GetFirmwareConfigurationCommand());
 				break;
@@ -270,31 +269,32 @@ namespace Coconut
 				UpdateFeedRateAndSpindleSpeed(response);
 				UpdateWorkPosition();
 				debug("GrblMachineModel: Got status!");
-				mStatusRecievedTime = GetCurrentTime();
+				mStatusRecievedTime = Time::GetCurrentTime();
 				mStatusRequested = false;
 				break;
 			case GrblResponseType::Ok:
-				if (mError)
+				if (mState == GrblMachineState::Error)
 				{
 					mState = GrblMachineState::Unlocked;
-					mError = false;
 					mProgramRunning = false;
 					mStatusRequested = false;
 				}
-				else if (!mCommandBuffer.empty())
+                // Waiting for command responses
+				else if (!mGrblCommandBuffer.empty())
 				{
-					next = mCommandBuffer.at(0);
+					GCodeCommand& tmp = mGrblCommandBuffer.at(0);
+                    GCodeCommand& next = file_model.GetCommandByID(tmp.GetID());
+                    mGrblCommandBuffer.erase(mGrblCommandBuffer.begin());
 					debug("GrblMachineModel: Popping command: ",
-						"id {} | line {} | cmd {} | in Queue {} | in buffer {}",
+						"id {} | line {} | cmd {} | | in buffer {}",
                         next.GetID(),
 					    next.GetLine(),
 					    next.GetCommand(),
-					    mCommandQueue.size(),
-						mCommandBuffer.size());
+						mGrblCommandBuffer.size());
 
 					next.SetResponse(response);
-					next.SetState(GcodeCommandState::Processed);
-					mCountProcessedCommands++;
+					next.SetState(GCodeCommandState::Processed);
+					mProcessedCommandsCount++;
 					//emit updateProgramTableStatusSignal(next);
 					//emit setCompletionProgressSignal(GetProcessedPercent());
 
@@ -308,7 +308,7 @@ namespace Coconut
 				// DO NOT ELSE IF THIS.
 				// We Need to check again to see if that was the last
 				// command in the Queue/Buffer and the program has finished.
-				if (mProgramRunning && mCommandQueue.empty() && mCommandBuffer.empty())
+				if (mProgramRunning && file_model.GetData().empty() && mGrblCommandBuffer.empty())
 				{
 					debug("GrblMachineModel: Program Finished");
 					mProgramRunning = false;
@@ -319,10 +319,8 @@ namespace Coconut
 				break;
 			case GrblResponseType::Error:
 				ParseError(response);
-				mError = true;
 				mStatusRequested = false;
-				ClearCommandQueue();
-				ClearCommandBuffer();
+				ClearGrblCommandBuffer();
 				mState = GrblMachineState::Error;
 				break;
 			case GrblResponseType::Configuration:
@@ -335,31 +333,30 @@ namespace Coconut
 
 	void GrblMachineModel::ParseError(const GrblResponse& error)
 	{
-		if (!mError)
-		{
-			string trimmedError = Util::trim_copy(error.GetData());
-			static regex errorNumRegex("error:(\\d+)$");
-			static regex errorStrRegex("error:(.+)$");
-            smatch num_m, str_m;
+		string trimmedError = Util::trim_copy(error.GetData());
+		static regex errorNumRegex("error:(\\d+)$");
+		static regex errorStrRegex("error:(.+)$");
+		smatch num_m, str_m;
 
-			if (regex_search(trimmedError, num_m, errorNumRegex))
-			{
-				mErrorCode = stoi(num_m[1]);
-				mErrorString = ERROR_STRINGS.at(mErrorCode);
-			}
-			else if (regex_search(trimmedError,str_m, errorStrRegex))
-			{
-				mErrorString = str_m[1];
-			}
+		if (regex_search(trimmedError, num_m, errorNumRegex))
+		{
+			mErrorCode = stoi(num_m[1]);
+			mErrorString = ERROR_STRINGS.at(mErrorCode);
+		}
+		else if (regex_search(trimmedError,str_m, errorStrRegex))
+		{
+			mErrorString = str_m[1];
 		}
 	}
 
 	float GrblMachineModel::GetPercentCompleted()
 	{
-		if (mCommandQueue.size() > 0)
+        GCodeFileModel& file_model = mAppState->GetGCodeFileModel();
+
+		if (!file_model.GetData().empty())
         {
-			return (static_cast<double>(mCountProcessedCommands) /
-                    static_cast<double>(mCommandQueueInitialSize))*100.f;
+			return static_cast<double>(mProcessedCommandsCount) /
+                   static_cast<double>(mCommandQueueInitialSize);
         }
 		else
         {
@@ -367,7 +364,7 @@ namespace Coconut
         }
 	}
 
-    float GrblMachineModel::GetPercentBufferUsed()
+    float GrblMachineModel::GetPercentGrblBufferUsed()
     {
         return mBufferUsedPercentage;
     }
@@ -384,29 +381,12 @@ namespace Coconut
        cw.PushConsoleLine(ConsoleLine{response.GetData(),ConsoleLineType::Response});
     }
 
-	void GrblMachineModel::SendNextPacket()
-	{
-	    debug("GrblMachineModel: {}", __FUNCTION__);
-		SerialPortModel& serial_port = mAppState->GetSerialPortModel();
-
-		if (mError)
-		{
-            mStatusRequested = false;;
-		}
-
-		SendNextCommandFromQueue();
-
-	}
-
 	void GrblMachineModel::RequestStatus()
 	{
 		debug("GrblMachineModel: Requesting Status");
         SerialPortModel& serial_port = mAppState->GetSerialPortModel();
-		if (!mError)
-		{
-			serial_port.Write(GCodeCommand::StatusUpdateCommand().GetCommand());
-			mStatusRequested = true;
-		}
+		serial_port.Write(GCodeCommand::StatusUpdateCommand().GetCommand());
+		mStatusRequested = true;
     }
 
     bool GrblMachineModel::IsWorkThreadRunning()
@@ -426,8 +406,7 @@ namespace Coconut
 
 	void GrblMachineModel::ClearState()
 	{
-		mCommandBuffer.clear();
-		mCommandQueue.clear();
+		mGrblCommandBuffer.clear();
         mCurrentLine.str(std::string());
         mLinesRead.clear();
 		mCommandQueueInitialSize = -1;
@@ -436,9 +415,8 @@ namespace Coconut
 		mMachinePosition = vec3(0.0);
 		mWorkPosition = vec3(0.0,0.0,0.0);
 		mWorkCoordinateOffset = vec3(0.0,0.0,0.0);
-		mProgramSendInterval = 1000.0f/10.0f;
 		mStatusInterval = 1000.0f/ 20.0f;
-		mCountProcessedCommands = 0;
+		mProcessedCommandsCount= 0;
 		mCommandQueueInitialSize = 0;
 		mFeedOverride = 100;
 		mSpindleOverride =100;
@@ -446,24 +424,20 @@ namespace Coconut
         mSpindleSpeed = 0;
         mFeedRate = 0;
         mToolNumber = 1;
-		mError = false;
+        mProgramIndex = 0;
 		mErrorCode = -1;
         mBufferUsedPercentage = 0.0f;
 		mBytesWaiting = 0;
 		mStatusRequested = false;
 		mProgramRunning = false;
-		mToolChangeWaiting = false;
 		mFeedRate = 10.f;
 		mSpindleSpeed = 0;
 	}
 
-	bool GrblMachineModel::SendNextCommandFromQueue()
+	bool GrblMachineModel::SendNextCommand()
 	{
-		if (mCommandQueue.empty())
-		{
-			return false;
-		}
-
+        debug("GrblMachineModel: {}",__FUNCTION__);
+        GCodeFileModel& file_model = mAppState->GetGCodeFileModel();
         SerialPortModel& serial_port = mAppState->GetSerialPortModel();
 
 		if (!serial_port.IsPortOpen())
@@ -472,60 +446,52 @@ namespace Coconut
 			return false;
 		}
 
-		if (mToolChangeWaiting)
-		{
-			debug("GrblMachineModel: Tool change waiting...");
-			return false;
-		}
+        vector<GCodeCommand>& gcode_program = file_model.GetData();
 
-		// Serial port has been flushed
-		if (mBytesWaiting == 0)
+		while (mProgramRunning && mState != GrblMachineState::Error)
 		{
-			while (!mError && !mCommandQueue.empty())
+            if (mProgramIndex > gcode_program.size()-1)
+            {
+                mProgramRunning = false;
+                break;
+            }
+
+			GCodeCommand& command = gcode_program.at(mProgramIndex);
+
+			 if (command.IsMarker() ||  // Is Marker or
+				(command.GetCommand().empty() &&  // No Command
+				 command.GetRawCommand() == 0))
+			 {
+				 command.SetState(GCodeCommandState::Skipped);
+            	 mProgramIndex++;
+				 continue;
+			 }
+
+			if (!IsSpaceInGrblBuffer(command))
 			{
-				 GCodeCommand& command = mCommandQueue.at(0);
-
-				 if (command.IsMarker() ||  // Is Marker or
-					(command.GetCommand().empty() &&  // No Command
-					 command.GetRawCommand() == 0))
-				 {
-					 command = mCommandQueue.at(0);
-                     mCommandQueue.pop_front();
-					 command.SetState(GcodeCommandState::Skipped);
-					 continue;
-				 }
-
-				if (!IsSpaceInBuffer(command))
-				{
-					debug("GrblMachineController: Buffer full, waiting... {}", command.GetCommand());
-					break;
-				}
-
-				// Take the command off the Queue for processing
-				command = mCommandQueue.at(0);
-                mCommandQueue.pop_front();
-
-				// Don't send this becaue GRBL doesn't respond/care and buffer Get
-				// misaligned
-				if (command.IsToolChangeCommand())
-				{
-					mToolChangeWaiting = true;
-					//emit toolChangeSignal(command->GetToolNumber());
-					command.SetState(GcodeCommandState::Processed);
-					break;
-				}
-				else
-				{
-					mCommandBuffer.push_back(command);
-					debug("GrblMachineModel: Writing", command.GetCommand());
-					//mBytesWaiting += mSerialPort.write(command->GetCommand().toLatin1());
-					command.SetState(GcodeCommandState::Sent);
-				}
-				//emit appendCommandToConsoleSignal(command);
+				debug("GrblMachineController: Buffer full, waiting... {}", command.GetCommand());
+				break;
 			}
-			return true;
+
+			// Don't send this becaue GRBL doesn't respond/care and buffer Get
+			// misaligned
+			if (command.IsToolChangeCommand())
+			{
+				command.SetState(GCodeCommandState::Skipped);
+            	mProgramIndex++;
+				break;
+			}
+			else
+			{
+				debug("GrblMachineModel: Writing", command.GetCommand());
+				mBytesWaiting += serial_port.Write(command.GetCommand());
+				command.SetState(GCodeCommandState::Sent);
+				mGrblCommandBuffer.push_back(command);
+				AppendCommandToConsole(command);
+            	mProgramIndex++;
+			}
 		}
-		return false;
+		return true;
 	}
 
 	bool GrblMachineModel::GetProgramRunning() const
@@ -540,43 +506,12 @@ namespace Coconut
 
 	void GrblMachineModel::SendProgram()
 	{
-        GCodeFileModel& fileModel = mAppState->GetGCodeFileModel();
-		debug("GrblMachineModel: onSendProgram()");
-
-		ClearCommandBuffer();
-		ClearCommandQueue();
-		mCountProcessedCommands = 0;
-
-		int index = 0;
-		for (GCodeCommand& next : fileModel.GetData())
-		{
-			QueueCommand(next);
-			index++;
-		}
-
-		mCommandQueueInitialSize = mCommandQueue.size();
-		mProgramRunning = true;
-	}
-
-	void GrblMachineModel::SendProgramFromLine(long id)
-	{
-        GCodeFileModel& gcodeFile = mAppState->GetGCodeFileModel();
-
-		info("GrblMachineModel: SendProgramFromLine {} " ,id);
-
-		ClearCommandBuffer();
-		ClearCommandQueue();
-		mCountProcessedCommands = 0;
-
-		int index = gcodeFile.GetCommandByID(id).GetLine();
-		int size = gcodeFile.GetData().size();
-
-		for (; index < size; index++)
-		{
-			QueueCommand(gcodeFile.GetData()[index]);
-		}
-
-		mCommandQueueInitialSize = mCommandQueue.size();
+		info("GrblMachineModel: {}",__FUNCTION__);
+        GCodeFileModel& file_model = mAppState->GetGCodeFileModel();
+		ClearGrblCommandBuffer();
+		mProcessedCommandsCount = 0;
+		mCommandQueueInitialSize = file_model.GetData().size();
+        mProgramIndex = 0;
 		mProgramRunning = true;
 	}
 
@@ -630,23 +565,6 @@ namespace Coconut
 		}
 	}
 
-	void GrblMachineModel::ClearCommandQueue()
-	{
-		mCommandQueue.clear();
-		mCountProcessedCommands = 0;
-		mCommandQueueInitialSize = 0;
-	}
-
-	void GrblMachineModel::ClearCommandBuffer()
-	{
-		mCommandBuffer.clear();
-	}
-
-	int GrblMachineModel::CommandsQueueLength()
-	{
-		return mCommandQueue.size();
-	}
-
 	void GrblMachineModel::SendManualGCodeCommand(const GCodeCommand& command)
 	{
         SerialPortModel& serial_port = mAppState->GetSerialPortModel();
@@ -672,44 +590,31 @@ namespace Coconut
 
 	}
 
-	void GrblMachineModel::ToolChangeCompleted()
-	{
-		mToolChangeWaiting = false;
-	}
+    void GrblMachineModel::ClearGrblCommandBuffer()
+    {
+        mGrblCommandBuffer.clear();
+    }
 
-	void GrblMachineModel::QueueCommand(const GCodeCommand& command)
-	{
-		mCommandQueue.push_back(command);
-	}
-
-	int GrblMachineModel::BufferLengthInUse()
+	int GrblMachineModel::GrblBufferLengthInUse()
 	{
 		int length = 0;
 
-		debug("GrblMachineModel: Commands in buffer:");
-
-		for (GCodeCommand& gc : mCommandBuffer)
+		for (GCodeCommand& gc : mGrblCommandBuffer)
 		{
-			debug("\t{}|{}|Args: ", gc.GetLine(), gc.GetCommand());
-            for (string arg : gc.GetArgs())
-            {
-                debug("{}",arg);
-            }
 			length += gc.GetCommandLength();
 		}
 
-		debug("GrblMachineModel: Buffer in use: {}", length)
-                ;
+		debug("GrblMachineModel: Buffer in use: {}", length);
 		return length;
 	}
 
-	bool GrblMachineModel::IsSpaceInBuffer(const GCodeCommand& cmd)
+	bool GrblMachineModel::IsSpaceInGrblBuffer(const GCodeCommand& cmd)
 	{
-		int bufferLeft = BUFFER_LENGTH_LIMIT - BufferLengthInUse();
+		int bufferLeft = BUFFER_LENGTH_LIMIT - GrblBufferLengthInUse();
 		int bufferUsed = BUFFER_LENGTH_LIMIT - bufferLeft;
-        debug("GrblMachineModel: Buffer Left {} cmd length {}", bufferLeft, cmd.GetCommandLength());
-		mBufferUsedPercentage = ((float)bufferUsed/BUFFER_LENGTH_LIMIT) * 100.0f;
-		return bufferLeft >= cmd.GetCommandLength();
+		mBufferUsedPercentage = ((float)bufferUsed/BUFFER_LENGTH_LIMIT);
+        debug("GrblMachineModel: Buffer used {} / left {} / cmd length {}", mBufferUsedPercentage, bufferLeft, cmd.GetCommandLength());
+		return bufferLeft > cmd.GetCommandLength();
 	}
 
 	GCodeCommand GrblMachineModel::FeedOverride(const GCodeCommand& command, double overridePercent)

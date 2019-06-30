@@ -22,8 +22,8 @@ namespace Coconut
           mCameraTarget(0.f,0.f,0.f),
           mCameraRadius(200.f),
           mCameraRadiusMin(10.f),
-          mCameraPitch(0),
-          mCameraYaw(0.f),
+          mCameraPitch(glm::radians(45.0f)),
+          mCameraYaw(glm::radians(-90.0f)),
           mUpVector(0.f,0.f,1.f),
           mViewMatrix(mat4(1.0f)),
           mProjectionMatrix(mat4(1.0f)),
@@ -34,6 +34,17 @@ namespace Coconut
     {
         UpdateCameraPosition();
     }
+
+    void WorkAreaWindow::SetCameraTarget(const vec3& v)
+    {
+       mCameraTarget = v;
+    }
+
+    void WorkAreaWindow::SetCameraPosition(const vec3& v)
+    {
+       mCameraPosition = v;
+    }
+
 
     WorkAreaWindow::~WorkAreaWindow ()
 	{

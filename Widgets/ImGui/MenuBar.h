@@ -14,7 +14,7 @@ namespace Coconut
     protected:
         void DrawFileMenu();
         void DrawViewMenu();
-        void DrawWizardsMenu();
+        void DrawHowToMenu();
         void DrawLoggingMenu();
 
 

@@ -257,12 +257,15 @@ namespace Coconut
         debug("Window {} GL Widgets", mGLWidgets.size());
 
         WorkAreaWindow& pw = mAppState->GetPreviewWindow();
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
 
         // Change Viewport
 
+        pw.SetCameraTarget(grbl.GetMachinePosition());
+
+        pw.InitViewMatrix();
         if (pw.PreviewSizeHasChanged())
         {
-           pw.InitViewMatrix();
            pw.InitProjectionMatrix();
            pw.InitTexture();
            pw.InitDepthStencilBuffer();

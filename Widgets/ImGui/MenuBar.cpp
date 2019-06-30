@@ -30,9 +30,15 @@ namespace Coconut
         {
             DrawFileMenu();
             DrawViewMenu();
-            DrawWizardsMenu();
             DrawLoggingMenu();
-            if (ImGui::Button(serial_model.IsPortOpen() ? "Disconnect":"Connect"))
+            DrawHowToMenu();
+
+            ImVec2 menu_size = ImGui::GetContentRegionMax();
+            ImVec2 buttonSize(100,20);
+            ImVec2 buttonAt(menu_size.x-buttonSize.x,menu_size.y);
+            ImGui::SameLine(buttonAt.x);
+
+            if (ImGui::Button(serial_model.IsPortOpen() ? "Disconnect":"Connect",buttonSize))
             {
 				if (serial_model.IsPortOpen())
                 {
@@ -84,10 +90,35 @@ namespace Coconut
         }
     }
 
-    void MenuBar::DrawWizardsMenu()
+    void MenuBar::DrawHowToMenu()
     {
- 		if (ImGui::BeginMenu("Wizards"))
+ 		if (ImGui::BeginMenu("How To"))
 		{
+            if (ImGui::MenuItem("Connect to GRBL"))
+            {
+
+            }
+
+            if(ImGui::MenuItem("Configure Grbl Machine"))
+            {
+
+            }
+
+            if (ImGui::MenuItem("Setup Tool or Tool Holder"))
+            {
+
+            }
+
+            if (ImGui::MenuItem("Prepare Workspace"))
+            {
+
+            }
+
+            if (ImGui::MenuItem("Run GCode"))
+            {
+
+            }
+
 			ImGui::EndMenu();
 		}
     }

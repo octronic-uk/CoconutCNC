@@ -14,9 +14,6 @@ namespace Coconut
         void Draw() override;
 
     protected:
-        void DrawMarkersPane();
         void DrawTablePane();
-
-
     };
 }

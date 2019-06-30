@@ -1,6 +1,10 @@
 #include "AppState.h"
 #include "Common/Logger.h"
 
+#include <thread>
+
+using std::this_thread::yield;
+
 namespace Coconut
 {
 	AppState::AppState(int argc, char** argv) :
@@ -131,6 +135,7 @@ namespace Coconut
         while (mLooping)
         {
             mWindow.Update();
+            yield();
         }
         mSettingsModel.SaveSettingsFile();
         if (mGrblMachineModel.IsWorkThreadRunning())

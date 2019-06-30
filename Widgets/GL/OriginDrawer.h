@@ -10,5 +10,9 @@ namespace Coconut
 
         bool Init() override;
         void Update() override;
+    private:
+        float mLineWidth;
+        float mAxisLineLength;
+        float mArrowSize;
     };
 }

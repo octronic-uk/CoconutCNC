@@ -39,7 +39,7 @@ namespace Coconut
 
         if (ImGui::Button("+Y", buttonSize))
         {
-    		GCodeCommand jogCmd = GCodeCommand::JogCommand(-mJogStepValue,mJogStepValue,0,mJogFeedRate);
+    		GCodeCommand jogCmd = GCodeCommand::JogCommand(0,mJogStepValue,0,mJogFeedRate);
             grbl.SendManualGCodeCommand(jogCmd);
         }
         ImGui::NextColumn();

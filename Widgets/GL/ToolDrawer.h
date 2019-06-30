@@ -24,6 +24,7 @@ namespace  Coconut
 
         bool Init() override;
 		void Update() override;
+        void Draw() override;
 
 		float ToolDiameter() const;
 		void SetToolDiameter(float toolDiameter);
@@ -44,7 +45,6 @@ namespace  Coconut
         void SetNeedsGeometryUpdate(bool);
 
 	protected:
-		float NormalizeAngle(float angle);
         void GenerateToolGeometry();
         void GenerateToolHolderGeometry();
 		vector<GLWidgetVertex> GenerateCylinderGeometry
@@ -52,13 +52,11 @@ namespace  Coconut
 		void Rotate();
 
 	private:
-		float mRotationAngle;
+        float mRotation;
+        long mLastTime;
 		vec4 mToolColor;
 		vec4 mToolHolderColor;
-		bool mSpindleRotating;
-		float mSpindleSpeed;
 		bool mNeedsGeometryUpdate;
-        long mCurrentTime;
         float mToolLength;
 	};
 

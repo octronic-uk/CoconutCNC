@@ -13,5 +13,9 @@ namespace Coconut
     protected:
         void DrawProgressBar();
         void DrawBufferUsageBar();
+    private:
+        long mLastFlashTime;
+        long mFlashInterval;
+        bool mFlash;
     };
 }

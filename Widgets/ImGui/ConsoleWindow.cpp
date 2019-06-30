@@ -48,7 +48,7 @@ namespace Coconut
 
     void ConsoleWindow::PushConsoleLine(const ConsoleLine& c)
     {
-        mConsoleLineBuffer.push_back(c);
+        if (!c.Data.empty()) mConsoleLineBuffer.push_back(c);
     }
 }
 

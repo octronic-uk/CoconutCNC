@@ -17,71 +17,34 @@ namespace Coconut
     ()
     {
         ImGui::Begin(mName.c_str(), &mVisible);
-        ImGui::Columns(2);
-
-        DrawMarkersPane();
-
-        ImGui::NextColumn();
-
 		DrawTablePane();
-
 		ImGui::End();
-    }
-
-
-
-    void GCodeTableWindow::DrawMarkersPane()
-    {
- 		ImGui::Text("Markers");
-
-        ImVec2 space = ImGui::GetContentRegionAvail();
-        ImGui::BeginChild("MarkersChild",ImVec2(-1,space.y - 30));
-        {
-            vector<GCodeCommand>& markers = mAppState->GetGCodeFileModel().GetMarkers();
-            int i=0;
-            for (GCodeCommand& marker : markers)
-            {
-                if(ImGui::TreeNodeEx((void*)(intptr_t)i,ImGuiTreeNodeFlags_Leaf,"%s",marker.GetCommand().c_str()))
-                {
-					ImGui::TreePop();
-                }
-                i++;
-            }
-        }
-        ImGui::EndChild();
-
     }
 
     void GCodeTableWindow::DrawTablePane()
     {
+
+
         GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
-        ImVec2 space = ImGui::GetContentRegionAvail();
-        ImGui::BeginChild("GCodeTable",ImVec2(-1,space.y - 30));
+        // Buttons
+
+		if (ImGui::Button("Check Mode ($C)"))
+		{
+			grbl.SendManualGCodeCommand(GCodeCommand::CheckModeCommand());
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Send"))
+		{
+			grbl.SendProgram();
+		}
+
+		ImGui::Separator();
+
+
+        ImGui::BeginChild("GCodeTable");
         {
-
-			// Buttons
-
-			if (ImGui::Button("Check Mode ($C)"))
-			{
-				grbl.SendManualGCodeCommand(GCodeCommand::CheckModeCommand());
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Button("Auto Scroll"))
-			{
-
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Button("Send"))
-			{
-
-			}
-
-			ImGui::Separator();
-
 			// Table
 			ImGui::Columns(4);
 
@@ -100,6 +63,7 @@ namespace Coconut
 			ImGui::Text("Response");
 			ImGui::NextColumn();
 
+			ImGui::Separator();
 			ImGui::Separator();
 
 			// Data

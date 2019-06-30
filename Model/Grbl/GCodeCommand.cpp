@@ -37,7 +37,7 @@ namespace Coconut
 		int tableIndex,
 		bool showInConsole,
 		int consoleIndex,
-		GcodeCommandState state
+		GCodeCommandState state
 	)
 		: mRawCommand(0),
 		  mCommand(cmd),
@@ -46,7 +46,6 @@ namespace Coconut
 		  mArgs(vector<string>()),
 		  mID(nextID()),
 		  mLine(-1),
-		  mTableIndex(tableIndex),
 		  mConsoleIndex(consoleIndex),
 		  mShowInConsole(showInConsole) {}
 
@@ -58,7 +57,6 @@ namespace Coconut
 		  mArgs(other.mArgs),
 		  mID(other.mID),
 		  mLine(other.mLine),
-		  mTableIndex(other.mTableIndex),
 		  mConsoleIndex(other.mConsoleIndex),
 		  mShowInConsole(other.mShowInConsole) {}
 
@@ -70,7 +68,6 @@ namespace Coconut
 		  mArgs(other->mArgs),
 		  mID(other->mID),
 		  mLine(other->mLine),
-		  mTableIndex(other->mTableIndex),
 		  mConsoleIndex(other->mConsoleIndex),
 		  mShowInConsole(other->mShowInConsole) {}
 
@@ -359,16 +356,6 @@ namespace Coconut
 		mCommand = Util::to_upper(command);
 	}
 
-	int GCodeCommand::GetTableIndex() const
-	{
-		return mTableIndex;
-	}
-
-	void GCodeCommand::SetTableIndex(int tableIndex)
-	{
-		mTableIndex = tableIndex;
-	}
-
 	bool GCodeCommand::GetShowInConsole() const
 	{
 		return mShowInConsole;
@@ -404,17 +391,17 @@ namespace Coconut
 		return ID++;
 	}
 
-	string GCodeCommand::GetMarker() const
+	string GCodeCommand::GetMarkerString() const
 	{
 		return mMarker;
 	}
 
 	bool GCodeCommand::IsMarker() const
 	{
-	   return !mMarker.empty();
+	   return mState == GCodeCommandState::Marker;
 	}
 
-	void GCodeCommand::SetMarker(const string marker)
+	void GCodeCommand::SetMarkerString(const string marker)
 	{
 		mMarker = marker;
 	}
@@ -485,7 +472,7 @@ namespace Coconut
 		mArgs= args;
 	}
 
-	GcodeCommandState GCodeCommand::GetState() const
+	GCodeCommandState GCodeCommand::GetState() const
 	{
 		return mState;
 	}
@@ -511,7 +498,7 @@ namespace Coconut
 	}
 
 
-	void GCodeCommand::SetState(const GcodeCommandState state)
+	void GCodeCommand::SetState(const GCodeCommandState state)
 	{
 		mState = state;
 	}

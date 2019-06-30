@@ -61,9 +61,7 @@ namespace Coconut
 		// Prepare parser
 		mGCodeParser.SetTraverseSpeed(1);
 
-		// TODO - This should probably be moved to GcodeParser
-
-		int index = 0;
+		int line = 0;
 		while (!data.empty())
 		{
 			string command;
@@ -78,24 +76,25 @@ namespace Coconut
 			info("GCodeFileModel: Next Line {}", command);
 			if (!trimmed.empty())
 			{
-				item.SetLine(mGCodeParser.GetCommandNumber());
-				item.SetTableIndex(index);
+				item.SetLine(line);
 
 				mGCodeParser.AddCommand(item);
 
 				if (item.GetCommand() == "%")
 				{
-					info("GCodeFileModel: Skipping % at index ", index);
-					continue;
+					info("GCodeFileModel: Skipping % at line", line);
+                    item.SetMarkerString("%");
+                    item.SetState(GCodeCommandState::Marker);
+                    mMarkers.push_back(item);
 				}
 
 				if (item.GetArgs().empty())
 				{
 					string marker = GCodeParser::ParseComment(command);
 					info("GCodeFileModel: marker ", marker);
-					item.SetMarker(marker);
-					item.SetState(GcodeCommandState::Marker);
-					if (!item.GetMarker().empty())
+					item.SetMarkerString(marker);
+					item.SetState(GCodeCommandState::Marker);
+					if (!item.GetMarkerString().empty())
 					{
 						mMarkers.push_back(item);
 					}
@@ -103,11 +102,11 @@ namespace Coconut
 				else
 				{
 					item.SetCommand(trimmed + '\r');
-					item.SetState(GcodeCommandState::InQueue);
+					item.SetState(GCodeCommandState::InQueue);
 				}
 
 				mData.push_back(item);
-				index++;
+				line++;
 			}
 		}
 
@@ -217,7 +216,7 @@ namespace Coconut
 	   debug("GCodeFileModel: Markers");
 	   for (GCodeCommand& marker : mMarkers)
 	   {
-		   debug("GCodeFileModel: {} : {}", marker.GetTableIndex(), marker.GetCommand());
+		   debug("GCodeFileModel: {} : {}", marker.GetLine(), marker.GetCommand());
 	   }
 	}
 }

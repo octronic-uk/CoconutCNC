@@ -3,29 +3,28 @@
 
 #include "ToolDrawer.h"
 
-#include <chrono>
+#include "../../Common/Time.h"
 #include "../../AppState.h"
 #include "../../Model/Grbl/GrblMachineModel.h"
 #include "../../Model/Settings/ToolSettings.h"
 #include "../../Model/Settings/ToolHolderSettings.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
+using glm::rotate;
 
 namespace Coconut
 {
 
 	ToolDrawer::ToolDrawer(AppState* state)
 		: GLWidget(state,"ToolDrawer"),
-		  mRotationAngle(0.0),
+          mLastTime(0),
 		  mToolColor(vec4(.9f, 0.54f, 0.f, 1.f)),
 		  mToolHolderColor(vec4(.21f, .23f, .26f, 1.f)),
           mToolLength(0.f),
-		  mSpindleRotating(false),
-		  mSpindleSpeed(10.0f),
-          mNeedsGeometryUpdate(true),
-          mCurrentTime(0)
+          mNeedsGeometryUpdate(true)
 
 	{
 		debug("ToolDrawer: Constructing");
@@ -50,6 +49,15 @@ namespace Coconut
 
         SubmitTriangleVertexBuffer();
         return true;
+    }
+
+    void ToolDrawer::Draw()
+    {
+        SerialPortModel& sp = mAppState->GetSerialPortModel();
+        if (sp.IsPortOpen())
+        {
+        	GLWidget::Draw();
+        }
     }
 
     void ToolDrawer::GenerateToolGeometry()
@@ -130,8 +138,8 @@ namespace Coconut
 	   {
 			debug("ToolDrawer: Making a slice {}", i);
 
-			float theta = ((twoPi / slices) * i ) + mRotationAngle;
-			float nextTheta = ((twoPi / slices) * (i+1)) + mRotationAngle;
+			float theta = ((twoPi / slices) * i );
+			float nextTheta = ((twoPi / slices) * (i+1));
 
 			debug("ToolDrawer: theta {}",theta);
 			debug("ToolDrawer: nextTheta {}",nextTheta);
@@ -215,7 +223,10 @@ namespace Coconut
 
 	void ToolDrawer::Update()
 	{
-	    mCurrentTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+        static mat4 id(1.0f);
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        mModelMatrix = glm::translate(id,grbl.GetMachinePosition());
+		Rotate();
         if(mNeedsGeometryUpdate)
         {
             ClearTriangleVertexBuffer();
@@ -224,18 +235,10 @@ namespace Coconut
             SubmitTriangleVertexBuffer();
             mNeedsGeometryUpdate = false;
         }
-		Rotate();
+
+        mLastTime = Time::GetCurrentTime();
+
 		return;
-	}
-
-	void ToolDrawer::SetSpindleRotating(bool rotating)
-	{
-	   mSpindleRotating = rotating;
-	}
-
-	void ToolDrawer::SetSpindleSpeed(float speed)
-	{
-	   mSpindleSpeed = speed;
 	}
 
 	vec4 ToolDrawer::ToolColor() const
@@ -260,14 +263,18 @@ namespace Coconut
 
 	void ToolDrawer::Rotate()
 	{
-		mRotationAngle = NormalizeAngle(mRotationAngle + mSpindleSpeed);
-	}
-
-	float ToolDrawer::NormalizeAngle(float angle)
-	{
-		while (angle < 0)   angle += 360;
-		while (angle > 360) angle -= 360;
-		return angle;
+        GrblMachineModel& grbl = mAppState->GetGrblMachineModel();
+        int spindle_speed = grbl.GetSpindleSpeed();
+        if (spindle_speed > 0)
+        {
+			long time_delta = Time::GetCurrentTime()-mLastTime;
+			float rev_per_msec = spindle_speed / 60000.0f;
+			float rev_per_frame = rev_per_msec * time_delta;
+			float rev_this_frame = .360f * rev_per_frame;
+            mRotation += rev_this_frame;
+            if (mRotation > 360.f) mRotation -= 360.f;
+			mModelMatrix = rotate(mModelMatrix,mRotation, vec3(0,0,1));
+        }
 	}
 
 	bool ToolDrawer::NeedsUpdateGeometry() const

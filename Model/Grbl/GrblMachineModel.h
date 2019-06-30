@@ -29,6 +29,7 @@
 #include "GCodeFileModel.h"
 #include "GCodeCommand.h"
 #include "GrblResponse.h"
+#include "../../Common/Time.h"
 
 using std::stringstream;
 using std::thread;
@@ -51,15 +52,14 @@ namespace Coconut
         void JoinWorkThread();
         void WorkFunction();
 
-		int  BufferLengthInUse();
-		bool SendNextCommandFromQueue();
+		int  GrblBufferLengthInUse();
+		bool SendNextCommand();
 		int  CommandsQueueLength();
 
 		void RestoreOffsets(GrblMachineState& state);
 		void StoreOffsets(GrblMachineState& state);
 		void RestoreParserState();
-		void ClearCommandQueue();
-		void ClearCommandBuffer();
+		void ClearGrblCommandBuffer();
 
 		vec3  GetMachinePosition();
 		float GetMachinePositionX();
@@ -71,20 +71,15 @@ namespace Coconut
 		float GetWorkPositionY();
 		float GetWorkPositionZ();
 
-		void QueueCommand(const GCodeCommand& command);
-
 		bool GetProgramRunning() const;
 		void SetProgramRunning(bool programRunning);
 
-
 		void SendProgram();
-		void SendProgramFromLine(long fromId);
 		void SendManualGCodeCommand(const GCodeCommand& cmd);
 
 		void UpdateSpindleOverride(float speed);
 		void UpdateFeedOverride(float rate);
 		void UpdateRapidOverride(float rate);
-		void ToolChangeCompleted();
 
 		void BytesWritten(int bytes);
 
@@ -100,17 +95,16 @@ namespace Coconut
         int GetToolNumber() const;
 
 		float GetPercentCompleted();
-        float GetPercentBufferUsed();
+        float GetPercentGrblBufferUsed();
 
     protected: // Member Functions
         void AppendCommandToConsole(const GCodeCommand& command);
         void AppendResponseToConsole(const GrblResponse& command);
 
-    	long GetCurrentTime();
 		GCodeCommand FeedOverride(const GCodeCommand& command, double overridePercent);
 		GCodeCommand GetNextCommand(GCodeFileModel& gcodeFile);
 
-		bool IsSpaceInBuffer(const GCodeCommand& cmd);
+		bool IsSpaceInGrblBuffer(const GCodeCommand& cmd);
 
 		void UpdateWorkPosition();
 		void UpdateStatus(GrblResponse response);
@@ -119,13 +113,13 @@ namespace Coconut
 		void UpdateMachinePosition(const GrblResponse& data);
 		void UpdateFeedRateAndSpindleSpeed(const GrblResponse& response);
 
-        void SendNextPacket();
 		void ProcessResponse(const GrblResponse& data);
 		void ParseError(const GrblResponse& error);
 		void ParseGrblVersion(const GrblResponse& response);
 		void ParseConfigurationResponse(GrblResponse response);
 		void ParseAlarmResponse(const GrblResponse& response);
         void RequestStatus();
+        void ReadFromGrbl();
 
 		static string StateToString(GrblMachineState state);
 		const static map<int,string> ERROR_STRINGS;
@@ -134,40 +128,38 @@ namespace Coconut
 	private: // Members
 		const static int BUFFER_LENGTH_LIMIT;
         AppState* mAppState;
-		deque<GCodeCommand> mCommandBuffer;
-		deque<GCodeCommand> mCommandQueue;
+        // Reading from serial
         vector<string> mLinesRead;
         stringstream mCurrentLine;
+
+        // Local State
+		int mBytesWaiting;
+		float mBufferUsedPercentage;
+        int mProcessedCommandsCount;
+		int mCommandQueueInitialSize;
+		int mStatusInterval;
+        bool mStatusRequested;
+		bool mProgramRunning;
+        bool mGotStartupMessage;
+        int mProgramIndex;
+
+        // Grbl State
+		vector<GCodeCommand> mGrblCommandBuffer;
         GrblConfigurationModel mConfigurationModel;
 		GrblMachineState mState;
 		GrblMachineState mLastState;
-
 		vec3 mMachinePosition;
 		vec3 mWorkPosition;
 		vec3 mWorkCoordinateOffset;
-
-		int mProgramSendInterval;
-		int mStatusInterval;
-		int mCountProcessedCommands;
-		int mCommandQueueInitialSize;
 		float mFeedOverride;
 		float mSpindleOverride;
 		float mRapidOverride;
         int mSpindleSpeed;
-        float mFeedRate;
+        int mFeedRate;
         int mToolNumber;
-		bool mError;
 		int mErrorCode;
-		float mBufferUsedPercentage;
 		string mErrorString;
 		string mGrblVersion;
-		int mBytesWaiting;
-
-		bool mStatusRequested;
-
-		bool mProgramRunning;
-		bool mToolChangeWaiting;
-        bool mGotStartupMessage;
 
         thread mWorkThread;
         bool mWorkThreadRunning;
