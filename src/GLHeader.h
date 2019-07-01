@@ -42,6 +42,7 @@ using std::string;
 
 static bool _GLCheckError_(const string& file, int line)
 {
+    /*
 	GLenum errorCode = 0;
 	bool wasError = false;
 	do
@@ -82,6 +83,8 @@ static bool _GLCheckError_(const string& file, int line)
 	}
 	while(errorCode != 0);
 	return wasError;
+    */
+    return false;
 }
 
 #define GLCheckError() _GLCheckError_(__FILE__, __LINE__)
