@@ -35,33 +35,31 @@ set(NFD_INCLUDE_DIR    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/src/inclu
 set(NFD_LIBRARY_MAC    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
 set(NFD_LIBRARY_LINUX  "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
 set(NFD_LIBRARY_WIN    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.dll")
-set(SERIALPORT_DIR     "${PROJECT_SOURCE_DIR}/Deps/libserialport")
+set(SERIAL_DIR         "${PROJECT_SOURCE_DIR}/Deps/serial")
+set(SERIAL_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/serial/include")
 set(SPDLOG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/spdlog/include")
 
 # for LibSerialPort
-set(SERIALPORT_SRC_FILES
-	"${SERIALPORT_DIR}/serialport.c"
-	"${SERIALPORT_DIR}/libserialport_internal.h"
-	"${SERIALPORT_DIR}/libserialport.h"
-	"${SERIALPORT_DIR}/config.h"
-)
+set(SERIAL_SRC_FILES "${SERIAL_DIR}/src/serial.cc")
 
 if (WIN32)
-	set (SERIALPORT_SRC_FILES ${SERIALPORT_SRC_FILES}	"${SERIALPORT_DIR}/windows.c")
+	set (SERIAL_SRC_FILES ${SERIAL_SRC_FILES}
+		"${SERIAL_DIR}/src/win.cc"
+		"${SERIAL_DIR}/src/list_ports_win.cc")
 endif(WIN32)
 
+if (UNIX)
+	set (SERIAL_SRC_FILES ${SERIAL_SRC_FILES} "${SERIAL_DIR}/src/unix.cc")
+endif(UNIX)
+
 if (UNIX AND NOT APPLE)
-	set (SERIALPORT_SRC_FILES
-		${SERIALPORT_SRC_FILES}
-		"${SERIALPORT_DIR}/linux.c"
-		"${SERIALPORT_DIR}/linux_termios.c"
-		"${SERIALPORT_DIR}/linux_termios.h"
-	)
+	set (SERIAL_SRC_FILES ${SERIAL_SRC_FILES} "${SERIAL_DIR}/src/list_ports_linux.cc")
 endif(UNIX AND NOT APPLE)
 
-if(APPLE)
-	set (SERIALPORT_SRC_FILES ${SERIALPORT_SRC_FILES} "${SERIALPORT_DIR}/macosx.c")
+if (APPLE)
+	set (SERIAL_SRC_FILES ${SERIAL_SRC_FILES} "${SERIAL_DIR}/src/list_ports_osx.cc")
 endif(APPLE)
+
 
 # Find Dependencies ############################################################
 
@@ -75,7 +73,7 @@ add_executable(
 	${PROJECT_NAME}
 	${SRC_FILES}
 	${IMGUI_SRC_FILES}
-	${SERIALPORT_SRC_FILES}
+	${SERIAL_SRC_FILES}
 	${GLAD_SRC}
 )
 
@@ -88,10 +86,11 @@ include_directories(
 	${GLM_INCLUDE_DIR}
 	${IMGUI_INCLUDE_DIR}
 	${IFCH_INCLUDE_DIR}
-	${SERIALPORT_DIR}
+	${SERIAL_INCLUDE_DIR}
 	${NFD_INCLUDE_DIR}
 	${JSON_INCLUDE_DIR}
 	${SPDLOG_INCLUDE_DIR}
+
 )
 
 

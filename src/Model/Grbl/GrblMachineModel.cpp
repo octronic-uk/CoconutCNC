@@ -77,17 +77,16 @@ namespace Coconut
     void GrblMachineModel::ReadFromGrbl()
     {
     	SerialPortModel& sp = mAppState->GetSerialPortModel();
-        if (sp.BytesToRead() > 0)
 		{
-			int bytes_read = 0;
-			if ((bytes_read = sp.Read()) > 0)
+			string str_in = sp.Read();
+            int buffer = 0;
+			if (!str_in.empty())
 			{
-			   char* buffer = sp.GetReadBuffer();
-			   debug("GrblMachineModel: Read {} bytes : {}", bytes_read,buffer);
+			   debug("GrblMachineModel: Read {} bytes : {}", str_in.size(),buffer);
 
-				while (*buffer)
+				while (str_in[buffer])
 				{
-					if(*buffer == '\n')
+					if(str_in[buffer] == '\n')
 					{
 						string current = Util::trim_copy(mCurrentLine.str());
 						if (!current.empty())
@@ -99,7 +98,7 @@ namespace Coconut
 					}
 					else
 					{
-						mCurrentLine << *buffer;
+						mCurrentLine << str_in[buffer];
 					}
 					buffer++;
 				}

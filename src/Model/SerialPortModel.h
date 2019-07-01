@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <libserialport.h>
+#include <serial/serial.h>
 
 #include "../Common/Logger.h"
 
@@ -19,21 +19,17 @@ namespace Coconut
         ~SerialPortModel();
 
         void ProbeSerialPortNames();
+
         vector<string>& GetSerialPortNames();
-    	bool SetSerialPort(const string& port_name);
+    	void SetPortName(const string& port_name);
         void SetBaudRate(int baud);
 
         bool OpenSerialPort();
         bool CloseSerialPort();
         bool IsPortOpen();
 
-        int BytesToRead();
-        int BytesToWrite();
-
-        void FlushRead();
-        void FlushWrite();
-
-        int Read();
+        string ReadLine();
+        string Read();
         int Write(const string& data);
 
         static const vector<string> BaudRateNames;
@@ -47,8 +43,8 @@ namespace Coconut
         AppState* mAppState;
         vector<string> mSerialPortNames;
         char mReadBuffer[BUFSIZ];
-        sp_port* mPort;
-        bool mIsPortOpen;
+        string mPortName;
+        serial::Serial mPort;
 
         int mTimeout;
         int mBaudRate;

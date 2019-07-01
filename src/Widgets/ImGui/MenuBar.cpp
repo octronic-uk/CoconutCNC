@@ -49,7 +49,7 @@ namespace Coconut
                 {
                     serial_model.SetTimeout(cs.GetTimeout());
                     serial_model.SetBaudRate(cs.GetSerialBaudRate());
-                    serial_model.SetSerialPort(cs.GetSerialPort());
+                    serial_model.SetPortName(cs.GetSerialPort());
                 	serial_model.OpenSerialPort();
                     grbl.StartWorkThread();
                 }

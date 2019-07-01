@@ -110,7 +110,7 @@ namespace Coconut
         if(StringCombo("Port",&connectionPortComboIndex,ports))
         {
             cs.SetSerialPort(ports.at(connectionPortComboIndex));
-			serial_model.SetSerialPort(ports.at(connectionPortComboIndex));
+			serial_model.SetPortName(ports.at(connectionPortComboIndex));
         }
 
         ImGui::NextColumn();
