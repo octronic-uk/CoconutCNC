@@ -28,9 +28,13 @@ namespace Coconut
 	public:
 		MachineSettings();
 
-		float GetQueryPeriod() const;
-  		float* GetQueryPeriodPtr();
-		void SetQueryPeriod(float queryPeriod);
+		int  GetStatusQueryInterval() const;
+  		int* GetStatusQueryIntervalPtr();
+		void SetStatusQueryInterval(float queryInterval);
+
+        int  GetProgramSendInterval() const;
+        int* GetProgramSendIntervalPtr();
+        void SetProgramSendInterval(int psInterval);
 
 		string GetProbeCmds() const;
 		void SetProbeCmds(const string& probeCmds);
@@ -47,13 +51,15 @@ namespace Coconut
         bool FromJson(const json& j) override;
 
 	private:
-		float mQueryPeriod;
+		int mStatusQueryInterval;
+		int mProgramSendInterval;
      	vec3 mWorkArea;
 		string mProbeCmds;
 		string mSafePositionCmds;
 
         // User Command
-		const static string MACHINE_QUERY_PERIOD;
+		const static string MACHINE_STATUS_QUERY_INTERVAL;
+		const static string MACHINE_PROGRAM_SEND_INTERVAL;
 		const static string MACHINE_WORK_AREA;
 		const static string MACHINE_PROBE_CMDS;
 		const static string MACHINE_SAFE_POS_CMDS;

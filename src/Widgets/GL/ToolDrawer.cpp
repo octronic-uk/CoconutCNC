@@ -279,8 +279,11 @@ namespace Coconut
 			float rev_per_msec = spindle_speed / 60000.0f;
 			float rev_per_frame = rev_per_msec * time_delta;
 			float rev_this_frame = .360f * rev_per_frame;
-            mRotation += rev_this_frame;
+            mRotation -= rev_this_frame;
+
             if (mRotation > 360.f) mRotation -= 360.f;
+            if (mRotation < 0) mRotation += 360.f;
+
 			mModelMatrix = rotate(mModelMatrix,mRotation, vec3(0,0,1));
         }
 	}

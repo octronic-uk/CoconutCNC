@@ -25,20 +25,11 @@ namespace Coconut
     class GridDrawer : public GLWidget
     {
     public:
-        enum AxisPair
-        {
-            XY = 0,
-            XZ,
-            YZ
-        };
 
         GridDrawer(
             AppState* p,
-            AxisPair xp = AxisPair::XY,
-            vec3 position = vec3(0.0f),
             float majorSpacing = 100.0f,
             float minorSpacing = 10.0f,
-            float size = 300.0f,
             vec3 majorColour = vec3(0.0f),
             vec3 minorColour = vec3(0.4f)
         );
@@ -66,17 +57,11 @@ namespace Coconut
         vec3 GetMinorColour() const;
         void SetMinorColour(vec3 minorColour);
 
-        void SetAxisPair(GridDrawer::AxisPair);
-        GridDrawer::AxisPair GetAxisPair() const;
-
     protected: // Member functions
         void InitMajorGridData();
         void InitMinorGridData();
 
     protected: // Variables
-        AxisPair mAxisPair;
-        vec3 mTranslation;
-        float mSize;
         float mMajorSpacing;
         float mMinorSpacing;
         vec3 mMajorColour;

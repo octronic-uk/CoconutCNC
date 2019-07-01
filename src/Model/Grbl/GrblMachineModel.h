@@ -21,7 +21,6 @@
 #include <map>
 #include <thread>
 #include <sstream>
-#include <mutex>
 #include <glm/vec3.hpp>
 
 #include "GrblMachineState.h"
@@ -37,7 +36,6 @@ using std::deque;
 using std::map;
 using std::string;
 using glm::vec3;
-using std::mutex;
 
 namespace Coconut
 {
@@ -55,7 +53,7 @@ namespace Coconut
 
 		int  GrblBufferLengthInUse();
 		bool SendNextCommand();
-		
+
 		void ClearGrblCommandBuffer();
 
 		vec3  GetMachinePosition();
@@ -130,14 +128,13 @@ namespace Coconut
 		float mBufferUsedPercentage;
         int mProcessedCommandsCount;
 		int mCommandQueueInitialSize;
-		int mStatusInterval;
         bool mStatusRequested;
 		bool mProgramRunning;
         bool mGotStartupMessage;
         int mProgramIndex;
+        long mLastCommandSendTime;
 
         // Grbl State
-		mutex mManualCommandQueueMutex;
 		vector<GCodeCommand> mManualCommandQueue;
 		vector<GCodeCommand> mGrblCommandBuffer;
         GrblConfigurationModel mConfigurationModel;

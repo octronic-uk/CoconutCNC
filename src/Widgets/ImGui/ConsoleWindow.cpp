@@ -9,7 +9,7 @@ namespace Coconut
 		: ImGuiWidget(project, "Console"),
 		mCommandTextColor(1.f, 1.f, 1.f, 1.f),
 		mResponseTextColor(.5f, .5f, .5f, 1.f)
-		
+
 	{
 		memset(mMdiBuffer, 0, BUFSIZ);
 	}
@@ -25,7 +25,6 @@ namespace Coconut
 
         ImVec2 space = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("CommandHistory",ImVec2(-1,space.y - 30));
-		//std::lock_guard<mutex> guard(mConsoleLineBufferMutex);
 		for (ConsoleLine& line : mConsoleLineBuffer)
 		{
 			switch (line.Type)
@@ -42,8 +41,8 @@ namespace Coconut
 			ImGui::PopStyleColor();
 			ImGui::SetScrollHere(1.0f);
 		}
-		
-		
+
+
         ImGui::EndChild();
         ImGui::InputText("##MdiCommand", &mMdiBuffer[0], MDI_BUFFER_SIZE);
         ImGui::SameLine();
@@ -55,9 +54,8 @@ namespace Coconut
     {
 		if (!c.Data.empty())
 		{
-			std::lock_guard<mutex> guard(mConsoleLineBufferMutex);
 			mConsoleLineBuffer.push_back(c);
-		}	
+		}
     }
 }
 

@@ -38,7 +38,7 @@ namespace Coconut
 
     vec3 JsonSerialization::JsonToVec3(const json& js)
     {
-        vec3 v(0);
+        vec3 v(0.0f);
         if (js.is_array() && js.size() == 3)
         {
        		v.x = js[0];

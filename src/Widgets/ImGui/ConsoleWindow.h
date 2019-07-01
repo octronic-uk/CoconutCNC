@@ -1,11 +1,9 @@
 #pragma once
 
-#include <mutex>
 #include "ImGuiWidget.h"
 
 #define MDI_BUFFER_SIZE 128
 
-using std::mutex;
 
 namespace Coconut
 {
@@ -32,7 +30,6 @@ namespace Coconut
         ImVec4 mResponseTextColor;
     private:
         char mMdiBuffer[MDI_BUFFER_SIZE];
-		mutex mConsoleLineBufferMutex;
         vector<ConsoleLine> mConsoleLineBuffer;
     };
 }

@@ -138,7 +138,7 @@ namespace Coconut
 
         ImGui::NextColumn();
 
-        ImGui::DragInt("Timeout",cs.GetTimeoutPtr());
+        ImGui::DragInt("Timeout",cs.GetTimeoutPtr(),1,0,0,"%d ms");
 
         ImGui::Columns(1);
 
@@ -199,7 +199,9 @@ namespace Coconut
         ImGui::Columns(2);
 
         MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
-        ImGui::DragFloat("Status Query Period", ms.GetQueryPeriodPtr());
+        ImGui::DragInt("Status Query Interval", ms.GetStatusQueryIntervalPtr(),1.,1.f,0,"%d ms");
+        ImGui::NextColumn();
+        ImGui::DragInt("Program Send Interval", ms.GetProgramSendIntervalPtr(),1.,1.f,0,"%d ms");
 		ImGui::NextColumn();
 
         const char* data = ms.GetSafePositionCmds().c_str();
@@ -217,8 +219,20 @@ namespace Coconut
         ImGui::InputText("Z Probe Command",probeCmdsBuffer,BUFSIZ);
 		ImGui::NextColumn();
 
-        ImGui::InputFloat3("Working Area", ms.GetWorkAreaArray());
-		ImGui::NextColumn();
+        vec3 working_area_vec = ms.GetWorkArea();
+        float working_area[3] = {
+            working_area_vec.x,
+            working_area_vec.y,
+            working_area_vec.z
+    	};
+        if (ImGui::InputFloat3("Working Area", working_area,"%.2f mm"))
+        {
+            working_area_vec.x = working_area[0];
+            working_area_vec.y = working_area[1];
+            working_area_vec.z = working_area[2];
+            ms.SetWorkArea(working_area_vec);
+        }
+        ImGui::Columns(1);
     }
 
     void SettingsWindow::DrawToolHolderSettings()
@@ -571,7 +585,12 @@ namespace Coconut
 
             if (ImGui::Button("Set"))
             {
-
+    			grbl.SendManualGCodeCommand(
+    				GCodeCommand::SetFirmwareConfigurationCommand(
+    					p.first,
+    					configModel.GetValue(p.first).c_str()
+    				)
+    			);
             }
             ImGui::NextColumn();
 

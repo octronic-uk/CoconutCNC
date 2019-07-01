@@ -35,6 +35,8 @@
 #include "../../AppState.h"
 #include "../../Common/Logger.h"
 #include "../../Common/Time.h"
+#include "../Settings/SettingsModel.h"
+#include "../Settings/MachineSettings.h"
 
 #include <regex>
 
@@ -55,7 +57,8 @@ namespace Coconut
           mConfigurationModel(state),
           mWorkThreadRunning(false),
           mGotStartupMessage(false),
-          mStatusRecievedTime(0)
+          mStatusRecievedTime(0),
+          mLastCommandSendTime(0)
 	{
         debug("GrblMachineModel: Constructor");
         ClearState();
@@ -109,9 +112,11 @@ namespace Coconut
 
     void GrblMachineModel::WorkFunction()
     {
+        MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
+        SerialPortModel& sp = mAppState->GetSerialPortModel();
+
 		while(mWorkThreadRunning)
         {
-            SerialPortModel& sp = mAppState->GetSerialPortModel();
 
             if (!sp.IsPortOpen())
             {
@@ -131,16 +136,18 @@ namespace Coconut
 			mLinesRead.clear();
 
             if (mGotStartupMessage && !mStatusRequested &&
-                Time::GetCurrentTime() > mStatusRecievedTime+mStatusInterval)
+                Time::GetCurrentTime() > mStatusRecievedTime+ms.GetStatusQueryInterval())
             {
 				RequestStatus();
             }
 
 			WriteManualGCodeCommands();
 
-            if (mProgramRunning)
+            if (mProgramRunning &&
+                Time::GetCurrentTime() > mLastCommandSendTime+ms.GetProgramSendInterval())
             {
             	SendNextCommand();
+                mLastCommandSendTime = Time::GetCurrentTime();
             }
 
             yield();
@@ -305,17 +312,13 @@ namespace Coconut
 					if (next.IsM30Command())
 					{
 						mProgramRunning = false;
-
+                        mBufferUsedPercentage = 0.0f;
+                        mBufferUsedPercentage = 0.0f;
+                        mProcessedCommandsCount = 0.0f;
+                        mCommandQueueInitialSize = 0.0f;
+                        mProgramIndex = 0;
+                        debug("GrblMachineModel: Program Finished");
 					}
-				}
-
-				// DO NOT ELSE IF THIS.
-				// We Need to check again to see if that was the last
-				// command in the Queue/Buffer and the program has finished.
-				if (mProgramRunning && file_model.GetData().empty() && mGrblCommandBuffer.empty())
-				{
-					debug("GrblMachineModel: Program Finished");
-					mProgramRunning = false;
 				}
 
 				AppendResponseToConsole(response);
@@ -418,10 +421,10 @@ namespace Coconut
 		mLastState = GrblMachineState::Unknown;
 		mMachinePosition = vec3(0.0);
 		mWorkPosition = vec3(0.0,0.0,0.0);
-		mWorkCoordinateOffset = vec3(0.0,0.0,0.0);
-		mStatusInterval = 1000.0f/ 5.0f;
+		mWorkCoordinateOffset = vec3(0.0f,0.0f,0.0f);
 		mProcessedCommandsCount= 0;
 		mCommandQueueInitialSize = 0;
+        mLastCommandSendTime = 0;
 		mFeedOverride = 100;
 		mSpindleOverride =100;
 		mRapidOverride = 100;
@@ -433,7 +436,7 @@ namespace Coconut
         mBufferUsedPercentage = 0.0f;
 		mStatusRequested = false;
 		mProgramRunning = false;
-		mFeedRate = 10.f;
+		mFeedRate = 10;
 		mSpindleSpeed = 0;
 	}
 
@@ -570,9 +573,6 @@ namespace Coconut
 
 	void GrblMachineModel::WriteManualGCodeCommands()
 	{
-		std::lock_guard<mutex> guard(mManualCommandQueueMutex);
-		bool was_program_running = mProgramRunning;
-		mProgramRunning = false;
 		SerialPortModel& serial_port = mAppState->GetSerialPortModel();
 		for (const GCodeCommand& command : mManualCommandQueue)
 		{
@@ -588,16 +588,14 @@ namespace Coconut
 					serial_port.Write(command.GetCommand());
 				}
 				AppendCommandToConsole(command);
-			
+
 		}
 		mManualCommandQueue.clear();
-		mProgramRunning = was_program_running;
 	}
 
 
 	void GrblMachineModel::SendManualGCodeCommand(const GCodeCommand& command)
 	{
-		std::lock_guard<mutex> guard(mManualCommandQueueMutex);
 		mManualCommandQueue.push_back(command);
 	}
 

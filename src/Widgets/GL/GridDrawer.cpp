@@ -18,18 +18,19 @@
 
 #include "GridDrawer.h"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "../../AppState.h"
 #include "../../Common/Logger.h"
+#include "../../Model/Settings/SettingsModel.h"
+#include "../../Model/Settings/MachineSettings.h"
 
 namespace Coconut
 {
 
-    GridDrawer::GridDrawer
-    (
-		AppState* p, AxisPair xp, vec3 position,
-		float majorSpacing, float minorSpacing, float size,
-		vec3 majorColour, vec3 minorColour
-    )
-        : GLWidget(p, "Grid"), mAxisPair(xp), mTranslation(position), mSize(size),
+    GridDrawer::GridDrawer(AppState* p,
+		float majorSpacing, float minorSpacing,
+		vec3 majorColour, vec3 minorColour)
+        : GLWidget(p, "Grid"),
           mMajorSpacing(majorSpacing), mMinorSpacing(minorSpacing),
           mMajorColour(majorColour), mMinorColour(minorColour)
     {
@@ -59,55 +60,29 @@ namespace Coconut
     ()
     {
         debug("Grid: {}",__FUNCTION__);
+        MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
+        GLWidgetVertex lineStart, lineEnd;
+		lineStart.Color = mMajorColour;
+		lineEnd.Color = mMajorColour;
 
-        // Major Grid
-        for (float step = 0; step <= mSize; step += mMajorSpacing)
+        vec3 work_area = ms.GetWorkArea();
+
+		// X
+        for (float step = 0; step <= work_area.x; step += mMajorSpacing)
         {
-            GLWidgetVertex lineStart, lineEnd;
+			lineStart.Position = vec3(step, 0.0f, 0);
+			lineEnd.Position   = vec3(step, work_area.x, 0.0f);
+			AddLineVertex(lineStart);
+			AddLineVertex(lineEnd);
+        }
 
-            lineStart.Color = mMajorColour;
-            lineEnd.Color = mMajorColour;
-
-            switch (mAxisPair)
-            {
-                case XZ:
-                    // X
-                    lineStart.Position = vec3(step, 0.0f, 0);
-                    lineEnd.Position   = vec3(step, 0.0f, mSize);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Z
-                    lineStart.Position = vec3(0, 0.0f, step);
-                    lineEnd.Position   = vec3(mSize, 0.0f, step);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    break;
-                case YZ:
-                    // Y
-                    lineStart.Position = vec3(0.0f, step, 0);
-                    lineEnd.Position   = vec3(0.0f, step, mSize);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Z
-                    lineStart.Position = vec3(0.0f, 0.0f, step);
-                    lineEnd.Position   = vec3(0.0f, mSize, step);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    break;
-                case XY:
-                    // X
-                    lineStart.Position = vec3(step, 0.0f, 0);
-                    lineEnd.Position   = vec3(step, mSize, 0.0f);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Y
-                    lineStart.Position = vec3(0, step, 0.0f);
-                    lineEnd.Position   = vec3(mSize, step, 0.0f);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-
-                    break;
-            }
+        // Y
+        for (float step = 0; step <= work_area.y; step += mMajorSpacing)
+        {
+			lineStart.Position = vec3(0, step, 0.0f);
+			lineEnd.Position   = vec3(work_area.y, step, 0.0f);
+			AddLineVertex(lineStart);
+			AddLineVertex(lineEnd);
         }
     }
 
@@ -117,61 +92,33 @@ namespace Coconut
     {
         debug("Grid: {}",__FUNCTION__);
 
-        // Major Grid
-        for (float step = 0; step <= mSize; step += mMinorSpacing)
+        MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
+        GLWidgetVertex lineStart, lineEnd;
+		lineStart.Color = mMinorColour;
+		lineEnd.Color = mMinorColour;
+
+        vec3 work_area = ms.GetWorkArea();
+
+		// X
+        for (float step = 0; step <= work_area.x; step += mMinorSpacing)
         {
             if (fmod(step,mMajorSpacing) == 0.0f) continue;
-
-            GLWidgetVertex lineStart, lineEnd;
-            lineStart.Color = mMinorColour;
-            lineEnd.Color   = mMinorColour;
-
-            switch (mAxisPair)
-            {
-            	case XZ:
-                    // X
-                    lineStart.Position = vec3(step, 0.0f, 0);
-                    lineEnd.Position   = vec3(step, 0.0f, mSize);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Z
-                    lineStart.Position = vec3(0, 0.0f, step);
-                    lineEnd.Position   = vec3(mSize, 0.0f, step);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    break;
-                case YZ:
-                    // Y
-                    lineStart.Position = vec3(0.0f, step, 0);
-                    lineEnd.Position   = vec3(0.0f, step, mSize);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Z
-                    lineStart.Position = vec3(0.0f, 0.0f, step);
-                    lineEnd.Position   = vec3(0.0f, mSize, step);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    break;
-                case XY:
-                    // X
-                    lineStart.Position = vec3(step, 0.0f, 0);
-                    lineEnd.Position   = vec3(step, mSize, 0.0f);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    // Y
-                    lineStart.Position = vec3(0, step, 0.0f);
-                    lineEnd.Position   = vec3(mSize, step, 0.0f);
-                    AddLineVertex(lineStart);
-                    AddLineVertex(lineEnd);
-                    break;
-            }
+			lineStart.Position = vec3(step, 0.0f, 0);
+			lineEnd.Position   = vec3(step, work_area.x, 0.0f);
+			AddLineVertex(lineStart);
+			AddLineVertex(lineEnd);
         }
-    }
 
-    GridDrawer::AxisPair GridDrawer::GetAxisPair() const
-    {
-        return mAxisPair;
-    }
+        // Y
+        for (float step = 0; step <= work_area.y; step += mMinorSpacing)
+        {
+            if (fmod(step,mMajorSpacing) == 0.0f) continue;
+			lineStart.Position = vec3(0, step, 0.0f);
+			lineEnd.Position   = vec3(work_area.y, step, 0.0f);
+			AddLineVertex(lineStart);
+			AddLineVertex(lineEnd);
+        }
+	}
 
     vec3 GridDrawer::GetMinorColour() const
     {
@@ -181,11 +128,6 @@ namespace Coconut
     void GridDrawer::SetMinorColour(vec3 minorColour)
     {
         mMinorColour = minorColour;
-    }
-
-    void GridDrawer::SetAxisPair(GridDrawer::AxisPair axisPair)
-    {
-        mAxisPair = axisPair;
     }
 
     vec3 GridDrawer::GetMajorColour() const
@@ -198,15 +140,9 @@ namespace Coconut
         mMajorColour = majorColour;
     }
 
-    glm::vec3 GridDrawer::GetTranslation() const
-    {
-        return mTranslation;
-    }
-
     void GridDrawer::SetTranslation(vec3 translation)
     {
-        mTranslation = translation;
-        mModelMatrix = glm::translate(mat4(1.0f),mTranslation);
+        mModelMatrix = glm::translate(mat4(1.0f),translation);
     }
 
     float
@@ -235,16 +171,6 @@ namespace Coconut
     (float ms)
     {
         mMinorSpacing = ms < 0.1f ? 0.1f : ms;
-    }
-
-    float GridDrawer::GetSize()
-    {
-        return mSize;
-    }
-
-    void GridDrawer::SetSize(float sz)
-    {
-        mSize = sz < 1.0f ? 1.0f : sz;
     }
 
     void GridDrawer::RecalculateGridLines()

@@ -21,28 +21,44 @@ using glm::value_ptr;
 namespace Coconut
 {
 	MachineSettings::MachineSettings()
-		:  mQueryPeriod(100),
+		:  mStatusQueryInterval(200),
+          mProgramSendInterval(50),
 		  mProbeCmds("G21G91G38.2Z-30F100; G0Z1; G38.2Z-2F10"),
 		  mSafePositionCmds("G21G90; G53G0Z0"),
-		  mWorkArea(0)
+		  mWorkArea(0.f)
 	{
 
-		debug("MachineSettings: Constructing");
-	}
-
-	float MachineSettings::GetQueryPeriod() const
-	{
-        return mQueryPeriod;
+        debug("MachineSettings: Constructing");
     }
 
-    float* MachineSettings::GetQueryPeriodPtr()
+    int MachineSettings::GetProgramSendInterval() const
     {
-    	return &mQueryPeriod;
+		return mProgramSendInterval;
     }
 
-	void MachineSettings::SetQueryPeriod(float queryPeriod)
+    int* MachineSettings::GetProgramSendIntervalPtr()
+    {
+		return &mProgramSendInterval;
+    }
+
+    void MachineSettings::SetProgramSendInterval(int psInterval)
+    {
+		mProgramSendInterval = psInterval;
+    }
+
+	int MachineSettings::GetStatusQueryInterval() const
 	{
-		mQueryPeriod = queryPeriod;
+        return mStatusQueryInterval;
+    }
+
+    int* MachineSettings::GetStatusQueryIntervalPtr()
+    {
+    	return &mStatusQueryInterval;
+    }
+
+	void MachineSettings::SetStatusQueryInterval(float queryInterval)
+	{
+		mStatusQueryInterval = queryInterval;
 	}
 
 	string MachineSettings::GetProbeCmds() const
@@ -72,7 +88,7 @@ namespace Coconut
 
     float* MachineSettings::GetWorkAreaArray()
     {
-        return value_ptr(mWorkArea);
+        return &mWorkArea[0];
     }
 
 	void MachineSettings::SetWorkArea(const vec3& workArea)
@@ -84,7 +100,8 @@ namespace Coconut
     {
 		json j;
 
-		j[MACHINE_QUERY_PERIOD] = GetQueryPeriod();
+		j[MACHINE_STATUS_QUERY_INTERVAL] = GetStatusQueryInterval();
+		j[MACHINE_PROGRAM_SEND_INTERVAL] = GetProgramSendInterval();
 		j[MACHINE_WORK_AREA] = Vec3ToJson(GetWorkArea());
 		j[MACHINE_PROBE_CMDS] = GetProbeCmds();
 		j[MACHINE_SAFE_POS_CMDS] = GetSafePositionCmds();
@@ -94,9 +111,14 @@ namespace Coconut
 
     bool MachineSettings::FromJson(const nlohmann::json& j)
     {
-        if (j.find(MACHINE_QUERY_PERIOD) != j.end() && j[MACHINE_QUERY_PERIOD].is_number())
+        if (j.find(MACHINE_STATUS_QUERY_INTERVAL) != j.end() && j[MACHINE_STATUS_QUERY_INTERVAL].is_number())
         {
-			SetQueryPeriod(j[MACHINE_QUERY_PERIOD]);
+			SetStatusQueryInterval(j[MACHINE_STATUS_QUERY_INTERVAL]);
+		}
+
+        if (j.find(MACHINE_PROGRAM_SEND_INTERVAL) != j.end() && j[MACHINE_PROGRAM_SEND_INTERVAL].is_number())
+        {
+			SetProgramSendInterval(j[MACHINE_PROGRAM_SEND_INTERVAL]);
 		}
 
 		if (j.find(MACHINE_WORK_AREA) != j.end() && j[MACHINE_WORK_AREA].is_array())
@@ -118,7 +140,8 @@ namespace Coconut
     }
 
     // User Command
-    const string MachineSettings::MACHINE_QUERY_PERIOD = "query_period";
+    const string MachineSettings::MACHINE_STATUS_QUERY_INTERVAL = "status_query_itvl";
+    const string MachineSettings::MACHINE_PROGRAM_SEND_INTERVAL = "program_send_itvl";
 	const string MachineSettings::MACHINE_WORK_AREA = "work_area";
 	const string MachineSettings::MACHINE_PROBE_CMDS = "probe_cmds";
 	const string MachineSettings::MACHINE_SAFE_POS_CMDS = "safe_pos_cmds";

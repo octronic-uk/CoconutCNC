@@ -111,7 +111,7 @@ namespace Coconut
 
     GCodeDrawer& AppState::GetGCodeDrawer()
     {
-       return mGCodeDrawer;
+        return mGCodeDrawer;
     }
 
     ToolDrawer& AppState::GetToolDrawer()
