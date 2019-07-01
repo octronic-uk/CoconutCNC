@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 2.8.0)
-project(CoconutCNC CXX)
+project(CoconutCNC C CXX)
+
+# Compiler Variables ###########################################################
 
 # Set Cpp Standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# CFlags
+# -fms-exxtensions required for libserialport
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fdeclspec)
 
 # Disable In-Source Builds
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -11,109 +17,103 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 # Makefile Settings
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE   OFF)
 
-# Remove 'lib' prefix for shared libraries on Windows
-if (WIN32)
-  set(CMAKE_SHARED_LIBRARY_PREFIX "")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MT")
-  message("MSVC Version: ${MSVC_VERSION} | Toolset: ${MSVC_TOOLSET_VERSION}")
-endif()
+# Find Sources #################################################################
 
+file(GLOB_RECURSE SRC_FILES	"src/*.h"        "src/*.cpp")
+file(GLOB IMGUI_SRC_FILES   "Deps/ImGui/*.cpp" "Deps/ImGui/*.h")
 
-file(GLOB TOP_SRC_FILES "*.cpp" "*.h")
+set(GLAD_INCLUDE_DIR   "${PROJECT_SOURCE_DIR}/Deps/glad/include")
+set(GLAD_SRC           "${PROJECT_SOURCE_DIR}/Deps/glad/src/glad.c")
+set(GLM_INCLUDE_DIR    "${PROJECT_SOURCE_DIR}/Deps/glm/")
+set(IMGUI_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/Deps/ImGui")
+set(IFCH_INCLUDE_DIR   "${PROJECT_SOURCE_DIR}/Deps/IconFontCppHelpers")
+set(JSON_INCLUDE_DIR   "${PROJECT_SOURCE_DIR}/Deps/nlohmann/")
+set(NFD_INCLUDE_DIR    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/src/include")
+set(NFD_LIBRARY_MAC    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
+set(NFD_LIBRARY_LINUX  "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
+set(NFD_LIBRARY_WIN    "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.dll")
+set(SERIALPORT_DIR     "${PROJECT_SOURCE_DIR}/Deps/libserialport")
+set(SPDLOG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/spdlog/include")
 
-file(
-	GLOB_RECURSE SRC_FILES
-	"Common/*.h" "Common/*.cpp"
-	"Deps/ImGui/*.h" "Deps/ImGui/*.cpp"
-	"Model/*.h" "Model/*.cpp"
-	"Widgets/*.h" "Widgets/*.cpp"
+# for LibSerialPort
+set(SERIALPORT_SRC_FILES
+	"${SERIALPORT_DIR}/serialport.c"
+	"${SERIALPORT_DIR}/libserialport_internal.h"
+	"${SERIALPORT_DIR}/libserialport.h"
+	"${SERIALPORT_DIR}/config.h"
 )
 
+if (WIN32)
+	set (SERIALPORT_SRC_FILES ${SERIALPORT_SRC_FILES}	"${SERIALPORT_DIR}/windows.c")
+endif(WIN32)
+
+if (UNIX AND NOT APPLE)
+	set (SERIALPORT_SRC_FILES
+		${SERIALPORT_SRC_FILES}
+		"${SERIALPORT_DIR}/linux.c"
+		"${SERIALPORT_DIR}/linux_termios.c"
+		"${SERIALPORT_DIR}/linux_termios.h"
+	)
+endif(UNIX AND NOT APPLE)
+
+if(APPLE)
+	set (SERIALPORT_SRC_FILES ${SERIALPORT_SRC_FILES} "${SERIALPORT_DIR}/macosx.c")
+endif(APPLE)
+
+# Find Dependencies ############################################################
+
 find_package(Freetype REQUIRED)
-find_package(GLEW     REQUIRED)
 find_package(glfw3    REQUIRED)
 find_package(OpenGL   REQUIRED)
 
-set(SPDLOG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/spdlog/include")
-set(IMGUI_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/ImGui")
-set(NFD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/src/include")
-set(NFD_LIBRARY_MAC "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
-set(JSON_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/nlohmann/")
-set(GLM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/glm/")
+# Targets ######################################################################
 
-message("json @ ${JSON_INCLUDE_DIR}")
-add_executable (
+add_executable(
 	${PROJECT_NAME}
-	${TOP_SRC_FILES}
 	${SRC_FILES}
-	${SPDLOG_SRC_FILSE}
+	${IMGUI_SRC_FILES}
+	${SERIALPORT_SRC_FILES}
+	${GLAD_SRC}
 )
 
+include_directories(
+	${Freetype_INCLUDE_DIRS}
+	${glfw3_INCLUDE_DIR}
+	${OpenGL_INCLUDE_DIR}
+	# In /Deps
+	${GLAD_INCLUDE_DIR}
+	${GLM_INCLUDE_DIR}
+	${IMGUI_INCLUDE_DIR}
+	${IFCH_INCLUDE_DIR}
+	${SERIALPORT_DIR}
+	${NFD_INCLUDE_DIR}
+	${JSON_INCLUDE_DIR}
+	${SPDLOG_INCLUDE_DIR}
+)
+
+
 if (WIN32)
-	include_directories(
-		${Freetype_INCLUDE_DIRS}
-		${GLM_INCLUDE_DIR}
-		${glfw3_INCLUDE_DIR}
-		${OpenGL_INCLUDE_DIR}
-		# In /Deps
-		${JSON_INCLUDE_DIR}
-		${IMGUI_INCLUDE_DIR}
-		${NFD_INCLUDE_DIR}
-		${SPDLOG_INCLUDE_DIR}
-	)
     target_link_libraries(
 		${PROJECT_NAME}
-		-lserialport
-		${GLEW_LIBRARY}
 		${GLFW3_LIBRARY}
 		${Freetype_LIBRARY}
 	)
-
 # Linux
 elseif (UNIX AND NOT APPLE)
-
-	include_directories(
-		${Freetype_INCLUDE_DIRS}
-		${glfw3_INCLUDE_DIR}
-		${OpenGL_INCLUDE_DIR}
-		# In /Deps
-		${GLM_INCLUDE_DIR}
-	    ${JSON_INCLUDE_DIR}
-		${IMGUI_INCLUDE_DIR}
-    	${NFD_INCLUDE_DIR}
-		${SPDLOG_INCLUDE_DIR}
-	)
     target_link_libraries(
 		${PROJECT_NAME}
-		#libGrbl
 		-lpthread
 		-ldl
-		-lserialport
 		glfw
-		${GLEW_LIBRARY}
 		${Freetype_LIBRARY}
 		${OPENGL_LIBRARIES}
 	)
-
 elseif (APPLE)
-	include_directories(
-		${Freetype_INCLUDE_DIRS}
-		${glfw3_INCLUDE_DIR}
-		${GLEW_INCLUDE_DIR}
-		# In /Deps
-		${GLM_INCLUDE_DIR}
-		${OpenGL_INCLUDE_DIR}
-		${IMGUI_INCLUDE_DIR}
-    	${NFD_INCLUDE_DIR}
-		${JSON_INCLUDE_DIR}
-		${SPDLOG_INCLUDE_DIR}
-	)
-    target_link_libraries(
+	    target_link_libraries(
 		${PROJECT_NAME}
-		#libGrbl
 		-lpthread
 		-ldl
 		"-framework IOKit"
@@ -121,10 +121,8 @@ elseif (APPLE)
 		"-framework OpenGL"
 		"-framework CoreFoundation"
 		"-framework Carbon"
-		/usr/local/lib/libserialport.a
 		${NFD_LIBRARY_MAC}
 		glfw
-		${GLEW_LIBRARY}
 		${Freetype_LIBRARY}
 	)
 endif()

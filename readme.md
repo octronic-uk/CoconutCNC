@@ -25,15 +25,18 @@
 ## External Build Requirements
 * GLFW3
 * FreeType
+* LibSerialPort https://sigrok.org/wiki/Libserialport
 
-## Depends on
+## Depends on (included in src tree, see project for respective licenses)
+* ImGui https://github.com/ocornut/imgui
+* IconFontCppHelpers https://github.com/juliettef/IconFontCppHeaders
+* GLAD https://glad.dav1d.de/
 * GLM https://glm.g-truc.net/
 * spdlog https://github.com/gabime/spdlog
 * nlohmann json https://github.com/nlohmann/json
 * NativeFileDialog https://github.com/mlabbe/nativefiledialog
-* LibSerialPort https://sigrok.org/wiki/Libserialport
 
-## Credits
+## Extra Credits
 * Thanks to the developers & /contributers of Candle, the basis of CoconutCNC. https://github.com/Denvi/Candle.git
 * Thanks to https://icons8.com/icon/24979/coconut for the icon.
 * Using UI Icons from FontAwesome https://fontawesome.com
