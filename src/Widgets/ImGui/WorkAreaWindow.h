@@ -32,19 +32,16 @@ namespace Coconut
 
    	 	bool BindFramebuffer();
 
-        int GetContentAreaWidth();
-        int GetContentAreaHeight();
+        float GetContentAreaWidth();
+        float GetContentAreaHeight();
         bool PreviewSizeHasChanged();
 
         void SetCameraTarget(const vec3&);
         void SetCameraPosition(const vec3&);
 
-        GLuint GetTexture();
-        void   SetTexture(GLuint t);
-
+    
         GLuint GetFBO();
-        void   SetFBO(GLuint t);
-
+  
         mat4 GetViewMatrix();
         mat4 GetProjectionMatrix();
 

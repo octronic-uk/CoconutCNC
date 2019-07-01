@@ -1,3 +1,8 @@
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#include <cmath>
+#endif
+
 #include "AppState.h"
 #include "Window.h"
 #include "Common/Logger.h"

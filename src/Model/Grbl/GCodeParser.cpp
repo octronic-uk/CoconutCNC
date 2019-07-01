@@ -8,6 +8,7 @@
 #include "GCodeParser.h"
 
 #include <iostream>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cctype>
 #include <sstream>
@@ -18,6 +19,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "../../Common/Util.h"
 #include "../../Common/Logger.h"
+
+#ifdef max
+#undef max
+#endif
 
 using std::smatch;
 using std::ssub_match;
@@ -39,18 +44,18 @@ namespace Coconut
 		: mIsMetric(true),
 		  mInAbsoluteMode(true),
 		  mInAbsoluteIJKMode(false),
-		  mLastGcodeCommand(-1),
-		  mCurrentPoint(vec3(NAN)),
+		  mLastGcodeCommand(-1.f),
+		  mCurrentPoint(vec3((float)NAN)),
 		  mCommandNumber(0),
-		  mSpeedOverride(-1),
+		  mSpeedOverride(-1.f),
 		  mTruncateDecimalLength(40),
 		  mRemoveAllWhitespace(true),
 		  mConvertArcsToLines(false),
-		  mSmallArcThreshold(1.0),
-		  mSmallArcSegmentLength(0.3),
-		  mLastSpeed(0),
-		  mTraverseSpeed(300),
-		  mLastSpindleSpeed(0),
+		  mSmallArcThreshold(1.0f),
+		  mSmallArcSegmentLength(0.3f),
+		  mLastSpeed(0.f),
+		  mTraverseSpeed(300.f),
+		  mLastSpindleSpeed(0.f),
           mCurrentPlane(PointSegment::planes::XY)
 	{
 		info("GcodeParser: Constructing");
@@ -64,17 +69,17 @@ namespace Coconut
 		mIsMetric = true;
 		mInAbsoluteMode = true;
 		mInAbsoluteIJKMode = false;
-		mLastGcodeCommand = -1;
+		mLastGcodeCommand = -1.f;
 		mCommandNumber = 0;
-		mSpeedOverride = -1;
+		mSpeedOverride = -1.f;
 		mTruncateDecimalLength = 40;
 		mRemoveAllWhitespace = true;
 		mConvertArcsToLines = false;
-		mSmallArcThreshold = 1.0;
-		mSmallArcSegmentLength = 0.3;
-		mLastSpeed = 0;
-		mTraverseSpeed = 300;
-		mLastSpindleSpeed = 0;
+		mSmallArcThreshold = 1.0f;
+		mSmallArcSegmentLength = 0.3f;
+		mLastSpeed = 0.f;
+		mTraverseSpeed = 300.f;
+		mLastSpindleSpeed = 0.f;
 	}
 
     void GCodeParser::ClearState()
@@ -89,11 +94,11 @@ namespace Coconut
 		mTruncateDecimalLength = 40;
 		mRemoveAllWhitespace = true;
 		mConvertArcsToLines = false;
-		mSmallArcThreshold = 1.0;
-		mSmallArcSegmentLength = 0.3;
-		mLastSpeed = 0;
-		mTraverseSpeed = 300;
-		mLastSpindleSpeed = 0;
+		mSmallArcThreshold = 1.0f;
+		mSmallArcSegmentLength = 0.3f;
+		mLastSpeed = 0.f;
+		mTraverseSpeed = 300.f;
+		mLastSpindleSpeed = 0.f;
     }
 
 	bool GCodeParser::GetConvertArcsToLines()
@@ -116,32 +121,32 @@ namespace Coconut
 		mRemoveAllWhitespace = removeAllWhitespace;
 	}
 
-	double GCodeParser::GetSmallArcSegmentLength()
+	float GCodeParser::GetSmallArcSegmentLength()
 	{
 		return mSmallArcSegmentLength;
 	}
 
-	void GCodeParser::SetSmallArcSegmentLength(double smallArcSegmentLength)
+	void GCodeParser::SetSmallArcSegmentLength(float smallArcSegmentLength)
 	{
 		mSmallArcSegmentLength = smallArcSegmentLength;
 	}
 
-	double GCodeParser::GetSmallArcThreshold()
+	float GCodeParser::GetSmallArcThreshold()
 	{
 		return mSmallArcThreshold;
 	}
 
-	void GCodeParser::SetSmallArcThreshold(double smallArcThreshold)
+	void GCodeParser::SetSmallArcThreshold(float smallArcThreshold)
 	{
 		mSmallArcThreshold = smallArcThreshold;
 	}
 
-	double GCodeParser::GetSpeedOverride()
+	float GCodeParser::GetSpeedOverride()
 	{
 		return mSpeedOverride;
 	}
 
-	void GCodeParser::SetSpeedOverride(double speedOverride)
+	void GCodeParser::SetSpeedOverride(float speedOverride)
 	{
 		mSpeedOverride = speedOverride;
 	}
@@ -223,7 +228,7 @@ namespace Coconut
 		vec3& start = startSegment.GetPoint();
 		vec3& end = lastSegment.GetPoint();
 		vec3 center = lastSegment.Center();
-		double radius = lastSegment.GetRadius();
+		float radius = lastSegment.GetRadius();
 		bool clockwise = lastSegment.IsClockwise();
 		PointSegment::planes plane = startSegment.Plane();
 
@@ -278,12 +283,12 @@ namespace Coconut
 		return mPoints;
 	}
 
-	double GCodeParser::GetTraverseSpeed() const
+	float GCodeParser::GetTraverseSpeed() const
 	{
 		return mTraverseSpeed;
 	}
 
-	void GCodeParser::SetTraverseSpeed(double traverseSpeed)
+	void GCodeParser::SetTraverseSpeed(float traverseSpeed)
 	{
 		mTraverseSpeed = traverseSpeed;
 	}
@@ -301,21 +306,21 @@ namespace Coconut
 		vector<string> args = command.GetArgs();
 
 		// Handle F code
-		double speed = ParseCoord(args, 'F');
+		float speed = ParseCoord(args, 'F');
 		if (!isnan(speed))
 		{
-			mLastSpeed = mIsMetric ? speed : speed * 25.4;
+			mLastSpeed = mIsMetric ? speed : speed * 25.4f;
 		}
 
 		// Handle S code
-		double spindleSpeed = ParseCoord(args, 'S');
+		float spindleSpeed = ParseCoord(args, 'S');
 		if (!isnan(spindleSpeed))
 		{
 			mLastSpindleSpeed = spindleSpeed;
 		}
 
 		// Handle P code
-		double dwell = ParseCoord(args, 'P');
+		float dwell = ParseCoord(args, 'P');
 		if (!isnan(dwell))
 		{
             mPoints.back().SetDwell(dwell);
@@ -373,7 +378,7 @@ namespace Coconut
 		PointSegment ps = PointSegment(cmd, nextPoint, mCommandNumber++);
 
 		vec3 center = UpdateCenterWithCommand(args, mCurrentPoint, nextPoint, mInAbsoluteIJKMode, clockwise);
-		double radius = ParseCoord(args, 'R');
+		float radius = ParseCoord(args, 'R');
 
 		// Calculate radius if necessary.
 		if (isnan(radius))
@@ -392,11 +397,11 @@ namespace Coconut
 					break;
 			}
 
-			radius = sqrt
-			(
-				pow(static_cast<double>(((m * vec4(mCurrentPoint,1.0f)).x - (m * vec4(center,1.0f)).x)), 2.0) +
-				pow(static_cast<double>(((m * vec4(mCurrentPoint,1.0f)).y - (m * vec4(center,1.0f)).y)), 2.0)
-			);
+			radius = (float)sqrt
+			((float)(
+				pow((float)(((m * vec4(mCurrentPoint,1.0f)).x - (m * vec4(center,1.0f)).x)), 2.0f) +
+				pow((float)(((m * vec4(mCurrentPoint,1.0f)).y - (m * vec4(center,1.0f)).y)), 2.0f)
+			));
 		}
 
 		ps.SetIsMetric(mIsMetric);
@@ -417,7 +422,7 @@ namespace Coconut
 
 	void GCodeParser::HandleMCode(float code, const vector<string> &args)
 	{
-		double spindleSpeed = ParseCoord(args, 'S');
+		float spindleSpeed = ParseCoord(args, 'S');
 		if (!isnan(spindleSpeed))
 		{
 			mLastSpindleSpeed = spindleSpeed;
@@ -623,7 +628,7 @@ namespace Coconut
 	* In that way all speed values become a ratio of the provided speed
 	* and don't Get overridden with just a fixed speed.
 	*/
-	string GCodeParser::OverrideSpeed(const string& command, double speed)
+	string GCodeParser::OverrideSpeed(const string& command, float speed)
 	{
 		static regex re("[Ff]([0-9.]+)");
 		static smatch m;
@@ -632,7 +637,7 @@ namespace Coconut
 		{
             if (m.size() == 2)
             {
-				double speedMagnitude = (speed/100.0); // from percentage to magnitude
+				float speedMagnitude = (speed/100.0f); // from percentage to magnitude
 				ssub_match whole_str = m[0];
                 auto first = whole_str.first;
 				auto last = whole_str.second;
@@ -649,7 +654,7 @@ namespace Coconut
 	* In that way all speed values become a ratio of the provided speed
 	* and don't Get overridden with just a fixed speed.
 	*/
-	GCodeCommand GCodeParser::OverrideSpeed(const GCodeCommand& command, double speed)
+	GCodeCommand GCodeParser::OverrideSpeed(const GCodeCommand& command, float speed)
 	{
 		string cmd = command.GetCommand();
         static smatch m;
@@ -658,7 +663,7 @@ namespace Coconut
 		{
             if (m.size() == 2)
             {
-				double speedMagnitude = (speed/100.0); // from percentage to magnitude
+				float speedMagnitude = (speed/100.0f); // from percentage to magnitude
 				ssub_match whole_str = m[0];
                 auto first = whole_str.first;
 				auto last = whole_str.second;
@@ -768,7 +773,7 @@ namespace Coconut
 		{
 			if (s.length() > 0 && std::toupper(s[0]) == code)
 			{
-				l.push_back(stod(s.substr(1)));
+				l.push_back(stof(s.substr(1)));
 			}
 		}
 
@@ -830,9 +835,9 @@ namespace Coconut
     GCodeParser::UpdatePointWithCommand
     (const vector<string> &commandArgs, const vec3 &initial, bool absoluteMode)
 	{
-		double x = NAN;
-		double y = NAN;
-		double z = NAN;
+		float x = NAN;
+		float y = NAN;
+		float z = NAN;
 		char c;
 
 		for (int i = 0; i < commandArgs.size(); i++)
@@ -845,32 +850,32 @@ namespace Coconut
 				case 'X':
 					try
                     {
-						x = stod(commandArgs.at(i).substr(1));
+						x = stof(commandArgs.at(i).substr(1));
                     }
                     catch (exception& e)
                     {
-                    	info("No X Value found in command");
+                    	info("No X Value found in command {}", e.what());
                     }
 					break;
 				case 'Y':
                     try
                     {
-						y = stod(commandArgs.at(i).substr(1));
+						y = stof(commandArgs.at(i).substr(1));
                     }
                     catch (exception& e)
                     {
-                    	info("No Y Value found in command");
+                    	info("No Y Value found in command {}",e.what());
                     }
 
 					break;
 				case 'Z':
 					try
 					{
-						z = stod(commandArgs.at(i).substr(1));
+						z = stof(commandArgs.at(i).substr(1));
                     }
                     catch (exception& e)
                     {
-                    	info("No Z Value found in command");
+                    	info("No Z Value found in command {}",e.what());
                     }
 					break;
 				}
@@ -885,7 +890,7 @@ namespace Coconut
 	*/
 	vec3
     GCodeParser::UpdatePointWithCommand
-    (const vec3 &initial, double x, double y, double z, bool absoluteMode)
+    (const vec3 &initial, float x, float y, float z, bool absoluteMode)
 	{
 		vec3 newPoint(initial);// = vec3(qQNaN(),qQNaN(),qQNaN());
 
@@ -910,10 +915,10 @@ namespace Coconut
     (const vector<string>& commandArgs, const vec3& initial, const vec3& nextPoint,
      bool absoluteIJKMode, bool clockwise)
 	{
-		double i = NAN;
-		double j = NAN;
-		double k = NAN;
-		double r = NAN;
+		float i = NAN;
+		float j = NAN;
+		float k = NAN;
+		float r = NAN;
 		char c;
 
 		for (string t : commandArgs)
@@ -924,16 +929,16 @@ namespace Coconut
 				switch (c)
 				{
 				case 'I':
-					i = stod(t.substr(1));
+					i = stof(t.substr(1));
 					break;
 				case 'J':
-					j = stod(t.substr(1));
+					j = stof(t.substr(1));
 					break;
 				case 'K':
-					k = stod(t.substr(1));
+					k = stof(t.substr(1));
 					break;
 				case 'R':
-					r = stod(t.substr(1));
+					r = stof(t.substr(1));
 					break;
 				}
 			}
@@ -947,8 +952,8 @@ namespace Coconut
 		return UpdatePointWithCommand(initial, i, j, k, absoluteIJKMode);
 	}
 
-	string GCodeParser::GenerateG1FromPoints(const vec3& start, const vec3& end,
-                                             bool absoluteMode, int precision)
+	string GCodeParser::GenerateG1FromPoints
+	(const vec3& start, const vec3& end, bool absoluteMode, int precision)
 	{
 		stringstream sb;
 		sb << "G1";
@@ -1057,17 +1062,17 @@ namespace Coconut
 
 	// TODO: Replace everything that uses this with a loop that loops through
 	// the string and creates a hash with all the values.
-	double GCodeParser::ParseCoord(const vector<string>& argList, char c)
+	float GCodeParser::ParseCoord(const vector<string>& argList, char c)
 	{
 	//    int n = argList.length();
 
 	//    for (int i = 0; i < n; i++) {
-	//        if (argList[i].length() > 0 && argList[i][0].toUpper() == c) return argList[i].mid(1).toDouble();
+	//        if (argList[i].length() > 0 && argList[i][0].toUpper() == c) return argList[i].mid(1).tofloat();
 	//    }
 
 		for(string t : argList)
 		{
-			if (t.length() > 0 && std::toupper(t[0]) == c) return stod(t.substr(1));
+			if (t.length() > 0 && std::toupper(t[0]) == c) return stof(t.substr(1));
 		}
 		return NAN;
 	}
@@ -1079,15 +1084,15 @@ namespace Coconut
 	//}
 
 	vec3 GCodeParser::ConvertRToCenter
-    (const vec3& start, const vec3& end, double rad, bool absoluteIJK, bool clockwise)
+    (const vec3& start, const vec3& end, float rad, bool absoluteIJK, bool clockwise)
 	{
-		double radius = rad;
+		float radius = rad;
 		vec3 center;
 
-		double x = end.x - start.x;
-		double y = end.y - start.y;
+		float x = end.x - start.x;
+		float y = end.y - start.y;
 
-		double height_x2_div_diameter = 4 * radius * radius - x * x - y * y;
+		float height_x2_div_diameter = 4.0f * radius * radius - x * x - y * y;
 		if (height_x2_div_diameter < 0)
 		{
 			//cout << "Error computing arc radius.";
@@ -1108,8 +1113,8 @@ namespace Coconut
 			radius = -radius;
 		}
 
-		double offSetX = 0.5 * (x - (y * height_x2_div_diameter));
-		double offSetY = 0.5 * (y + (x * height_x2_div_diameter));
+		float offSetX = 0.5f * (x - (y * height_x2_div_diameter));
+		float offSetY = 0.5f * (y + (x * height_x2_div_diameter));
 
 		if (!absoluteIJK)
 		{
@@ -1128,12 +1133,12 @@ namespace Coconut
 	/**
 	* Return the angle in radians when going from start to end.
 	*/
-	double GCodeParser::GetAngle(const vec3& start, const vec3& end)
+	float GCodeParser::GetAngle(const vec3& start, const vec3& end)
 	{
-		double deltaX = end.x - start.x;
-		double deltaY = end.y - start.y;
+		float deltaX = end.x - start.x;
+		float deltaY = end.y - start.y;
 
-		double angle = 0.0;
+		float angle = 0.0;
 
 		if (deltaX != 0)
 		{ // prevent div by 0
@@ -1144,15 +1149,15 @@ namespace Coconut
 			}
 			else if (deltaX < 0 && deltaY >= 0)
 			{ // 90 to 180
-				angle = M_PI - fabs(atan(deltaY / deltaX));
+				angle =(float)( M_PI - fabs(atan(deltaY / deltaX)));
 			}
 			else if (deltaX < 0 && deltaY < 0)
 			{ // 180 - 270
-				angle = M_PI + fabs(atan(deltaY / deltaX));
+				angle = (float)(M_PI + fabs(atan(deltaY / deltaX)));
 			}
 			else if (deltaX > 0 && deltaY < 0)
 			{ // 270 - 360
-				angle = M_PI * 2 - fabs(atan(deltaY / deltaX));
+				angle =(float)( M_PI * 2 - fabs(atan(deltaY / deltaX)));
 			}
 		}
 		else
@@ -1160,26 +1165,26 @@ namespace Coconut
 			// 90 deg
 			if (deltaY > 0)
 			{
-				angle = M_PI / 2.0;
+				angle = (float)(M_PI / 2.0f);
 			}
 			// 270 deg
 			else
 			{
-				angle = M_PI * 3.0 / 2.0;
+				angle = (float)(M_PI * 3.0f / 2.0f);
 			}
 		}
 
 		return angle;
 	}
 
-	double GCodeParser::CalculateSweep(double startAngle, double endAngle, bool isCw)
+	float GCodeParser::CalculateSweep(float startAngle, float endAngle, bool isCw)
 	{
-		double sweep;
+		float sweep;
 
 		// Full circle
 		if (startAngle == endAngle)
 		{
-			sweep = (M_PI * 2);
+			sweep = (float)(M_PI * 2.0f);
 			// Arcs
 		}
 		else
@@ -1187,16 +1192,16 @@ namespace Coconut
 			// Account for full circles and end angles of 0/360
 			if (endAngle == 0)
 			{
-				endAngle = M_PI * 2;
+				endAngle = (float) M_PI * 2.0f;
 			}
 			// Calculate distance along arc.
 			if (!isCw && endAngle < startAngle)
 			{
-				sweep = ((M_PI * 2 - startAngle) + endAngle);
+				sweep = (float)((M_PI * 2.0f - startAngle) + endAngle);
 			}
 			else if (isCw && endAngle > startAngle)
 			{
-				sweep = ((M_PI * 2 - endAngle) + startAngle);
+				sweep = (float)((M_PI * 2.0f - endAngle) + startAngle);
 			}
 			else
 			{
@@ -1216,10 +1221,10 @@ namespace Coconut
 	GCodeParser::GeneratePointsAlongArcBDring
 	(
 			PointSegment::planes plane, vec3& start, vec3& end,
-			vec3& center, bool clockwise, double rad, double minArcLength,
-			double arcPrecision, bool arcDegreeMode
+			vec3& center, bool clockwise, float rad, float minArcLength,
+			float arcPrecision, bool arcDegreeMode
 	){
-		double radius = rad;
+		float radius = rad;
 		// Rotate vectors according to plane
 		mat4 m(1.0f);
 
@@ -1239,7 +1244,7 @@ namespace Coconut
 		center = m * vec4(center,1.0f);
 
 		// Check center
-		if (isnan(center.length()))
+		if (isnan((float)center.length()))
 		{
 			return vector<vec3>();
 		}
@@ -1247,15 +1252,15 @@ namespace Coconut
 		// Calculate radius if necessary.
 		if (radius == 0)
 		{
-			radius = sqrt(pow((double)(start.x - center.x), 2.0) + pow((double)(end.y - center.y), 2.0));
+			radius = sqrt(pow((float)(start.x - center.x), 2.0f) + pow((float)(end.y - center.y), 2.0f));
 		}
 
-		double startAngle = GetAngle(center, start);
-		double endAngle = GetAngle(center, end);
-		double sweep = CalculateSweep(startAngle, endAngle, clockwise);
+		float startAngle = GetAngle(center, start);
+		float endAngle = GetAngle(center, end);
+		float sweep = CalculateSweep(startAngle, endAngle, clockwise);
 
 		// Convert units.
-		double arcLength = sweep * radius;
+		float arcLength = sweep * radius;
 
 		// If this arc doesn't meet the minimum threshold, don't expand.
 	//    if (minArcLength > 0 && arcLength < minArcLength) {
@@ -1267,7 +1272,7 @@ namespace Coconut
 
 		if (arcDegreeMode && arcPrecision > 0)
 		{
-			numPoints = max(1.0, sweep / (M_PI * arcPrecision / 180));
+			numPoints = (int)max(1.0f, (float) (sweep / (M_PI * arcPrecision / 180.0f)));
 		}
 		else
 		{
@@ -1291,8 +1296,8 @@ namespace Coconut
 	GCodeParser::GeneratePointsAlongArcBDring
 	(
 		PointSegment::planes plane, vec3& p1, vec3& p2,
-		vec3& center, bool isCw, double radius, double startAngle,
-		double sweep, int numPoints
+		vec3& center, bool isCw, float radius, float startAngle,
+		float sweep, int numPoints
 	){
 		// Prepare rotation matrix to restore plane
 		mat4 m(1.0f);
@@ -1310,15 +1315,15 @@ namespace Coconut
 
 		vec3 lineEnd(p2.x, p2.y, p1.z);
 		vector<vec3> segments;
-		double angle;
+		float angle;
 
 		// Calculate radius if necessary.
 		if (radius == 0)
 		{
-			radius = sqrt(pow((double)(p1.x - center.x), 2.0) + pow((double)(p1.y - center.y), 2.0));
+			radius = sqrt(pow((float)(p1.x - center.x), 2.0f) + pow((float)(p1.y - center.y), 2.0f));
 		}
 
-		double zIncrement = (p2.z - p1.z) / numPoints;
+		float zIncrement = (p2.z - p1.z) / numPoints;
 		for (int i = 1; i < numPoints; i++)
 		{
 			if (isCw)
@@ -1330,9 +1335,9 @@ namespace Coconut
 				angle = (startAngle + i * sweep / numPoints);
 			}
 
-			if (angle >= M_PI * 2)
+			if (angle >= M_PI * 2.0f)
 			{
-				angle = angle - M_PI * 2;
+				angle = (float)(angle - M_PI * 2.0f);
 			}
 
 			lineEnd.x = (cos(angle) * radius + center.x);

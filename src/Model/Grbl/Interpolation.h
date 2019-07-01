@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <glm/vec3.hpp>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 using std::vector;

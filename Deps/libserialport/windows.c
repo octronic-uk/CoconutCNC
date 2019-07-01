@@ -22,6 +22,8 @@
 #include "libserialport.h"
 #include "libserialport_internal.h"
 
+#pragma comment (lib, "Setupapi.lib")
+
 /* USB path is a string of at most 8 decimal numbers < 128 separated by dots. */
 #define MAX_USB_PATH ((8 * 3) + (7 * 1) + 1)
 
@@ -30,29 +32,36 @@ static void enumerate_hub(struct sp_port *port, const char *hub_name,
 
 static char *wc_to_utf8(PWCHAR wc_buffer, ULONG size)
 {
-	WCHAR wc_str[(size / sizeof(WCHAR)) + 1];
+	const long sz = (size / sizeof(WCHAR)) + 1;
+	WCHAR wc_str[1024] = {0};// = malloc(sz);
 	char *utf8_str;
 
 	/* Zero-terminate the wide char string. */
 	memcpy(wc_str, wc_buffer, size);
-	wc_str[sizeof(wc_str) - 1] = 0;
+	wc_str[1023/*sizeof(wc_str) - 1*/] = 0;
 
 	/* Compute the size of the UTF-8 converted string. */
 	if (!(size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, wc_str, -1,
-	                                 NULL, 0, NULL, NULL)))
+		NULL, 0, NULL, NULL)))
+	{
+		//free(wc_str);
 		return NULL;
-
+	}
 	/* Allocate UTF-8 output buffer. */
 	if (!(utf8_str = malloc(size)))
+	{
+		//free(wc_str);
 		return NULL;
-
+	}
 	/* Actually converted to UTF-8. */
-	if (!WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, wc_str, -1,
-	                         utf8_str, size, NULL, NULL)) {
+	if (!WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, wc_str, -1, utf8_str, size, NULL, NULL)) 
+	{
 		free(utf8_str);
+		//free(wc_str);
 		return NULL;
 	}
 
+	//free(wc_str);
 	return utf8_str;
 }
 

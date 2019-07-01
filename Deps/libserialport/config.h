@@ -84,12 +84,13 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.1.1"
 
-/* Macro preceding public API functions */
+/* Macro preceding public API functions * /
 #ifdef WIN32
 #define SP_API __declspec(dllexport)
 #else
 #define SP_API
 #endif
+*/
 
 /* . */
 #define SP_LIB_VERSION_AGE 1

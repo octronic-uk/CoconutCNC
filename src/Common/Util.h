@@ -7,6 +7,7 @@
 #include <locale>
 #include <string>
 #include <cctype>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
 
@@ -29,28 +30,28 @@ namespace Coconut
 	class Util
 	{
 	public:
-		static double nMin(double v1, double v2)
+		static inline float nMin(float  v1, float v2)
 		{
-			if (!isnan(v1) && !isnan(v2)) return min<double>(v1, v2);
+			if (!isnan(v1) && !isnan(v2)) return min<float>(v1, v2);
 			else if (!isnan(v1)) return v1;
 			else if (!isnan(v2)) return v2;
 			else return NAN;
 		}
 
-		static double nMax(double v1, double v2)
+		static inline float nMax(float v1, float v2)
 		{
-			if (!isnan(v1) && !isnan(v2)) return max<double>(v1, v2);
+			if (!isnan(v1) && !isnan(v2)) return max<float>(v1, v2);
 			else if (!isnan(v1)) return v1;
 			else if (!isnan(v2)) return v2;
 			else return NAN;
 		}
 
-		static double toMetric(double value)
+		static inline float toMetric(float value)
 		{
-			return value * 25.4;
+			return value * 25.4f;
 		}
 
-		static bool compareCoordinates(vec3 machine, double x, double y, double z)
+		static inline bool compareCoordinates(vec3 machine, float x, float y, float z)
 		{
 			return machine.x == x && machine.y == y && machine.z == z;
 		}

@@ -31,11 +31,16 @@
 #include "GrblMachineState.h"
 #include "GCodeFileModel.h"
 
+
 #include "../../AppState.h"
 #include "../../Common/Logger.h"
+#include "../../Common/Time.h"
 
 #include <regex>
 
+#ifdef GetCurrentTime
+#undef GetCurrentTime
+#endif
 
 using std::regex;
 using std::smatch;
@@ -717,7 +722,7 @@ namespace Coconut
         return mFeedRate;
     }
 
-    void GrblMachineModel::SetFeedRate(float feed)
+    void GrblMachineModel::SetFeedRate(int feed)
     {
         mFeedRate = feed;
     }

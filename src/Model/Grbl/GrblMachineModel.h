@@ -54,11 +54,7 @@ namespace Coconut
 
 		int  GrblBufferLengthInUse();
 		bool SendNextCommand();
-		int  CommandsQueueLength();
-
-		void RestoreOffsets(GrblMachineState& state);
-		void StoreOffsets(GrblMachineState& state);
-		void RestoreParserState();
+		
 		void ClearGrblCommandBuffer();
 
 		vec3  GetMachinePosition();
@@ -77,11 +73,8 @@ namespace Coconut
 		void SendProgram();
 		void SendManualGCodeCommand(const GCodeCommand& cmd);
 
-		void UpdateSpindleOverride(float speed);
-		void UpdateFeedOverride(float rate);
 		void UpdateRapidOverride(float rate);
 
-		void BytesWritten(int bytes);
 
         GrblConfigurationModel& GetConfigurationModel();
         bool IsWorkThreadRunning();
@@ -89,7 +82,7 @@ namespace Coconut
         GrblMachineState GetState();
 
         float GetFeedRate() const;
-        void SetFeedRate(float);
+        void SetFeedRate(int);
         int GetSpindleSpeed() const;
         void SetSpindleSpeed(int);
         int GetToolNumber() const;
@@ -102,7 +95,6 @@ namespace Coconut
         void AppendResponseToConsole(const GrblResponse& command);
 
 		GCodeCommand FeedOverride(const GCodeCommand& command, double overridePercent);
-		GCodeCommand GetNextCommand(GCodeFileModel& gcodeFile);
 
 		bool IsSpaceInGrblBuffer(const GCodeCommand& cmd);
 

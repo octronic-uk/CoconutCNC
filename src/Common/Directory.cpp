@@ -2,7 +2,6 @@
 #include "File.h"
 
 #ifdef WIN32
-#include "../Deps/dirent.h"
 #include <direct.h>
 #else
 #include <dirent.h>

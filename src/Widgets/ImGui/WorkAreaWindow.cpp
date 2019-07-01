@@ -256,12 +256,12 @@ namespace Coconut
         ImGui::PopStyleVar();
     }
 
-    int WorkAreaWindow::GetContentAreaWidth()
+    float WorkAreaWindow::GetContentAreaWidth()
     {
 		return mContentAreaSize.x;
     }
 
-    int WorkAreaWindow::GetContentAreaHeight()
+    float WorkAreaWindow::GetContentAreaHeight()
     {
 		return mContentAreaSize.y;
     }

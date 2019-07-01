@@ -44,6 +44,9 @@ namespace Coconut
         int GetFileSize() const;
         bool WriteBinary(const vector<char>&) const;
         bool WriteString(const string&) const;
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
         bool DeleteFile() const;
         bool Exists() const;
         string NameWithExtension() const;

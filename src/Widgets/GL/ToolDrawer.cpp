@@ -10,6 +10,14 @@
 #include "../../Model/Settings/ToolHolderSettings.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#endif
+
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;

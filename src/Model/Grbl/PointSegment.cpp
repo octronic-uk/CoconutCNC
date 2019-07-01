@@ -74,7 +74,7 @@ namespace Coconut
 		const vec3 &point,
 		int num,
 		const vec3 &center,
-		double radius,
+		float radius,
 		bool clockwise
 	) : PointSegment(parent, point, num)
 	{
@@ -113,9 +113,9 @@ namespace Coconut
 		return mPoint;
 	}
 
-	vector<double> PointSegment::Points() const
+	vector<float> PointSegment::Points() const
 	{
-		vector<double> points;
+		vector<float> points;
 		points.push_back(mPoint.x);
 		points.push_back(mPoint.y);
 		return points;
@@ -141,12 +141,12 @@ namespace Coconut
 		return mLineNumber;
 	}
 
-	void PointSegment::SetSpeed(double s)
+	void PointSegment::SetSpeed(float s)
 	{
 		mSpeed = s;
 	}
 
-	double PointSegment::GetSpeed() const
+	float PointSegment::GetSpeed() const
 	{
 		return mSpeed;
 	}
@@ -199,9 +199,9 @@ namespace Coconut
 		SetIsArc(true);
 	}
 
-	vector<double> PointSegment::CenterPoints() const
+	vector<float> PointSegment::CenterPoints() const
 	{
-		vector<double> points;
+		vector<float> points;
 		points.push_back(mArcProperties.center.x);
 		points.push_back(mArcProperties.center.y);
 		points.push_back(mArcProperties.center.z);
@@ -223,12 +223,12 @@ namespace Coconut
 		return mArcProperties.isClockwise;
 	}
 
-	void PointSegment::SetRadius(double rad)
+	void PointSegment::SetRadius(float rad)
 	{
 		mArcProperties.radius = rad;
 	}
 
-	double PointSegment::GetRadius() const
+	float PointSegment::GetRadius() const
 	{
 		return mArcProperties.radius;
 	}
@@ -274,22 +274,22 @@ namespace Coconut
 		mPlane = plane;
 	}
 
-	double PointSegment::GetSpindleSpeed() const
+	float PointSegment::GetSpindleSpeed() const
 	{
 		return mSpindleSpeed;
 	}
 
-	void PointSegment::SetSpindleSpeed(double spindleSpeed)
+	void PointSegment::SetSpindleSpeed(float spindleSpeed)
 	{
 		mSpindleSpeed = spindleSpeed;
 	}
 
-	double PointSegment::GetDwell() const
+	float PointSegment::GetDwell() const
 	{
 		return mDwell;
 	}
 
-	void PointSegment::SetDwell(double dwell)
+	void PointSegment::SetDwell(float dwell)
 	{
 		mDwell = dwell;
 	}

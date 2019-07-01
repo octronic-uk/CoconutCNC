@@ -5,6 +5,9 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
+#ifdef GetCurrentTime
+#undef GetCurrentTime
+#endif
 
 namespace Coconut
 {

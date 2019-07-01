@@ -55,7 +55,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 static enum sp_return set_config(struct sp_port *port, struct port_data *data,
 	const struct sp_port_config *config);
 
-SP_API enum sp_return sp_get_port_by_name(const char *portname, struct sp_port **port_ptr)
+/* SP_API */ enum sp_return sp_get_port_by_name(const char *portname, struct sp_port **port_ptr)
 {
 	struct sp_port *port;
 #ifndef NO_PORT_METADATA
@@ -117,7 +117,7 @@ SP_API enum sp_return sp_get_port_by_name(const char *portname, struct sp_port *
 	RETURN_OK();
 }
 
-SP_API char *sp_get_port_name(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_name(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -127,7 +127,7 @@ SP_API char *sp_get_port_name(const struct sp_port *port)
 	RETURN_STRING(port->name);
 }
 
-SP_API char *sp_get_port_description(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_description(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -137,7 +137,7 @@ SP_API char *sp_get_port_description(const struct sp_port *port)
 	RETURN_STRING(port->description);
 }
 
-SP_API enum sp_transport sp_get_port_transport(const struct sp_port *port)
+/* SP_API */ enum sp_transport sp_get_port_transport(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -147,7 +147,7 @@ SP_API enum sp_transport sp_get_port_transport(const struct sp_port *port)
 	RETURN_INT(port->transport);
 }
 
-SP_API enum sp_return sp_get_port_usb_bus_address(const struct sp_port *port,
+/* SP_API */ enum sp_return sp_get_port_usb_bus_address(const struct sp_port *port,
                                                   int *usb_bus,int *usb_address)
 {
 	TRACE("%p", port);
@@ -167,7 +167,7 @@ SP_API enum sp_return sp_get_port_usb_bus_address(const struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_get_port_usb_vid_pid(const struct sp_port *port,
+/* SP_API */ enum sp_return sp_get_port_usb_vid_pid(const struct sp_port *port,
                                               int *usb_vid, int *usb_pid)
 {
 	TRACE("%p", port);
@@ -187,7 +187,7 @@ SP_API enum sp_return sp_get_port_usb_vid_pid(const struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API char *sp_get_port_usb_manufacturer(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_usb_manufacturer(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -197,7 +197,7 @@ SP_API char *sp_get_port_usb_manufacturer(const struct sp_port *port)
 	RETURN_STRING(port->usb_manufacturer);
 }
 
-SP_API char *sp_get_port_usb_product(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_usb_product(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -207,7 +207,7 @@ SP_API char *sp_get_port_usb_product(const struct sp_port *port)
 	RETURN_STRING(port->usb_product);
 }
 
-SP_API char *sp_get_port_usb_serial(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_usb_serial(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -217,7 +217,7 @@ SP_API char *sp_get_port_usb_serial(const struct sp_port *port)
 	RETURN_STRING(port->usb_serial);
 }
 
-SP_API char *sp_get_port_bluetooth_address(const struct sp_port *port)
+/* SP_API */ char *sp_get_port_bluetooth_address(const struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -228,7 +228,7 @@ SP_API char *sp_get_port_bluetooth_address(const struct sp_port *port)
 	RETURN_STRING(port->bluetooth_address);
 }
 
-SP_API enum sp_return sp_get_port_handle(const struct sp_port *port,
+/* SP_API */ enum sp_return sp_get_port_handle(const struct sp_port *port,
                                          void *result_ptr)
 {
 	TRACE("%p, %p", port, result_ptr);
@@ -249,7 +249,7 @@ SP_API enum sp_return sp_get_port_handle(const struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_copy_port(const struct sp_port *port,
+/* SP_API */ enum sp_return sp_copy_port(const struct sp_port *port,
                                    struct sp_port **copy_ptr)
 {
 	TRACE("%p, %p", port, copy_ptr);
@@ -270,7 +270,7 @@ SP_API enum sp_return sp_copy_port(const struct sp_port *port,
 	RETURN_INT(sp_get_port_by_name(port->name, copy_ptr));
 }
 
-SP_API void sp_free_port(struct sp_port *port)
+/* SP_API */ void sp_free_port(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -323,7 +323,7 @@ fail:
 	return NULL;
 }
 
-SP_API enum sp_return sp_list_ports(struct sp_port ***list_ptr)
+/* SP_API */ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 {
 #ifndef NO_ENUMERATION
 	struct sp_port **list;
@@ -360,7 +360,7 @@ SP_API enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 #endif
 }
 
-SP_API void sp_free_port_list(struct sp_port **list)
+/* SP_API */ void sp_free_port_list(struct sp_port **list)
 {
 	unsigned int i;
 
@@ -439,7 +439,7 @@ static enum sp_return restart_wait(struct sp_port *port)
 }
 #endif
 
-SP_API enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
+/* SP_API */ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 {
 	struct port_data data;
 	struct sp_port_config config;
@@ -604,7 +604,7 @@ SP_API enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_close(struct sp_port *port)
+/* SP_API */ enum sp_return sp_close(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -638,7 +638,7 @@ SP_API enum sp_return sp_close(struct sp_port *port)
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_flush(struct sp_port *port, enum sp_buffer buffers)
+/* SP_API */ enum sp_return sp_flush(struct sp_port *port, enum sp_buffer buffers)
 {
 	TRACE("%p, 0x%x", port, buffers);
 
@@ -681,7 +681,7 @@ SP_API enum sp_return sp_flush(struct sp_port *port, enum sp_buffer buffers)
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_drain(struct sp_port *port)
+/* SP_API */ enum sp_return sp_drain(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -717,7 +717,7 @@ SP_API enum sp_return sp_drain(struct sp_port *port)
 #endif
 }
 
-SP_API enum sp_return sp_blocking_write(struct sp_port *port, const void *buf,
+/* SP_API */ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf,
                                         size_t count, unsigned int timeout_ms)
 {
 	TRACE("%p, %p, %d, %d", port, buf, count, timeout_ms);
@@ -849,7 +849,7 @@ SP_API enum sp_return sp_blocking_write(struct sp_port *port, const void *buf,
 #endif
 }
 
-SP_API enum sp_return sp_nonblocking_write(struct sp_port *port,
+/* SP_API */ enum sp_return sp_nonblocking_write(struct sp_port *port,
                                            const void *buf, size_t count)
 {
 	TRACE("%p, %p, %d", port, buf, count);
@@ -952,7 +952,7 @@ static enum sp_return restart_wait_if_needed(struct sp_port *port, unsigned int 
 }
 #endif
 
-SP_API enum sp_return sp_blocking_read(struct sp_port *port, void *buf,
+/* SP_API */ enum sp_return sp_blocking_read(struct sp_port *port, void *buf,
                                        size_t count, unsigned int timeout_ms)
 {
 	TRACE("%p, %p, %d, %d", port, buf, count, timeout_ms);
@@ -1078,7 +1078,7 @@ SP_API enum sp_return sp_blocking_read(struct sp_port *port, void *buf,
 #endif
 }
 
-SP_API enum sp_return sp_blocking_read_next(struct sp_port *port, void *buf,
+/* SP_API */ enum sp_return sp_blocking_read_next(struct sp_port *port, void *buf,
                                             size_t count, unsigned int timeout_ms)
 {
 	TRACE("%p, %p, %d, %d", port, buf, count, timeout_ms);
@@ -1211,7 +1211,7 @@ SP_API enum sp_return sp_blocking_read_next(struct sp_port *port, void *buf,
 #endif
 }
 
-SP_API enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf,
+/* SP_API */ enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf,
                                           size_t count)
 {
 	TRACE("%p, %p, %d", port, buf, count);
@@ -1265,7 +1265,7 @@ SP_API enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf,
 #endif
 }
 
-SP_API enum sp_return sp_input_waiting(struct sp_port *port)
+/* SP_API */ enum sp_return sp_input_waiting(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -1288,7 +1288,7 @@ SP_API enum sp_return sp_input_waiting(struct sp_port *port)
 #endif
 }
 
-SP_API enum sp_return sp_output_waiting(struct sp_port *port)
+/* SP_API */ enum sp_return sp_output_waiting(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -1311,7 +1311,7 @@ SP_API enum sp_return sp_output_waiting(struct sp_port *port)
 #endif
 }
 
-SP_API enum sp_return sp_new_event_set(struct sp_event_set **result_ptr)
+/* SP_API */ enum sp_return sp_new_event_set(struct sp_event_set **result_ptr)
 {
 	struct sp_event_set *result;
 
@@ -1360,7 +1360,7 @@ static enum sp_return add_handle(struct sp_event_set *event_set,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_add_port_events(struct sp_event_set *event_set,
+/* SP_API */ enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 	const struct sp_port *port, enum sp_event mask)
 {
 	TRACE("%p, %p, %d", event_set, port, mask);
@@ -1390,7 +1390,7 @@ SP_API enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 	RETURN_OK();
 }
 
-SP_API void sp_free_event_set(struct sp_event_set *event_set)
+/* SP_API */ void sp_free_event_set(struct sp_event_set *event_set)
 {
 	TRACE("%p", event_set);
 
@@ -1411,7 +1411,7 @@ SP_API void sp_free_event_set(struct sp_event_set *event_set)
 	RETURN();
 }
 
-SP_API enum sp_return sp_wait(struct sp_event_set *event_set,
+/* SP_API */ enum sp_return sp_wait(struct sp_event_set *event_set,
                               unsigned int timeout_ms)
 {
 	TRACE("%p, %d", event_set, timeout_ms);
@@ -2219,7 +2219,7 @@ static enum sp_return set_config(struct sp_port *port, struct port_data *data,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_new_config(struct sp_port_config **config_ptr)
+/* SP_API */ enum sp_return sp_new_config(struct sp_port_config **config_ptr)
 {
 	struct sp_port_config *config;
 
@@ -2247,7 +2247,7 @@ SP_API enum sp_return sp_new_config(struct sp_port_config **config_ptr)
 	RETURN_OK();
 }
 
-SP_API void sp_free_config(struct sp_port_config *config)
+/* SP_API */ void sp_free_config(struct sp_port_config *config)
 {
 	TRACE("%p", config);
 
@@ -2259,7 +2259,7 @@ SP_API void sp_free_config(struct sp_port_config *config)
 	RETURN();
 }
 
-SP_API enum sp_return sp_get_config(struct sp_port *port,
+/* SP_API */ enum sp_return sp_get_config(struct sp_port *port,
                                     struct sp_port_config *config)
 {
 	struct port_data data;
@@ -2276,7 +2276,7 @@ SP_API enum sp_return sp_get_config(struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_set_config(struct sp_port *port,
+/* SP_API */ enum sp_return sp_set_config(struct sp_port *port,
                                     const struct sp_port_config *config)
 {
 	struct port_data data;
@@ -2296,7 +2296,7 @@ SP_API enum sp_return sp_set_config(struct sp_port *port,
 }
 
 #define CREATE_ACCESSORS(x, type) \
-SP_API enum sp_return sp_set_##x(struct sp_port *port, type x) { \
+/* SP_API */ enum sp_return sp_set_##x(struct sp_port *port, type x) { \
 	struct port_data data; \
 	struct sp_port_config config; \
 	TRACE("%p, %d", port, x); \
@@ -2306,7 +2306,7 @@ SP_API enum sp_return sp_set_##x(struct sp_port *port, type x) { \
 	TRY(set_config(port, &data, &config)); \
 	RETURN_OK(); \
 } \
-SP_API enum sp_return sp_get_config_##x(const struct sp_port_config *config, \
+/* SP_API */ enum sp_return sp_get_config_##x(const struct sp_port_config *config, \
                                         type *x) { \
 	TRACE("%p, %p", config, x); \
 	if (!x) \
@@ -2316,7 +2316,7 @@ SP_API enum sp_return sp_get_config_##x(const struct sp_port_config *config, \
 	*x = config->x; \
 	RETURN_OK(); \
 } \
-SP_API enum sp_return sp_set_config_##x(struct sp_port_config *config, \
+/* SP_API */ enum sp_return sp_set_config_##x(struct sp_port_config *config, \
                                         type x) { \
 	TRACE("%p, %d", config, x); \
 	if (!config) \
@@ -2335,7 +2335,7 @@ CREATE_ACCESSORS(dtr, enum sp_dtr)
 CREATE_ACCESSORS(dsr, enum sp_dsr)
 CREATE_ACCESSORS(xon_xoff, enum sp_xonxoff)
 
-SP_API enum sp_return sp_set_config_flowcontrol(struct sp_port_config *config,
+/* SP_API */ enum sp_return sp_set_config_flowcontrol(struct sp_port_config *config,
                                                 enum sp_flowcontrol flowcontrol)
 {
 	if (!config)
@@ -2370,7 +2370,7 @@ SP_API enum sp_return sp_set_config_flowcontrol(struct sp_port_config *config,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_set_flowcontrol(struct sp_port *port,
+/* SP_API */ enum sp_return sp_set_flowcontrol(struct sp_port *port,
                                          enum sp_flowcontrol flowcontrol)
 {
 	struct port_data data;
@@ -2389,7 +2389,7 @@ SP_API enum sp_return sp_set_flowcontrol(struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_get_signals(struct sp_port *port,
+/* SP_API */ enum sp_return sp_get_signals(struct sp_port *port,
                                      enum sp_signal *signals)
 {
 	TRACE("%p, %p", port, signals);
@@ -2430,7 +2430,7 @@ SP_API enum sp_return sp_get_signals(struct sp_port *port,
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_start_break(struct sp_port *port)
+/* SP_API */ enum sp_return sp_start_break(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -2446,7 +2446,7 @@ SP_API enum sp_return sp_start_break(struct sp_port *port)
 	RETURN_OK();
 }
 
-SP_API enum sp_return sp_end_break(struct sp_port *port)
+/* SP_API */ enum sp_return sp_end_break(struct sp_port *port)
 {
 	TRACE("%p", port);
 
@@ -2462,7 +2462,7 @@ SP_API enum sp_return sp_end_break(struct sp_port *port)
 	RETURN_OK();
 }
 
-SP_API int sp_last_error_code(void)
+/* SP_API */ int sp_last_error_code(void)
 {
 	TRACE_VOID();
 #ifdef _WIN32
@@ -2472,7 +2472,7 @@ SP_API int sp_last_error_code(void)
 #endif
 }
 
-SP_API char *sp_last_error_message(void)
+/* SP_API */ char *sp_last_error_message(void)
 {
 	TRACE_VOID();
 
@@ -2499,7 +2499,7 @@ SP_API char *sp_last_error_message(void)
 #endif
 }
 
-SP_API void sp_free_error_message(char *message)
+/* SP_API */ void sp_free_error_message(char *message)
 {
 	TRACE("%s", message);
 
@@ -2512,7 +2512,7 @@ SP_API void sp_free_error_message(char *message)
 	RETURN();
 }
 
-SP_API void sp_set_debug_handler(void (*handler)(const char *format, ...))
+/* SP_API */ void sp_set_debug_handler(void (*handler)(const char *format, ...))
 {
 	TRACE("%p", handler);
 
@@ -2521,7 +2521,7 @@ SP_API void sp_set_debug_handler(void (*handler)(const char *format, ...))
 	RETURN();
 }
 
-SP_API void sp_default_debug_handler(const char *format, ...)
+/* SP_API */ void sp_default_debug_handler(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -2532,42 +2532,42 @@ SP_API void sp_default_debug_handler(const char *format, ...)
 	va_end(args);
 }
 
-SP_API int sp_get_major_package_version(void)
+/* SP_API */ int sp_get_major_package_version(void)
 {
 	return SP_PACKAGE_VERSION_MAJOR;
 }
 
-SP_API int sp_get_minor_package_version(void)
+/* SP_API */ int sp_get_minor_package_version(void)
 {
 	return SP_PACKAGE_VERSION_MINOR;
 }
 
-SP_API int sp_get_micro_package_version(void)
+/* SP_API */ int sp_get_micro_package_version(void)
 {
 	return SP_PACKAGE_VERSION_MICRO;
 }
 
-SP_API const char *sp_get_package_version_string(void)
+/* SP_API */ const char *sp_get_package_version_string(void)
 {
 	return SP_PACKAGE_VERSION_STRING;
 }
 
-SP_API int sp_get_current_lib_version(void)
+/* SP_API */ int sp_get_current_lib_version(void)
 {
 	return SP_LIB_VERSION_CURRENT;
 }
 
-SP_API int sp_get_revision_lib_version(void)
+/* SP_API */ int sp_get_revision_lib_version(void)
 {
 	return SP_LIB_VERSION_REVISION;
 }
 
-SP_API int sp_get_age_lib_version(void)
+/* SP_API */ int sp_get_age_lib_version(void)
 {
 	return SP_LIB_VERSION_AGE;
 }
 
-SP_API const char *sp_get_lib_version_string(void)
+/* SP_API */ const char *sp_get_lib_version_string(void)
 {
 	return SP_LIB_VERSION_STRING;
 }

@@ -110,6 +110,7 @@ namespace Coconut
 
 	bool Window::Init()
 	{
+		debug("Window: {}", __FUNCTION__);
 		if (!InitGLFW())
 		{
 			return false;
@@ -130,17 +131,22 @@ namespace Coconut
 
 	bool Window::InitGLFW()
 	{
-
+		debug("Window: {}", __FUNCTION__);
 		/* Initialize the library */
 		if (!glfwInit())
 		{
 			return false;
 		}
-
+		debug("Window: {} passed glfwInit()", __FUNCTION__);
 		/* Create a windowed mode window and its OpenGL context */
 		//glfwWindowHint(GLFW_SAMPLES, 8);
 		#ifdef WIN32
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+			glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 		#endif
 		#ifdef __APPLE__
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -156,16 +162,25 @@ namespace Coconut
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 		#endif
+		
+		debug("Window: {} passed set hints", __FUNCTION__);
+		
 		mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, mName.c_str(), nullptr,nullptr);
 
+		
+		
 		if (mWindow == nullptr)
 		{
 			glfwTerminate();
 			return false;
 		}
-
+		
+		debug("Window: {} created window", __FUNCTION__);
+		
 		glfwMakeContextCurrent(mWindow);
-
+		
+		debug("Window: {} got ctx", __FUNCTION__);
+		
 		glfwSetErrorCallback(GlfwErrorCallback);
 		glfwSetFramebufferSizeCallback(mWindow, FramebufferSizeCallback);
 		glfwSwapInterval(1);
@@ -176,7 +191,8 @@ namespace Coconut
 
 		glfwGetFramebufferSize(mWindow, &mWindowWidth, &mWindowHeight);
         glfwSetWindowCloseCallback(mWindow, WindowShouldCloseCallback);
-        GLCheckError();
+        
+		GLCheckError();
 		return true;
 	}
 
@@ -219,6 +235,7 @@ namespace Coconut
 
 	bool Window::InitGL()
 	{
+		debug("Window: {}", __FUNCTION__);
         if(!gladLoadGL())
         {
 			error("Window: Error initialising GLAD!\n");

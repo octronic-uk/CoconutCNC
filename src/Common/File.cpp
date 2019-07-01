@@ -23,6 +23,10 @@
 
 #include "Logger.h"
 
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+
 using std::istreambuf_iterator;
 using std::ios;
 using std::stringstream;

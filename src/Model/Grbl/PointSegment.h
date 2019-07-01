@@ -31,14 +31,14 @@ namespace Coconut
 		PointSegment(const GCodeCommand& parent);
 		PointSegment(const PointSegment& ps);
 		PointSegment(const GCodeCommand& parent, const vec3 &b, int num);
-		PointSegment(const GCodeCommand& parent, const vec3 &GetPointHandle, int num, const vec3 &center, double radius, bool clockwise);
+		PointSegment(const GCodeCommand& parent, const vec3 &GetPointHandle, int num, const vec3 &center, float radius, bool clockwise);
 		~PointSegment();
 
         PointSegment& operator=(const PointSegment&);
 
 		vec3& GetPoint();
 
-		vector<double> Points() const;
+		vector<float> Points() const;
 
 		void SetToolHead(int head);
 		int GetToolhead() const;
@@ -46,8 +46,8 @@ namespace Coconut
 		void SetLineNumber(int num);
 		int GetLineNumber() const;
 
-		void SetSpeed(double s);
-		double GetSpeed() const;
+		void SetSpeed(float s);
+		float GetSpeed() const;
 
 		void SetIsZMovement(bool isZ);
 		bool IsZMovement() const;
@@ -63,14 +63,14 @@ namespace Coconut
 
 		void SetArcCenter(const vec3 &center);
 
-		vector<double> CenterPoints() const;
+		vector<float> CenterPoints() const;
 		vec3& Center();
 
 		void SetIsClockwise(bool clockwise);
 		bool IsClockwise() const;
 
-		void SetRadius(double rad);
-		double GetRadius() const;
+		void SetRadius(float rad);
+		float GetRadius() const;
 
 		void ConvertToMetric();
 
@@ -80,11 +80,11 @@ namespace Coconut
 		planes Plane() const;
 		void SetPlane(const planes &plane);
 
-		double GetSpindleSpeed() const;
-		void SetSpindleSpeed(double spindleSpeed);
+		float GetSpindleSpeed() const;
+		void SetSpindleSpeed(float spindleSpeed);
 
-		double GetDwell() const;
-		void SetDwell(double dwell);
+		float GetDwell() const;
+		void SetDwell(float dwell);
 
 		const GCodeCommand& GetParent() const;
 
@@ -92,9 +92,9 @@ namespace Coconut
 		const GCodeCommand& mParent;
 		ArcProperties mArcProperties;
 		int mToolhead;
-		double mSpeed;
-		double mSpindleSpeed;
-		double mDwell;
+		float mSpeed;
+		float mSpindleSpeed;
+		float mDwell;
 		vec3 mPoint;
 		bool mIsMetric;
 		bool mIsZMovement;

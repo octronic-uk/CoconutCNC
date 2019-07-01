@@ -4,6 +4,7 @@
 #pragma once
 
 #include "GLWidget.h"
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <glm/vec3.hpp>
