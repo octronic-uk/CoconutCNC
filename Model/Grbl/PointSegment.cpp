@@ -241,16 +241,16 @@ namespace Coconut
 		}
 
 		mIsMetric = true;
-		mPoint.x = mPoint.x * 25.4;
-		mPoint.y = mPoint.y * 25.4;
-		mPoint.z = mPoint.z * 25.4;
+		mPoint.x = mPoint.x * 25.4f;
+		mPoint.y = mPoint.y * 25.4f;
+		mPoint.z = mPoint.z * 25.4f;
 
 		if (mIsArc)
 		{
-			mArcProperties.center.x = mArcProperties.center.x * 25.4;
-			mArcProperties.center.y = mArcProperties.center.y * 25.4;
-			mArcProperties.center.z = mArcProperties.center.z * 25.4;
-			mArcProperties.radius *= 25.4;
+			mArcProperties.center.x = mArcProperties.center.x * 25.4f;
+			mArcProperties.center.y = mArcProperties.center.y * 25.4f;
+			mArcProperties.center.z = mArcProperties.center.z * 25.4f;
+			mArcProperties.radius *= 25.4f;
 		}
 	}
 

@@ -9,7 +9,6 @@
 
 #include "LineSegment.h"
 #include "GCodeParser.h"
-#include "Util.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 

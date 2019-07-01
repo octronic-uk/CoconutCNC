@@ -21,6 +21,7 @@ if (WIN32)
   message("MSVC Version: ${MSVC_VERSION} | Toolset: ${MSVC_TOOLSET_VERSION}")
 endif()
 
+
 file(GLOB TOP_SRC_FILES "*.cpp" "*.h")
 
 file(
@@ -32,21 +33,23 @@ file(
 )
 
 find_package(Freetype REQUIRED)
-find_package(glm      REQUIRED)
 find_package(GLEW     REQUIRED)
 find_package(glfw3    REQUIRED)
 find_package(OpenGL   REQUIRED)
-find_package(spdlog   CONFIG REQUIRED)
-find_package(nlohmann_json REQUIRED)
 
+set(SPDLOG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/spdlog/include")
 set(IMGUI_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/ImGui")
 set(NFD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/src/include")
 set(NFD_LIBRARY_MAC "${PROJECT_SOURCE_DIR}/Deps/NativeFileDialog114/build/lib/Release/x64/libnfd.a")
+set(JSON_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/nlohmann/")
+set(GLM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Deps/glm/")
 
+message("json @ ${JSON_INCLUDE_DIR}")
 add_executable (
 	${PROJECT_NAME}
 	${TOP_SRC_FILES}
 	${SRC_FILES}
+	${SPDLOG_SRC_FILSE}
 )
 
 if (WIN32)
@@ -55,10 +58,11 @@ if (WIN32)
 		${GLM_INCLUDE_DIR}
 		${glfw3_INCLUDE_DIR}
 		${OpenGL_INCLUDE_DIR}
-		${spdlog_INCLUDE_DIR}
-		${nlohmann_json_INCLUDE_DIR}
+		# In /Deps
+		${JSON_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
 		${NFD_INCLUDE_DIR}
+		${SPDLOG_INCLUDE_DIR}
 	)
     target_link_libraries(
 		${PROJECT_NAME}
@@ -73,13 +77,14 @@ elseif (UNIX AND NOT APPLE)
 
 	include_directories(
 		${Freetype_INCLUDE_DIRS}
-		${GLM_INCLUDE_DIR}
 		${glfw3_INCLUDE_DIR}
 		${OpenGL_INCLUDE_DIR}
-		${spdlog_INCLUDE_DIR}
-	    ${nlohmann_json_INCLUDE_DIR}
+		# In /Deps
+		${GLM_INCLUDE_DIR}
+	    ${JSON_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
     	${NFD_INCLUDE_DIR}
+		${SPDLOG_INCLUDE_DIR}
 	)
     target_link_libraries(
 		${PROJECT_NAME}
@@ -87,8 +92,8 @@ elseif (UNIX AND NOT APPLE)
 		-lpthread
 		-ldl
 		-lserialport
-		${GLEW_LIBRARY}
 		glfw
+		${GLEW_LIBRARY}
 		${Freetype_LIBRARY}
 		${OPENGL_LIBRARIES}
 	)
@@ -96,28 +101,31 @@ elseif (UNIX AND NOT APPLE)
 elseif (APPLE)
 	include_directories(
 		${Freetype_INCLUDE_DIRS}
-		${GLM_INCLUDE_DIR}
 		${glfw3_INCLUDE_DIR}
+		${GLEW_INCLUDE_DIR}
+		# In /Deps
+		${GLM_INCLUDE_DIR}
 		${OpenGL_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
     	${NFD_INCLUDE_DIR}
+		${JSON_INCLUDE_DIR}
+		${SPDLOG_INCLUDE_DIR}
 	)
     target_link_libraries(
 		${PROJECT_NAME}
 		#libGrbl
 		-lpthread
 		-ldl
-		/usr/local/lib/libserialport.a
-		${NFD_LIBRARY_MAC}
 		"-framework IOKit"
 		"-framework AppKit"
 		"-framework OpenGL"
 		"-framework CoreFoundation"
 		"-framework Carbon"
-		${GLEW_LIBRARY}
+		/usr/local/lib/libserialport.a
+		${NFD_LIBRARY_MAC}
 		glfw
+		${GLEW_LIBRARY}
 		${Freetype_LIBRARY}
-		spdlog::spdlog
 	)
 endif()
 

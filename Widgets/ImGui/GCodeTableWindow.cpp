@@ -47,6 +47,7 @@ namespace Coconut
         {
 			// Table
 			ImGui::Columns(4);
+            ImGui::SetColumnWidth(0,100);
 
 			// Header
 

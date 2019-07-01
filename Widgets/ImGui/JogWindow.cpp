@@ -28,7 +28,7 @@ namespace Coconut
         ImVec2 buttonSize(-1, 20);
 
         // Row 1
-        ImGui::Columns(4);
+        ImGui::Columns(4,0,false);
 
         if (ImGui::Button("-X/+Y", buttonSize))
         {

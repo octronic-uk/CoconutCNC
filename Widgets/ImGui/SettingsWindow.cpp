@@ -196,9 +196,11 @@ namespace Coconut
 
     void SettingsWindow::DrawMachineSettings()
     {
+        ImGui::Columns(2);
+
         MachineSettings& ms = mAppState->GetSettingsModel().GetMachineSettings();
         ImGui::DragFloat("Status Query Period", ms.GetQueryPeriodPtr());
-
+		ImGui::NextColumn();
 
         const char* data = ms.GetSafePositionCmds().c_str();
         char safePosBuffer[BUFSIZ] = {0};
@@ -207,13 +209,16 @@ namespace Coconut
         {
     		ms.SetSafePositionCmds(string(safePosBuffer));
     	}
+		ImGui::NextColumn();
 
         const char* probeCmdData = ms.GetProbeCmds().c_str();
         char probeCmdsBuffer[BUFSIZ] = {0};
         strncpy(probeCmdsBuffer,probeCmdData,BUFSIZ);
         ImGui::InputText("Z Probe Command",probeCmdsBuffer,BUFSIZ);
+		ImGui::NextColumn();
 
         ImGui::InputFloat3("Working Area", ms.GetWorkAreaArray());
+		ImGui::NextColumn();
     }
 
     void SettingsWindow::DrawToolHolderSettings()
@@ -535,26 +540,26 @@ namespace Coconut
 			grbl.SendManualGCodeCommand(GCodeCommand::GetFirmwareConfigurationCommand());
         }
 
-        ImGui::SameLine();
-
-        if (ImGui::Button("Write Firmware Settings"))
-        {
-
-        }
-
         ImGui::BeginChild("Table");
-        ImGui::Columns(3);
+        ImGui::Columns(4);
+        ImGui::SetColumnWidth(0,50);
         ImGui::Text("Variable"); ImGui::NextColumn();
         ImGui::Text("Description"); ImGui::NextColumn();
         ImGui::Text("Value"); ImGui::NextColumn();
+        ImGui::Text("Set"); ImGui::NextColumn();
 
         ImGui::Separator();
 
         for (pair<int,string> p : GrblConfigurationModel::ConfigurationKeys)
         {
             ImGui::PushID(p.first);
-			ImGui::Text("$%d",p.first); ImGui::NextColumn();
-			ImGui::Text("%s",p.second.c_str()); ImGui::NextColumn();
+
+			ImGui::Text("$%d",p.first);
+            ImGui::NextColumn();
+
+			ImGui::Text("%s",p.second.c_str());
+            ImGui::NextColumn();
+
             char buf[BUFSIZ] = {0};
             strncpy(buf, configModel.GetValue(p.first).c_str(),BUFSIZ);
             ImGui::PushItemWidth(-1);
@@ -563,6 +568,13 @@ namespace Coconut
                configModel.SetValue(p.first,buf);
             }
             ImGui::NextColumn();
+
+            if (ImGui::Button("Set"))
+            {
+
+            }
+            ImGui::NextColumn();
+
         	ImGui::Separator();
             ImGui::PopID();
         }

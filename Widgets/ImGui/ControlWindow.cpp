@@ -23,7 +23,7 @@ namespace Coconut
 
         ImVec2 buttonSize(-1, 20);
 
-        ImGui::Columns(3);
+        ImGui::Columns(3,0,false);
 
         // Row 1
         if (ImGui::Button("Home", buttonSize))
