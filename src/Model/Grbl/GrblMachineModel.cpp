@@ -78,7 +78,7 @@ namespace Coconut
     {
     	SerialPortModel& sp = mAppState->GetSerialPortModel();
 		{
-			string str_in = sp.Read();
+			string str_in = sp.ReadLine();
             int buffer = 0;
 			if (!str_in.empty())
 			{
@@ -135,6 +135,8 @@ namespace Coconut
             {
 				RequestStatus();
             }
+
+			WriteManualGCodeCommands();
 
             if (mProgramRunning)
             {
@@ -299,8 +301,6 @@ namespace Coconut
 					next.SetResponse(response);
 					next.SetState(GCodeCommandState::Processed);
 					mProcessedCommandsCount++;
-					//emit updateProgramTableStatusSignal(next);
-					//emit setCompletionProgressSignal(GetProcessedPercent());
 
 					if (next.IsM30Command())
 					{
@@ -419,7 +419,7 @@ namespace Coconut
 		mMachinePosition = vec3(0.0);
 		mWorkPosition = vec3(0.0,0.0,0.0);
 		mWorkCoordinateOffset = vec3(0.0,0.0,0.0);
-		mStatusInterval = 1000.0f/ 20.0f;
+		mStatusInterval = 1000.0f/ 5.0f;
 		mProcessedCommandsCount= 0;
 		mCommandQueueInitialSize = 0;
 		mFeedOverride = 100;
@@ -431,7 +431,6 @@ namespace Coconut
         mProgramIndex = 0;
 		mErrorCode = -1;
         mBufferUsedPercentage = 0.0f;
-		mBytesWaiting = 0;
 		mStatusRequested = false;
 		mProgramRunning = false;
 		mFeedRate = 10.f;
@@ -488,7 +487,7 @@ namespace Coconut
 			else
 			{
 				debug("GrblMachineModel: Writing", command.GetCommand());
-				mBytesWaiting += serial_port.Write(command.GetCommand());
+				serial_port.Write(command.GetCommand());
 				command.SetState(GCodeCommandState::Sent);
 				mGrblCommandBuffer.push_back(command);
 				AppendCommandToConsole(command);
@@ -569,24 +568,37 @@ namespace Coconut
 		}
 	}
 
+	void GrblMachineModel::WriteManualGCodeCommands()
+	{
+		std::lock_guard<mutex> guard(mManualCommandQueueMutex);
+		bool was_program_running = mProgramRunning;
+		mProgramRunning = false;
+		SerialPortModel& serial_port = mAppState->GetSerialPortModel();
+		for (const GCodeCommand& command : mManualCommandQueue)
+		{
+				if (command.GetRawCommand() > 0)
+				{
+					debug("GrblMachineController: Manual Raw Gcode Send 0x{}", command.GetRawCommand());
+					char c = command.GetRawCommand();
+					serial_port.Write(&c);
+				}
+				else
+				{
+					debug("GrblMachineController: Manual ASCII Gcode Send {}", command.GetCommand());
+					serial_port.Write(command.GetCommand());
+				}
+				AppendCommandToConsole(command);
+			
+		}
+		mManualCommandQueue.clear();
+		mProgramRunning = was_program_running;
+	}
+
+
 	void GrblMachineModel::SendManualGCodeCommand(const GCodeCommand& command)
 	{
-        SerialPortModel& serial_port = mAppState->GetSerialPortModel();
-		if (serial_port.IsPortOpen())
-		{
-			if (command.GetRawCommand() > 0)
-			{
-				debug("GrblMachineController: Manual Raw Gcode Send 0x{}", command.GetRawCommand());
-				char c = command.GetRawCommand();
-				mBytesWaiting += serial_port.Write(&c);
-			}
-			else
-			{
-				debug("GrblMachineController: Manual ASCII Gcode Send {}" ,command.GetCommand());
-				mBytesWaiting += serial_port.Write(command.GetCommand());
-			}
-			AppendCommandToConsole(command);
-		}
+		std::lock_guard<mutex> guard(mManualCommandQueueMutex);
+		mManualCommandQueue.push_back(command);
 	}
 
 	void GrblMachineModel::UpdateRapidOverride(float rate)

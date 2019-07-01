@@ -31,13 +31,18 @@ namespace Coconut
        }
 
        info("SerialPortModel: {} :{} ",__FUNCTION__,mPortName);
+	   
 
+	   mPort.setBytesize(serial::bytesize_t::eightbits);
        mPort.setStopbits(serial::stopbits_t::stopbits_one);
        mPort.setParity(serial::parity_t::parity_none);
+	   mPort.setFlowcontrol(serial::flowcontrol_none);
+	   mPort.setTimeout(serial::Timeout::simpleTimeout(mTimeout));
        mPort.setBaudrate(mBaudRate);
        mPort.setPort(mPortName);
 
-       mPort.open();
+	   mPort.open();
+       
        if (mPort.isOpen())
        {
        	info("SerialPortModel: Successfuly Opened serial port");
@@ -102,6 +107,7 @@ namespace Coconut
             return -1;
         }
         int bw = mPort.write((const uint8_t*)data.c_str(),data.size());
+	
         debug("SerialPortModel: {} : wrote {} bytes {}",__FUNCTION__,bw,data);
         return bw;
     }

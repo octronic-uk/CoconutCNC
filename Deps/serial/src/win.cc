@@ -1,7 +1,7 @@
 #if defined(_WIN32)
 
 /* Copyright 2012 William Woodall and John Harrison */
-
+#pragma comment(lib, "Setupapi.lib")
 #include <sstream>
 
 #include "serial/impl/win.h"
